@@ -63,7 +63,9 @@ export class MeetingManager {
             setTimeout(() => {
                 if (this.active) {
                     const victimName = localPlayer.witnessedVictimName ? localPlayer.witnessedVictimName.toUpperCase() : "SOMEONE";
-                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    const msgText = localPlayer.witnessedViaCams ?
+                        `🚨 I SAW IN CAMS THAT ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName}! IT'S THEM!` :
+                        `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
                     this.sendUserChatMessage(msgText, localPlayer.name, players);
                 }
             }, 1000);
@@ -153,7 +155,11 @@ export class MeetingManager {
                 let lineText = "";
                 if (bot.witnessedKillerName) {
                     const victimName = bot.witnessedVictimName ? bot.witnessedVictimName.toUpperCase() : "SOMEONE";
-                    lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    if (bot.witnessedViaCams) {
+                        lineText = `🚨 I SAW IN CAMS THAT ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName}! IT'S THEM!`;
+                    } else {
+                        lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    }
                 } else if (this.accusedId !== null && Math.random() < 0.5) {
                     const accusedPlayer = players.find(p => p.id === this.accusedId);
                     if (accusedPlayer) {

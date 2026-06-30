@@ -1664,6 +1664,11 @@ class AIController {
             const dist = Math.hypot(dx, dy);
 
             if (dist < 30) {
+                if (targetNode.isEmergencyButtonTrigger) {
+                    bot.currentPath = [];
+                    onReportBody(bot, null);
+                    return;
+                }
                 if (targetNode.isEngineFix) {
                     sabotageSystem.fixSabotage();
                     soundManager.playTaskComplete();
@@ -1807,7 +1812,9 @@ class MeetingManager {
             setTimeout(() => {
                 if (this.active) {
                     const victimName = localPlayer.witnessedVictimName ? localPlayer.witnessedVictimName.toUpperCase() : "SOMEONE";
-                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    const msgText = localPlayer.witnessedViaCams ?
+                        `🚨 I SAW IN CAMS THAT ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName}! IT'S THEM!` :
+                        `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
                     this.sendUserChatMessage(msgText, localPlayer.name, players);
                 }
             }, 1000);
@@ -1889,7 +1896,11 @@ class MeetingManager {
                 let lineText = "";
                 if (bot.witnessedKillerName) {
                     const victimName = bot.witnessedVictimName ? bot.witnessedVictimName.toUpperCase() : "SOMEONE";
-                    lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    if (bot.witnessedViaCams) {
+                        lineText = `🚨 I SAW IN CAMS THAT ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName}! IT'S THEM!`;
+                    } else {
+                        lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
+                    }
                 } else if (this.accusedId !== null && Math.random() < 0.5) {
                     const accusedPlayer = players.find(p => p.id === this.accusedId);
                     if (accusedPlayer) {
@@ -2603,13 +2614,45 @@ class Game {
 
     recordKillWitnesses(killer, victim) {
         if (!killer || !victim) return;
+        
+        // Check if kill happened on cameras
+        const feeds = [
+            { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
+            { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+            { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
+            { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
+        ];
+        const onCamera = feeds.some(f => 
+            victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
+            victim.y >= f.bounds.yMin && victim.y <= f.bounds.yMax
+        );
+
         this.players.forEach(p => {
             if (!p.isDead && p.role !== 'Dog') {
                 const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
-                if (distToKill <= 280) { // witnessed the kill!
+                const isWatchingCams = Math.hypot(p.x - 380, p.y - 750) <= 90;
+                
+                if (distToKill <= 280) {
                     p.witnessedKillerId = killer.id;
                     p.witnessedKillerName = killer.name;
                     p.witnessedVictimName = victim.name;
+                    p.witnessedViaCams = false;
+                } else if (onCamera && isWatchingCams) {
+                    p.witnessedKillerId = killer.id;
+                    p.witnessedKillerName = killer.name;
+                    p.witnessedVictimName = victim.name;
+                    p.witnessedViaCams = true;
+                    
+                    if (!p.isLocalPlayer) {
+                        p.taskTimer = 0;
+                        p.currentTaskToComplete = null;
+                        p.currentPath = [
+                            { x: 650, y: 875 },
+                            { x: 1800, y: 875 },
+                            { x: 1800, y: 470 },
+                            { x: 1800, y: 280, isEmergencyButtonTrigger: true }
+                        ];
+                    }
                 }
             }
         });

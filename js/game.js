@@ -221,6 +221,52 @@ class Game {
         }
     }
 
+    recordKillWitnesses(killer, victim) {
+        if (!killer || !victim) return;
+        
+        // Check if kill happened on cameras
+        const feeds = [
+            { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
+            { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+            { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
+            { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
+        ];
+        const onCamera = feeds.some(f => 
+            victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
+            victim.y >= f.bounds.yMin && victim.y <= f.bounds.yMax
+        );
+
+        this.players.forEach(p => {
+            if (!p.isDead && p.role !== 'Dog') {
+                const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
+                const isWatchingCams = Math.hypot(p.x - 380, p.y - 750) <= 90;
+                
+                if (distToKill <= 280) {
+                    p.witnessedKillerId = killer.id;
+                    p.witnessedKillerName = killer.name;
+                    p.witnessedVictimName = victim.name;
+                    p.witnessedViaCams = false;
+                } else if (onCamera && isWatchingCams) {
+                    p.witnessedKillerId = killer.id;
+                    p.witnessedKillerName = killer.name;
+                    p.witnessedVictimName = victim.name;
+                    p.witnessedViaCams = true;
+                    
+                    if (!p.isLocalPlayer) {
+                        p.taskTimer = 0;
+                        p.currentTaskToComplete = null;
+                        p.currentPath = [
+                            { x: 650, y: 875 },
+                            { x: 1800, y: 875 },
+                            { x: 1800, y: 470 },
+                            { x: 1800, y: 280, isEmergencyButtonTrigger: true }
+                        ];
+                    }
+                }
+            }
+        });
+    }
+
     handleReviveAction() {
         if (this.localPlayer.role !== 'Medic' || this.localPlayer.isDead || this.localPlayer.reviveUses <= 0) return;
 

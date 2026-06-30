@@ -181,6 +181,11 @@ export class AIController {
             const dist = Math.hypot(dx, dy);
 
             if (dist < 30) {
+                if (targetNode.isEmergencyButtonTrigger) {
+                    bot.currentPath = [];
+                    onReportBody(bot, null);
+                    return;
+                }
                 if (targetNode.isEngineFix) {
                     sabotageSystem.fixSabotage();
                     soundManager.playTaskComplete();
