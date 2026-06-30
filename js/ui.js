@@ -33,6 +33,10 @@ export class UIManager {
         document.getElementById('prev-cats-btn').onclick = () => this.changeCats(-1);
         document.getElementById('next-cats-btn').onclick = () => this.changeCats(1);
 
+        // Role Selectors
+        document.getElementById('prev-role-btn').onclick = () => this.changeRole(-1);
+        document.getElementById('next-role-btn').onclick = () => this.changeRole(1);
+
         // Role Continue Button
         document.getElementById('role-continue-btn').onclick = () => {
             this.showScreen('hud-screen');
@@ -130,6 +134,15 @@ export class UIManager {
         else if (newAmount > 30) newAmount = 10;
         this.game.catAmount = newAmount;
         document.getElementById('cats-preview-amount').innerText = `${newAmount} Cats`;
+    }
+
+    changeRole(dir) {
+        const roles = ['Random', 'Citizen', 'Captain', 'Guard', 'Engineer', 'Medic', 'Detective', 'evil Dog'];
+        let curIdx = roles.indexOf(this.game.selectedRole || 'Random');
+        if (curIdx === -1) curIdx = 0;
+        const nextIdx = (curIdx + dir + roles.length) % roles.length;
+        this.game.selectedRole = roles[nextIdx];
+        document.getElementById('role-preview-selection').innerText = roles[nextIdx];
     }
 
     showScreen(id) {

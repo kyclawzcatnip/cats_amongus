@@ -3804,6 +3804,8 @@ class UIManager {
         document.getElementById('next-map-btn').onclick = () => this.changeMap(1);
         document.getElementById('prev-cats-btn').onclick = () => this.changeCats(-1);
         document.getElementById('next-cats-btn').onclick = () => this.changeCats(1);
+        document.getElementById('prev-role-btn').onclick = () => this.changeRole(-1);
+        document.getElementById('next-role-btn').onclick = () => this.changeRole(1);
         document.getElementById('role-continue-btn').onclick = () => { this.showScreen('hud-screen'); this.game.state = 'PLAYING'; };
         document.getElementById('close-task-btn').onclick = () => {
             if (this.game.activeTask && this.game.activeTask.type === 'cams') {
@@ -3894,6 +3896,14 @@ class UIManager {
         else if (newAmount > 30) newAmount = 10;
         this.game.catAmount = newAmount;
         document.getElementById('cats-preview-amount').innerText = `${newAmount} Cats`;
+    }
+    changeRole(dir) {
+        const roles = ['Random', 'Citizen', 'Captain', 'Guard', 'Engineer', 'Medic', 'Detective', 'evil Dog'];
+        let curIdx = roles.indexOf(this.game.selectedRole || 'Random');
+        if (curIdx === -1) curIdx = 0;
+        const nextIdx = (curIdx + dir + roles.length) % roles.length;
+        this.game.selectedRole = roles[nextIdx];
+        document.getElementById('role-preview-selection').innerText = roles[nextIdx];
     }
     showScreen(id) {
         if (id === 'task-modal' || id === 'sabotage-modal') {
@@ -4198,7 +4208,7 @@ class Game {
     constructor() {
         window.gameInstance = this;
         this.canvas = document.getElementById('game-canvas'); this.ctx = this.canvas.getContext('2d');
-        this.state = 'MENU'; this.menuColorIndex = 0; this.menuHatIndex = 1; this.selectedMap = 'whisker_station'; this.catAmount = 10;
+        this.state = 'MENU'; this.menuColorIndex = 0; this.selectedRole = 'Random'; this.menuHatIndex = 1; this.selectedMap = 'whisker_station'; this.catAmount = 10;
         this.mapRenderer = new MapRenderer(); this.sabotageSystem = new SabotageSystem();
         this.meetingManager = new MeetingManager(); this.uiManager = new UIManager(this);
         this.players = []; this.localPlayer = null; this.keysPressed = {}; this.activeTask = null; this.activeTaskCleanup = null; this.globalKillTimer = 0;
@@ -4285,6 +4295,18 @@ class Game {
         }
 
         const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
+        
+        // Override local player's role with chosen role if not Random
+        let localPlayerRole = this.selectedRole || 'Random';
+        if (localPlayerRole !== 'Random') {
+            const swapIdx = shuffledRoles.indexOf(localPlayerRole);
+            if (swapIdx !== -1) {
+                shuffledRoles[swapIdx] = shuffledRoles[0];
+                shuffledRoles[0] = localPlayerRole;
+            } else {
+                shuffledRoles[0] = localPlayerRole;
+            }
+        }
 
         const botNames = [
             'Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield',

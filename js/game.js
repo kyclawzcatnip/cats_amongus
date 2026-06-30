@@ -18,6 +18,7 @@ class Game {
         
         this.state = 'MENU'; // MENU | ROLE_REVEAL | PLAYING | MEETING | EJECT | GAME_OVER
         this.menuColorIndex = 0;
+        this.selectedRole = 'Random';
         this.menuHatIndex = 1;
         this.selectedMap = 'whisker_station';
         this.catAmount = 10;
@@ -105,6 +106,18 @@ class Game {
         }
 
         const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
+        
+        // Override local player's role with chosen role if not Random
+        let localPlayerRole = this.selectedRole || 'Random';
+        if (localPlayerRole !== 'Random') {
+            const swapIdx = shuffledRoles.indexOf(localPlayerRole);
+            if (swapIdx !== -1) {
+                shuffledRoles[swapIdx] = shuffledRoles[0];
+                shuffledRoles[0] = localPlayerRole;
+            } else {
+                shuffledRoles[0] = localPlayerRole;
+            }
+        }
 
         const botNames = [
             'Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield',
