@@ -979,22 +979,22 @@ const CATHQ_ROOMS = [
 const CATHQ_CORRIDORS = [
     // Central Spine (x = 2000)
     { x1: 2000, y1: 500, x2: 2000, y2: 2450, width: 120 },
-    // Left Spine (x = 900)
-    { x1: 900, y1: 570, x2: 900, y2: 2450, width: 100 },
-    // Right Spine (x = 3100)
-    { x1: 3100, y1: 570, x2: 3100, y2: 2450, width: 100 },
+    // Left Spine (x = 850)
+    { x1: 850, y1: 570, x2: 850, y2: 2450, width: 100 },
+    // Right Spine (x = 3150)
+    { x1: 3150, y1: 570, x2: 3150, y2: 2450, width: 100 },
     // Top Horizontal Corridor (y = 570)
-    { x1: 900, y1: 570, x2: 3100, y2: 570, width: 100 },
+    { x1: 850, y1: 570, x2: 3150, y2: 570, width: 100 },
     // Quarters Horizontal Corridor (y = 910)
-    { x1: 900, y1: 910, x2: 3100, y2: 910, width: 100 },
+    { x1: 850, y1: 910, x2: 3150, y2: 910, width: 100 },
     // Middle Horizontal Corridor (y = 1170)
     { x1: 650, y1: 1170, x2: 3350, y2: 1170, width: 100 },
     // Storage/Kitchen Horizontal Corridor (y = 1460)
-    { x1: 900, y1: 1460, x2: 3100, y2: 1460, width: 100 },
+    { x1: 850, y1: 1460, x2: 3150, y2: 1460, width: 100 },
     // Lower Middle Horizontal Corridor (y = 1720)
     { x1: 650, y1: 1720, x2: 3350, y2: 1720, width: 100 },
     // Bottom Horizontal Corridor (y = 2400)
-    { x1: 900, y1: 2400, x2: 3100, y2: 2400, width: 100 }
+    { x1: 850, y1: 2400, x2: 3150, y2: 2400, width: 100 }
 ];
 
 const ROOMS = [...WHISKER_STATION_ROOMS];
@@ -2737,9 +2737,9 @@ class AIController {
                 fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1620 } },
                 kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1620 } },
                 comms: { center: { x: 3350, y: 1460 }, door: { x: 3150, y: 1460 } },
-                records: { center: { x: 675, y: 2010 }, door: { x: 900, y: 2010 } },
+                records: { center: { x: 675, y: 2010 }, door: { x: 850, y: 2010 } },
                 cargo_bay: { center: { x: 2000, y: 2100 }, door: { x: 2000, y: 1900 } },
-                workshop: { center: { x: 3325, y: 2010 }, door: { x: 3100, y: 2010 } },
+                workshop: { center: { x: 3325, y: 2010 }, door: { x: 3150, y: 2010 } },
                 yarn_engine: { center: { x: 1250, y: 2550 }, door: { x: 1250, y: 2350 } },
                 shields: { center: { x: 2750, y: 2550 }, door: { x: 2750, y: 2350 } }
             };
