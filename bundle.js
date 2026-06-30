@@ -4716,13 +4716,16 @@ class Game {
                             if (p.health <= 0) {
                                 p.isDead = true;
                                 p.killedByInvader = true;
-                                this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
+                                this.reassignDeadCatTasks(p);
+                                this.checkWinConditions();
                             }
                         } else {
                             soundManager.playDefeat();
                             if (p.health <= 0) {
                                 p.isDead = true;
                                 p.killedByInvader = true;
+                                this.reassignDeadCatTasks(p);
+                                this.checkWinConditions();
                             } else {
                                 p.isFleeing = true;
                                 p.fleeTimer = 3.0;
