@@ -1532,7 +1532,8 @@ class MeetingManager {
         if (localPlayer && !localPlayer.isDead && localPlayer.witnessedKillerName) {
             setTimeout(() => {
                 if (this.active) {
-                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE SOMEONE IN FRONT OF ME! IT'S THEM!`;
+                    const victimName = localPlayer.witnessedVictimName ? localPlayer.witnessedVictimName.toUpperCase() : "SOMEONE";
+                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
                     this.sendUserChatMessage(msgText, localPlayer.name, players);
                 }
             }, 1000);
@@ -1613,7 +1614,8 @@ class MeetingManager {
                 if (!this.active) return;
                 let lineText = "";
                 if (bot.witnessedKillerName) {
-                    lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE SOMEONE IN FRONT OF ME! IT'S THEM!`;
+                    const victimName = bot.witnessedVictimName ? bot.witnessedVictimName.toUpperCase() : "SOMEONE";
+                    lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE ${victimName} IN FRONT OF ME! IT'S THEM!`;
                 } else if (this.accusedId !== null && Math.random() < 0.5) {
                     const accusedPlayer = players.find(p => p.id === this.accusedId);
                     if (accusedPlayer) {
@@ -1632,6 +1634,11 @@ class MeetingManager {
                         `I saw someone vent near ${room}! Super suspicious!`,
                         `If we're not sure, let's skip this vote.`
                     ];
+                    if (this.bodyPlayer) {
+                        lines.push(`Oh no, they got ${this.bodyPlayer.name}! 😢`);
+                        lines.push(`Poor ${this.bodyPlayer.name}! Who did it?`);
+                        lines.push(`Wait, where was ${this.bodyPlayer.name}'s body?`);
+                    }
                     if (this.bodyPlayer) {
                         lines.push(`Where exactly did you find ${this.bodyPlayer.name}'s body?`);
                         lines.push(`I saw ${otherBot} walking away from ${room} right before the report!`);
