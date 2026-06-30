@@ -280,7 +280,11 @@ export class UIManager {
 
         const bridge = ROOMS.find(r => r.id === 'bridge');
         if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {
-            canUse = true; useText = "BUTTON"; useIcon = "🚨";
+            if (this.game.defensiveProtocolActive) {
+                canUse = true; useText = "LOCKED"; useIcon = "🔒";
+            } else {
+                canUse = true; useText = "BUTTON"; useIcon = "🚨";
+            }
         }
         
         const security = ROOMS.find(r => r.id === 'security');

@@ -225,6 +225,15 @@ class Game {
         const bridge = ROOMS.find(r => r.id === 'bridge');
         const distToButton = Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY);
         if (distToButton <= 45) {
+            if (this.defensiveProtocolActive) {
+                // Show floating warning notification
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#d63031; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #ff7675;';
+                banner.innerText = '🚨 BUTTON LOCKED DURING DEFENSIVE PROTOCOL! 🚨';
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 2500);
+                return;
+            }
             this.triggerMeeting(this.localPlayer, null);
             return;
         }
@@ -461,6 +470,7 @@ class Game {
     }
 
     triggerMeeting(reporter, bodyPlayer) {
+        if (this.defensiveProtocolActive) return;
         if (this.sabotageSystem) {
             this.sabotageSystem.fixSabotage();
         }
