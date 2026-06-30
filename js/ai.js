@@ -425,7 +425,7 @@ export class AIController {
                             if (tkLoc) taskTarget = { ...tkLoc, taskObj: hasWeaponTask };
                         }
                     } else {
-                        targetKey = 'weapons';
+                        targetKey = (selectedMap === 'catnip_observatory') ? 'laser_weapons' : 'weapons';
                     }
                 } else if (bot.gunAmmo === 0) {
                     // Go to Workshop to reload
