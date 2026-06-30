@@ -270,20 +270,22 @@ class Game {
             this.mapRenderer.cameraX = this.localPlayer.x;
             this.mapRenderer.cameraY = this.localPlayer.y;
         }
-        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie) => {
-            this.showEjectionScreen(ejectedPlayer, isTie);
+        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie, isSkipped) => {
+            this.showEjectionScreen(ejectedPlayer, isTie, isSkipped);
         });
     }
 
-    showEjectionScreen(ejectedPlayer, isTie) {
+    showEjectionScreen(ejectedPlayer, isTie, isSkipped) {
         this.state = 'EJECT';
         this.uiManager.showScreen('eject-screen');
 
         const textEl = document.getElementById('eject-result-text');
         const remEl = document.getElementById('eject-remaining-text');
 
-        if (isTie || !ejectedPlayer) {
+        if (isTie) {
             textEl.innerText = 'No one was ejected. (Tie vote)';
+        } else if (isSkipped || !ejectedPlayer) {
+            textEl.innerText = 'No one was ejected. (Skipped vote)';
         } else {
             textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'Dog' ? 'The Dog!' : 'not The Dog.'}`;
         }

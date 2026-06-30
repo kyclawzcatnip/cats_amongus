@@ -1314,6 +1314,22 @@ class MapRenderer {
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
                 ctx.fillStyle = 'white'; ctx.font = '700 12px sans-serif'; ctx.fillText('MEET', room.buttonX, room.buttonY + 4);
             }
+
+            // Render active sabotage panels on the map
+            if (sabotageSystem.activeSabotage === 'lights' && room.hasLightsFixPanel) {
+                const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.008);
+                ctx.fillStyle = 'rgba(253, 203, 110, 0.25)'; ctx.beginPath(); ctx.arc(room.lightsFixX, room.lightsFixY, 22 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fdcb6e'; ctx.beginPath(); ctx.arc(room.lightsFixX, room.lightsFixY, 15, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#2d3436'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚡', room.lightsFixX, room.lightsFixY + 4.5);
+            }
+            if (sabotageSystem.activeSabotage === 'engine' && room.hasEngineFixPanel) {
+                const pulse = 1 + 0.2 * Math.sin(Date.now() * 0.01);
+                ctx.fillStyle = 'rgba(214, 48, 49, 0.3)'; ctx.beginPath(); ctx.arc(room.engineFixX, room.engineFixY, 25 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#d63031'; ctx.beginPath(); ctx.arc(room.engineFixX, room.engineFixY, 17, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚠️', room.engineFixX, room.engineFixY + 4.5);
+            }
         }
 
         const canSeeVents = localPlayer ? (localPlayer.role === 'Dog' || localPlayer.role === 'Engineer' || localPlayer.isDead) : true;
@@ -1331,6 +1347,62 @@ class MapRenderer {
 
         if (localPlayer && !localPlayer.isDead) {
             this.drawFogOfWar(ctx, width, height, localPlayer, sabotageSystem);
+            this.drawSabotageIndicators(ctx, width, height, localPlayer, sabotageSystem);
+        }
+    }
+
+    drawSabotageIndicators(ctx, width, height, localPlayer, sabotageSystem) {
+        if (sabotageSystem.activeSabotage) {
+            let targetX = 0, targetY = 0, label = "", color = "#ff7675";
+            if (sabotageSystem.activeSabotage === 'lights') {
+                const el = ROOMS.find(r => r.id === 'electrical');
+                if (el) { targetX = el.lightsFixX; targetY = el.lightsFixY; label = "FIX LIGHTS"; color = "#fdcb6e"; }
+            } else if (sabotageSystem.activeSabotage === 'engine') {
+                const ye = ROOMS.find(r => r.id === 'yarn_engine');
+                if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
+            }
+
+            if (targetX > 0 && targetY > 0) {
+                const dx = targetX - localPlayer.x;
+                const dy = targetY - localPlayer.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 160) {
+                    const angle = Math.atan2(dy, dx);
+                    const cx = width / 2;
+                    const cy = height / 2;
+                    const radius = 135;
+                    const indX = cx + Math.cos(angle) * radius;
+                    const indY = cy + Math.sin(angle) * radius;
+
+                    ctx.save();
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(indX, indY, 14, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.translate(indX, indY);
+                    ctx.rotate(angle);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(8, 0);
+                    ctx.lineTo(-5, -6);
+                    ctx.lineTo(-2, 0);
+                    ctx.lineTo(-5, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '800 10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(`${label} (${Math.round(dist)}m)`, indX, indY - 20);
+                    ctx.shadowBlur = 0;
+                }
+            }
         }
     }
 
@@ -2165,6 +2237,71 @@ class UIManager {
         if (sabotageSystem.activeSabotage === 'lights') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN ELECTRICAL!'; }
         else if (sabotageSystem.activeSabotage === 'engine') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = `CRITICAL ENGINE MELTDOWN! (${Math.ceil(sabotageSystem.engineTimer)}s)`; }
         else sabBanner.classList.add('hidden');
+
+        let canUse = false;
+        let useText = "USE";
+        let useIcon = "⚡";
+
+        const bridge = ROOMS.find(r => r.id === 'bridge');
+        if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {
+            canUse = true; useText = "BUTTON"; useIcon = "🚨";
+        }
+        
+        const security = ROOMS.find(r => r.id === 'security');
+        if (security && Math.hypot(player.x - 380, player.y - 750) <= 75) {
+            canUse = true; useText = "CAMERAS"; useIcon = "📹";
+        }
+
+        if (sabotageSystem.activeSabotage === 'lights') {
+            const el = ROOMS.find(r => r.id === 'electrical');
+            if (el && Math.hypot(player.x - el.lightsFixX, player.y - el.lightsFixY) <= 95) {
+                canUse = true; useText = "FIX LIGHTS"; useIcon = "💡";
+            }
+        }
+
+        if (sabotageSystem.activeSabotage === 'engine') {
+            const ye = ROOMS.find(r => r.id === 'yarn_engine');
+            if (ye && Math.hypot(player.x - ye.engineFixX, player.y - ye.engineFixY) <= 95) {
+                canUse = true; useText = "REPAIR"; useIcon = "⚙️";
+            }
+        }
+
+        if (!canUse) {
+            for (const t of player.tasks) {
+                if (t.completed) continue;
+                const roomObj = ROOMS.find(r => r.name.includes(t.room));
+                if (!roomObj) continue;
+                const baseTaskId = t.id.split('_reassigned_')[0];
+                const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                if (taskLoc && Math.hypot(player.x - taskLoc.x, player.y - taskLoc.y) <= 95) {
+                    if (baseTaskId === 'upload_data' && t.locked) continue;
+                    canUse = true; useText = "TASK"; useIcon = "📋";
+                    break;
+                }
+            }
+        }
+
+        if (!canUse && (player.role === 'Dog' || player.role === 'Engineer')) {
+            const nearbyVent = VENTS.find(v => Math.hypot(player.x - v.x, player.y - v.y) <= 80);
+            if (nearbyVent) {
+                canUse = true; useText = player.inVent ? "EXIT" : "VENT"; useIcon = "🌀";
+            }
+        }
+
+        const useBtn = document.getElementById('action-use-btn');
+        if (useBtn) {
+            if (canUse) {
+                useBtn.style.borderColor = '#00cec9';
+                useBtn.style.boxShadow = '0 0 15px rgba(0, 206, 201, 0.6)';
+                useBtn.querySelector('.action-text').innerText = useText;
+                useBtn.querySelector('.action-icon').innerText = useIcon;
+            } else {
+                useBtn.style.borderColor = '';
+                useBtn.style.boxShadow = '';
+                useBtn.querySelector('.action-text').innerText = 'USE';
+                useBtn.querySelector('.action-icon').innerText = '⚡';
+            }
+        }
     }
 }
 
@@ -2381,12 +2518,12 @@ class Game {
             this.mapRenderer.cameraX = this.localPlayer.x;
             this.mapRenderer.cameraY = this.localPlayer.y;
         }
-        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie) => {
-            this.showEjectionScreen(ejectedPlayer, isTie);
+        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie, isSkipped) => {
+            this.showEjectionScreen(ejectedPlayer, isTie, isSkipped);
         });
     }
 
-    showEjectionScreen(ejectedPlayer, isTie) {
+    showEjectionScreen(ejectedPlayer, isTie, isSkipped) {
         this.state = 'EJECT';
         this.uiManager.showScreen('eject-screen');
 
@@ -2403,7 +2540,8 @@ class Game {
 
         const textEl = document.getElementById('eject-result-text');
         const remEl = document.getElementById('eject-remaining-text');
-        if (isTie || !ejectedPlayer) textEl.innerText = 'No one was ejected. (Tie vote)';
+        if (isTie) textEl.innerText = 'No one was ejected. (Tie vote)';
+        else if (isSkipped || !ejectedPlayer) textEl.innerText = 'No one was ejected. (Skipped vote)';
         else textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'Dog' ? 'The Dog! 🐶' : 'not The Dog. 🐱'}`;
         remEl.innerText = `${this.players.filter(p => !p.isDead && p.role === 'Dog').length} Dog impostor remains.`;
 

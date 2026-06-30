@@ -80,6 +80,22 @@ export class MapRenderer {
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
                 ctx.fillStyle = 'white'; ctx.font = '700 12px sans-serif'; ctx.fillText('MEET', room.buttonX, room.buttonY + 4);
             }
+
+            // Render active sabotage panels on the map
+            if (sabotageSystem.activeSabotage === 'lights' && room.hasLightsFixPanel) {
+                const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.008);
+                ctx.fillStyle = 'rgba(253, 203, 110, 0.25)'; ctx.beginPath(); ctx.arc(room.lightsFixX, room.lightsFixY, 22 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fdcb6e'; ctx.beginPath(); ctx.arc(room.lightsFixX, room.lightsFixY, 15, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#2d3436'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚡', room.lightsFixX, room.lightsFixY + 4.5);
+            }
+            if (sabotageSystem.activeSabotage === 'engine' && room.hasEngineFixPanel) {
+                const pulse = 1 + 0.2 * Math.sin(Date.now() * 0.01);
+                ctx.fillStyle = 'rgba(214, 48, 49, 0.3)'; ctx.beginPath(); ctx.arc(room.engineFixX, room.engineFixY, 25 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#d63031'; ctx.beginPath(); ctx.arc(room.engineFixX, room.engineFixY, 17, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚠️', room.engineFixX, room.engineFixY + 4.5);
+            }
         }
 
         // 5. Draw Vents (visible to Dog & Engineer)
@@ -127,6 +143,62 @@ export class MapRenderer {
         // 7. Render Fog of War (Darkness Mask around local player)
         if (!localPlayer.isDead) {
             this.drawFogOfWar(ctx, width, height, localPlayer, sabotageSystem);
+            this.drawSabotageIndicators(ctx, width, height, localPlayer, sabotageSystem);
+        }
+    }
+
+    drawSabotageIndicators(ctx, width, height, localPlayer, sabotageSystem) {
+        if (sabotageSystem.activeSabotage) {
+            let targetX = 0, targetY = 0, label = "", color = "#ff7675";
+            if (sabotageSystem.activeSabotage === 'lights') {
+                const el = ROOMS.find(r => r.id === 'electrical');
+                if (el) { targetX = el.lightsFixX; targetY = el.lightsFixY; label = "FIX LIGHTS"; color = "#fdcb6e"; }
+            } else if (sabotageSystem.activeSabotage === 'engine') {
+                const ye = ROOMS.find(r => r.id === 'yarn_engine');
+                if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
+            }
+
+            if (targetX > 0 && targetY > 0) {
+                const dx = targetX - localPlayer.x;
+                const dy = targetY - localPlayer.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 160) {
+                    const angle = Math.atan2(dy, dx);
+                    const cx = width / 2;
+                    const cy = height / 2;
+                    const radius = 135;
+                    const indX = cx + Math.cos(angle) * radius;
+                    const indY = cy + Math.sin(angle) * radius;
+
+                    ctx.save();
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 10;
+                    ctx.fillStyle = color;
+                    ctx.beginPath();
+                    ctx.arc(indX, indY, 14, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.translate(indX, indY);
+                    ctx.rotate(angle);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(8, 0);
+                    ctx.lineTo(-5, -6);
+                    ctx.lineTo(-2, 0);
+                    ctx.lineTo(-5, 6);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '800 10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(`${label} (${Math.round(dist)}m)`, indX, indY - 20);
+                    ctx.shadowBlur = 0;
+                }
+            }
         }
     }
 

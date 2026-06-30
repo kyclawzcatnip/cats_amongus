@@ -1,6 +1,8 @@
 // UI Overlay Manager for Cat Crew
 
 import { CAT_COLORS, HATS } from './sprites.js';
+import { ROOMS } from './rooms.js';
+import { VENTS } from './vents.js';
 
 export class UIManager {
     constructor(game) {
@@ -186,12 +188,77 @@ export class UIManager {
         const sabBanner = document.getElementById('sabotage-banner');
         if (sabotageSystem.activeSabotage === 'lights') {
             sabBanner.classList.remove('hidden');
-            document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN WORKSHOP!';
+            document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN ELECTRICAL!';
         } else if (sabotageSystem.activeSabotage === 'engine') {
             sabBanner.classList.remove('hidden');
             document.getElementById('sabotage-text').innerText = `CRITICAL ENGINE MELTDOWN! (${Math.ceil(sabotageSystem.engineTimer)}s)`;
         } else {
             sabBanner.classList.add('hidden');
+        }
+
+        let canUse = false;
+        let useText = "USE";
+        let useIcon = "⚡";
+
+        const bridge = ROOMS.find(r => r.id === 'bridge');
+        if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {
+            canUse = true; useText = "BUTTON"; useIcon = "🚨";
+        }
+        
+        const security = ROOMS.find(r => r.id === 'security');
+        if (security && Math.hypot(player.x - 380, player.y - 750) <= 75) {
+            canUse = true; useText = "CAMERAS"; useIcon = "📹";
+        }
+
+        if (sabotageSystem.activeSabotage === 'lights') {
+            const el = ROOMS.find(r => r.id === 'electrical');
+            if (el && Math.hypot(player.x - el.lightsFixX, player.y - el.lightsFixY) <= 95) {
+                canUse = true; useText = "FIX LIGHTS"; useIcon = "💡";
+            }
+        }
+
+        if (sabotageSystem.activeSabotage === 'engine') {
+            const ye = ROOMS.find(r => r.id === 'yarn_engine');
+            if (ye && Math.hypot(player.x - ye.engineFixX, player.y - ye.engineFixY) <= 95) {
+                canUse = true; useText = "REPAIR"; useIcon = "⚙️";
+            }
+        }
+
+        if (!canUse) {
+            for (const t of player.tasks) {
+                if (t.completed) continue;
+                const roomObj = ROOMS.find(r => r.name.includes(t.room));
+                if (!roomObj) continue;
+                const baseTaskId = t.id.split('_reassigned_')[0];
+                const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                if (taskLoc && Math.hypot(player.x - taskLoc.x, player.y - taskLoc.y) <= 95) {
+                    if (baseTaskId === 'upload_data' && t.locked) continue;
+                    canUse = true; useText = "TASK"; useIcon = "📋";
+                    break;
+                }
+            }
+        }
+
+        if (!canUse && (player.role === 'Dog' || player.role === 'Engineer')) {
+            const nearbyVent = VENTS.find(v => Math.hypot(player.x - v.x, player.y - v.y) <= 80);
+            if (nearbyVent) {
+                canUse = true; useText = player.inVent ? "EXIT" : "VENT"; useIcon = "🌀";
+            }
+        }
+
+        const useBtn = document.getElementById('action-use-btn');
+        if (useBtn) {
+            if (canUse) {
+                useBtn.style.borderColor = '#00cec9';
+                useBtn.style.boxShadow = '0 0 15px rgba(0, 206, 201, 0.6)';
+                useBtn.querySelector('.action-text').innerText = useText;
+                useBtn.querySelector('.action-icon').innerText = useIcon;
+            } else {
+                useBtn.style.borderColor = '';
+                useBtn.style.boxShadow = '';
+                useBtn.querySelector('.action-text').innerText = 'USE';
+                useBtn.querySelector('.action-icon').innerText = '⚡';
+            }
         }
     }
 }

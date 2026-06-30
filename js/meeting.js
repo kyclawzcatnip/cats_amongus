@@ -369,6 +369,7 @@ export class MeetingManager {
         let maxVotes = 0;
         let ejectedId = null;
         let isTie = false;
+        let skipVotes = counts['skip'] || 0;
 
         for (const [id, count] of Object.entries(counts)) {
             if (id === 'skip') continue;
@@ -381,17 +382,27 @@ export class MeetingManager {
             }
         }
 
-        if (counts.skip >= maxVotes) {
-            ejectedId = null;
+        let actualEjectedPlayer = null;
+        let isSkipped = false;
+        let isActualTie = isTie;
+
+        if (maxVotes === 0 && skipVotes === 0) {
+            isSkipped = true;
+        } else if (skipVotes > maxVotes) {
+            isSkipped = true;
+        } else if (skipVotes === maxVotes) {
+            isActualTie = true;
+        } else if (isTie) {
+            isActualTie = true;
+        } else {
+            actualEjectedPlayer = players.find(p => p.id == ejectedId);
         }
 
-        const ejectedPlayer = players.find(p => p.id == ejectedId);
-
         setTimeout(() => {
-            if (ejectedPlayer && !isTie) {
-                ejectedPlayer.isDead = true;
+            if (actualEjectedPlayer && !isActualTie) {
+                actualEjectedPlayer.isDead = true;
             }
-            this.onComplete(ejectedPlayer, isTie);
+            this.onComplete(actualEjectedPlayer, isActualTie, isSkipped);
         }, 3500);
     }
 }
