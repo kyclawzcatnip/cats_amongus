@@ -2,6 +2,18 @@
 
 import { soundManager } from './sounds.js';
 import { CAT_COLORS } from './sprites.js';
+import { ROOMS } from './rooms.js';
+
+function getPlayerRoom(player, roomsList) {
+    if (player.inVent) return 'Vents';
+    const room = roomsList.find(r => 
+        player.x >= r.x && 
+        player.x <= r.x + r.width && 
+        player.y >= r.y && 
+        player.y <= r.y + r.height
+    );
+    return room ? room.name.replace(/[^a-zA-Z0-9\s]/g, '').trim() : 'Corridors';
+}
 
 export class MeetingManager {
     constructor() {
@@ -170,25 +182,42 @@ export class MeetingManager {
                         lineText = `Let's vote carefully crewmates.`;
                     }
                 } else {
-                    const otherBot = aliveNames.filter(n => n !== bot.name)[Math.floor(Math.random() * (aliveNames.length - 1))];
-                    const room = roomNames[Math.floor(Math.random() * roomNames.length)];
-                    let lines = [
-                        `I was in ${room} finishing my tasks!`,
-                        `Did anyone see ${otherBot}? I saw them near ${room}.`,
-                        `I was with ${otherBot} in ${room}, they seem innocent!`,
-                        `Who was near ${room} when the meeting started?`,
-                        `I saw someone vent near ${room}! Super suspicious!`,
-                        `If we're not sure, let's skip this vote.`
-                    ];
+                    const botRoom = getPlayerRoom(bot, ROOMS);
+                    const sameRoomPlayers = players.filter(p => p.id !== bot.id && !p.isDead && getPlayerRoom(p, ROOMS) === botRoom);
+                    
+                    let lines = [];
+                    if (botRoom !== 'Corridors') {
+                        lines.push(`I was in ${botRoom} finishing my tasks!`);
+                        lines.push(`I was in the ${botRoom} area.`);
+                        if (sameRoomPlayers.length > 0) {
+                            const companion = sameRoomPlayers[Math.floor(Math.random() * sameRoomPlayers.length)];
+                            lines.push(`I was with ${companion.name} in ${botRoom}, they seem innocent!`);
+                            lines.push(`I saw ${companion.name} in ${botRoom} doing tasks.`);
+                        } else {
+                            lines.push(`I was alone in ${botRoom}.`);
+                        }
+                    } else {
+                        lines.push(`I was moving through the corridors.`);
+                        const nearby = players.filter(p => p.id !== bot.id && !p.isDead && Math.hypot(p.x - bot.x, p.y - bot.y) < 300);
+                        if (nearby.length > 0) {
+                            const seen = nearby[Math.floor(Math.random() * nearby.length)];
+                            const seenRoom = getPlayerRoom(seen, ROOMS);
+                            lines.push(`Did anyone see ${seen.name}? I saw them near ${seenRoom}.`);
+                            lines.push(`I saw ${seen.name} near ${seenRoom}.`);
+                        } else {
+                            lines.push(`I didn't see anyone near me.`);
+                        }
+                    }
+
                     if (this.bodyPlayer) {
                         lines.push(`Oh no, they got ${this.bodyPlayer.name}! 😢`);
                         lines.push(`Poor ${this.bodyPlayer.name}! Who did it?`);
-                        lines.push(`Wait, where was ${this.bodyPlayer.name}'s body?`);
-                    }
-                    if (this.bodyPlayer) {
                         lines.push(`Where exactly did you find ${this.bodyPlayer.name}'s body?`);
-                        lines.push(`I saw ${otherBot} walking away from ${room} right before the report!`);
+                    } else {
+                        lines.push(`If we're not sure, let's skip this vote.`);
+                        lines.push(`Did anyone see anything suspicious?`);
                     }
+                    
                     lineText = lines[Math.floor(Math.random() * lines.length)];
                 }
 
