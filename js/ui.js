@@ -1,7 +1,7 @@
 // UI Overlay Manager for Cat Crew
 
 import { CAT_COLORS, HATS } from './sprites.js';
-import { ROOMS } from './rooms.js';
+import { ROOMS, getNearbyLadder } from './rooms.js';
 import { VENTS } from './vents.js';
 
 export class UIManager {
@@ -155,6 +155,18 @@ export class UIManager {
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
         document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
 
+        // Floor Badge
+        const floorBadge = document.getElementById('hud-floor-badge');
+        if (floorBadge) {
+            if (this.game.selectedMap === 'catnip_observatory') {
+                floorBadge.classList.remove('hidden');
+                const floorName = player.y >= 2800 ? '2nd Floor' : '1st Floor';
+                document.getElementById('hud-floor-name').innerText = floorName;
+            } else {
+                floorBadge.classList.add('hidden');
+            }
+        }
+
         // Action Buttons Visibility
         const killBtn = document.getElementById('action-kill-btn');
         const reviveBtn = document.getElementById('action-revive-btn');
@@ -218,6 +230,13 @@ export class UIManager {
         let canUse = false;
         let useText = "USE";
         let useIcon = "⚡";
+
+        if (this.game.selectedMap === 'catnip_observatory') {
+            const ladder = getNearbyLadder(player.x, player.y, 75);
+            if (ladder) {
+                canUse = true; useText = "CLIMB"; useIcon = "🪜";
+            }
+        }
 
         const bridge = ROOMS.find(r => r.id === 'bridge');
         if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {

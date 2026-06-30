@@ -32,26 +32,81 @@ export class AIController {
             }
         }
 
-        const ROOM_NODES = {
-            bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
-            medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
-            weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
-            security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
-            fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
-            electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
-            shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
-            ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
-            o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
-            nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
-            kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
-            cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
-            comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
-            records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
-            cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
-            workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
-            thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
-            thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
-            yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+        const selectedMap = window.gameInstance ? window.gameInstance.selectedMap : 'whisker_station';
+        let ROOM_NODES = {};
+        let spineX = 1800;
+
+        if (selectedMap === 'catnip_observatory') {
+            spineX = 1400;
+            ROOM_NODES = {
+                // Floor 1
+                bridge: { center: { x: 1400, y: 325 }, door: { x: 1400, y: 500 } },
+                greenhouse: { center: { x: 425, y: 325 }, door: { x: 650, y: 325 } },
+                laser_weapons: { center: { x: 2375, y: 325 }, door: { x: 2150, y: 325 } },
+                medical: { center: { x: 425, y: 975 }, door: { x: 650, y: 975 } },
+                security: { center: { x: 1400, y: 975 }, door: { x: 1400, y: 975 } },
+                electrical: { center: { x: 2375, y: 975 }, door: { x: 2150, y: 975 } },
+                reactor: { center: { x: 425, y: 1650 }, door: { x: 650, y: 1650 } },
+                comms: { center: { x: 1400, y: 1650 }, door: { x: 1400, y: 1650 } },
+                thrusters: { center: { x: 2375, y: 1650 }, door: { x: 2150, y: 1650 } },
+                // Floor 2
+                fish_storage: { center: { x: 425, y: 3325 }, door: { x: 650, y: 3325 } },
+                ship_quarters: { center: { x: 1400, y: 3325 }, door: { x: 1400, y: 3325 } },
+                shields: { center: { x: 2375, y: 3325 }, door: { x: 2150, y: 3325 } },
+                o2: { center: { x: 425, y: 3975 }, door: { x: 650, y: 3975 } },
+                nap_quarters: { center: { x: 1400, y: 3975 }, door: { x: 1400, y: 3975 } },
+                cargo_bay: { center: { x: 2375, y: 3975 }, door: { x: 2150, y: 3975 } },
+                kitchen: { center: { x: 425, y: 4650 }, door: { x: 650, y: 4650 } },
+                records: { center: { x: 1400, y: 4650 }, door: { x: 1400, y: 4650 } },
+                workshop: { center: { x: 2375, y: 4650 }, door: { x: 2150, y: 4650 } },
+                cat_garden: { center: { x: 1400, y: 5300 }, door: { x: 1400, y: 5300 } }
+            };
+        } else {
+            ROOM_NODES = {
+                bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
+                medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
+                weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
+                security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
+                fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
+                electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
+                shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
+                ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
+                o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
+                nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
+                kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
+                cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
+                comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
+                records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
+                cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
+                workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
+                thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
+                thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
+                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+            };
+        }
+
+        const buildPath = (startNode, targetNode, finalTarget) => {
+            const path = [];
+            path.push({ x: startNode.door.x, y: startNode.door.y });
+            
+            const startFloor = startNode.center.y >= 2800 ? 2 : 1;
+            const targetFloor = targetNode.center.y >= 2800 ? 2 : 1;
+            
+            if (selectedMap === 'catnip_observatory' && startFloor !== targetFloor) {
+                const currentLadderY = startFloor === 1 ? 650 : 3650;
+                const nextLadderY = startFloor === 1 ? 3650 : 650;
+                path.push({ x: spineX, y: startNode.door.y });
+                path.push({ x: spineX, y: currentLadderY, isLadderTransit: true });
+                path.push({ x: spineX, y: nextLadderY });
+                path.push({ x: spineX, y: targetNode.door.y });
+            } else {
+                path.push({ x: spineX, y: startNode.door.y });
+                path.push({ x: spineX, y: targetNode.door.y });
+            }
+            
+            path.push({ x: targetNode.door.x, y: targetNode.door.y });
+            path.push(finalTarget);
+            return path;
         };
 
         if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'evil Dog') {
@@ -64,15 +119,12 @@ export class AIController {
                     if (d < minDist) { minDist = d; closestRoomKey = key; }
                 }
                 const startNode = ROOM_NODES[closestRoomKey];
-                const targetNode = ROOM_NODES['yarn_engine'];
+                const targetKey = selectedMap === 'catnip_observatory' ? 'thrusters' : 'yarn_engine';
+                const targetNode = ROOM_NODES[targetKey];
+                const fixX = selectedMap === 'catnip_observatory' ? 2375 : 1800;
+                const fixY = selectedMap === 'catnip_observatory' ? 1650 : 2260;
 
-                bot.currentPath = [
-                    { x: startNode.door.x, y: startNode.door.y },
-                    { x: 1800, y: startNode.door.y },
-                    { x: 1800, y: targetNode.door.y },
-                    { x: targetNode.door.x, y: targetNode.door.y },
-                    { x: 1800, y: 2260, isEngineFix: true }
-                ];
+                bot.currentPath = buildPath(startNode, targetNode, { x: fixX, y: fixY, isEngineFix: true });
                 bot.taskTimer = 0;
                 bot.currentTaskToComplete = null;
             }
@@ -124,13 +176,7 @@ export class AIController {
                         }
                         const targetNode = ROOM_NODES[targetRoomKey];
 
-                        bot.currentPath = [
-                            { x: startNode.door.x, y: startNode.door.y },
-                            { x: 1800, y: startNode.door.y },
-                            { x: 1800, y: targetNode.door.y },
-                            { x: targetNode.door.x, y: targetNode.door.y },
-                            { x: targetX, y: targetY, taskObj: finalNode.taskObj }
-                        ];
+                        bot.currentPath = buildPath(startNode, targetNode, { x: targetX, y: targetY, taskObj: finalNode.taskObj });
                         return;
                     }
                 }
@@ -165,13 +211,7 @@ export class AIController {
             const startNode = ROOM_NODES[closestRoomKey];
             const targetNode = ROOM_NODES[targetKey];
 
-            bot.currentPath = [
-                { x: startNode.door.x, y: startNode.door.y },
-                { x: 1800, y: startNode.door.y },
-                { x: 1800, y: targetNode.door.y },
-                { x: targetNode.door.x, y: targetNode.door.y },
-                taskTarget ? { x: taskTarget.x, y: taskTarget.y, taskObj: taskTarget.taskObj } : { x: targetNode.center.x, y: targetNode.center.y }
-            ];
+            bot.currentPath = buildPath(startNode, targetNode, taskTarget ? { x: taskTarget.x, y: taskTarget.y, taskObj: taskTarget.taskObj } : { x: targetNode.center.x, y: targetNode.center.y });
         }
 
         if (bot.currentPath && bot.currentPath.length > 0) {
@@ -181,6 +221,13 @@ export class AIController {
             const dist = Math.hypot(dx, dy);
 
             if (dist < 30) {
+                if (targetNode.isLadderTransit) {
+                    const startFloor = bot.y >= 2800 ? 2 : 1;
+                    bot.x = 1400;
+                    bot.y = startFloor === 1 ? 3650 : 650;
+                    bot.currentPath.shift();
+                    return;
+                }
                 if (targetNode.isEmergencyButtonTrigger) {
                     bot.currentPath = [];
                     onReportBody(bot, null);

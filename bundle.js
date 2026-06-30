@@ -606,6 +606,7 @@ const WHISKER_STATION_CORRIDORS = [
 ];
 
 const CATNIP_OBSERVATORY_ROOMS = [
+    // FLOOR 1
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1150, y: 150, width: 500, height: 350, icon: '🚀',
@@ -654,10 +655,63 @@ const CATNIP_OBSERVATORY_ROOMS = [
         x: 2150, y: 1450, width: 450, height: 400, icon: '🚀',
         tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 2270, y: 1650 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 2470, y: 1650 } ],
         hasEngineFixPanel: true, engineFixX: 2375, engineFixY: 1650
+    },
+
+    // FLOOR 2
+    {
+        id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
+        x: 200, y: 3150, width: 450, height: 350, icon: '🐟',
+        tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 320, y: 3320 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 520, y: 3320 } ]
+    },
+    {
+        id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#a29bfe', bgColor: '#27203d',
+        x: 1150, y: 3150, width: 500, height: 350, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1300, y: 3320 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1500, y: 3320 } ]
+    },
+    {
+        id: 'shields', name: '🛡️ Shields', color: '#e84118', bgColor: '#331c1c',
+        x: 2150, y: 3150, width: 450, height: 350, icon: '🛡️',
+        tasks: [ { id: 'prime_shields', name: 'Prime Deflector Shields', x: 2270, y: 3320 }, { id: 'realign_panels', name: 'Realign Shield Panels', x: 2470, y: 3320 } ]
+    },
+    {
+        id: 'o2', name: '💨 Oxygen', color: '#2ed573', bgColor: '#1c3325',
+        x: 200, y: 3800, width: 450, height: 350, icon: '💨',
+        tasks: [ { id: 'clean_filters', name: 'Clean Oxygen Filter', x: 320, y: 3970 }, { id: 'refill_tanks', name: 'Refill O2 Storage Tanks', x: 520, y: 3970 } ]
+    },
+    {
+        id: 'nap_quarters', name: '💤 Nap Quarters', color: '#9c88ff', bgColor: '#252136',
+        x: 1150, y: 3800, width: 500, height: 350, icon: '💤',
+        tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 1300, y: 3970 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 1500, y: 3970 } ]
+    },
+    {
+        id: 'cargo_bay', name: '📦 Cargo Bay', color: '#e84118', bgColor: '#301c22',
+        x: 2150, y: 3800, width: 450, height: 350, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 2270, y: 3970 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2470, y: 3970 } ]
+    },
+    {
+        id: 'kitchen', name: '🍽️ Kitchen', color: '#e1b12c', bgColor: '#332a1b',
+        x: 200, y: 4450, width: 450, height: 400, icon: '🍽️',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 320, y: 4620 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 520, y: 4620 } ]
+    },
+    {
+        id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
+        x: 1150, y: 4450, width: 500, height: 400, icon: '🗃️',
+        tasks: [ { id: 'file_records', name: 'File Catnip Inventory', x: 1300, y: 4620 }, { id: 'scan_id', name: 'Scan Crewmate Paw ID', x: 1500, y: 4620 } ]
+    },
+    {
+        id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
+        x: 2150, y: 4450, width: 450, height: 400, icon: '🛠️',
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 } ]
+    },
+    {
+        id: 'cat_garden', name: '🌿 Cat Garden', color: '#4cd137', bgColor: '#1b3320',
+        x: 1150, y: 5100, width: 500, height: 400, icon: '🌿',
+        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1300, y: 5270 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 1500, y: 5270 } ]
     }
 ];
 
 const CATNIP_OBSERVATORY_CORRIDORS = [
+    // FLOOR 1
     { x1: 1400, y1: 300, x2: 1400, y2: 1800, width: 120 },
     { x1: 650, y1: 975, x2: 2150, y2: 975, width: 100 },
     { x1: 650, y1: 325, x2: 650, y2: 1650, width: 100 },
@@ -665,7 +719,15 @@ const CATNIP_OBSERVATORY_CORRIDORS = [
     { x1: 650, y1: 325, x2: 1150, y2: 325, width: 100 },
     { x1: 1650, y1: 325, x2: 2150, y2: 325, width: 100 },
     { x1: 650, y1: 1650, x2: 1150, y2: 1650, width: 100 },
-    { x1: 1650, y1: 1650, x2: 2150, y2: 1650, width: 100 }
+    { x1: 1650, y1: 1650, x2: 2150, y2: 1650, width: 100 },
+    // FLOOR 2
+    { x1: 1400, y1: 3300, x2: 1400, y2: 5300, width: 120 },
+    { x1: 650, y1: 3325, x2: 2150, y2: 3325, width: 100 },
+    { x1: 650, y1: 3975, x2: 2150, y2: 3975, width: 100 },
+    { x1: 650, y1: 4650, x2: 2150, y2: 4650, width: 100 },
+    { x1: 650, y1: 5300, x2: 1150, y2: 5300, width: 100 },
+    { x1: 650, y1: 3325, x2: 650, y2: 4650, width: 100 },
+    { x1: 2150, y1: 3325, x2: 2150, y2: 4650, width: 100 }
 ];
 
 const ROOMS = [...WHISKER_STATION_ROOMS];
@@ -685,7 +747,7 @@ const VENTS = [
 function loadMap(mapId) {
     if (mapId === 'catnip_observatory') {
         MAP_BOUNDS.width = 2800;
-        MAP_BOUNDS.height = 2200;
+        MAP_BOUNDS.height = 5700;
         ROOMS.length = 0;
         ROOMS.push(...CATNIP_OBSERVATORY_ROOMS);
         CORRIDORS.length = 0;
@@ -718,6 +780,23 @@ function loadMap(mapId) {
             { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' }
         );
     }
+}
+
+function getNearbyLadder(playerX, playerY, maxDist = 60) {
+    const ladders = [
+        { x1: 1400, y1: 650, x2: 1400, y2: 3650, name: 'Main Elevator' },
+        { x1: 650, y1: 975, x2: 650, y2: 3975, name: 'Service Ladder Left' },
+        { x1: 2150, y1: 975, x2: 2150, y2: 3975, name: 'Service Ladder Right' }
+    ];
+    for (const l of ladders) {
+        if (Math.hypot(playerX - l.x1, playerY - l.y1) <= maxDist) {
+            return { x: l.x2, y: l.y2, label: l.name };
+        }
+        if (Math.hypot(playerX - l.x2, playerY - l.y2) <= maxDist) {
+            return { x: l.x1, y: l.y1, label: l.name };
+        }
+    }
+    return null;
 }
 
 class VentSystem {
@@ -1509,13 +1588,33 @@ class MapRenderer {
             ctx.fillStyle = 'white'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌀', v.x, v.y + 4);
         }
 
+        // 6. Draw Ladders (Catnip Observatory only)
+        if (localPlayer && window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory') {
+            const ladders = [
+                { x: 1400, y: 650 },
+                { x: 1400, y: 3650 },
+                { x: 650, y: 975 },
+                { x: 650, y: 3975 },
+                { x: 2150, y: 975 },
+                { x: 2150, y: 3975 }
+            ];
+            for (const l of ladders) {
+                ctx.fillStyle = 'rgba(46, 213, 115, 0.2)';
+                ctx.beginPath(); ctx.arc(l.x, l.y, 25, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#2ed573'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🪜', l.x, l.y + 5);
+            }
+        }
+
         for (const p of players) {
             if (p.inVent) continue;
             let isVisible = true;
+            const sameFloor = (p.y >= 2800) === (localPlayer.y >= 2800);
             if (localPlayer) {
                 const dist = Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y);
                 const visionRadius = localPlayer.getVisionRadius(sabotageSystem.activeSabotage);
-                isVisible = localPlayer.isDead || p.isLocalPlayer || (dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
+                isVisible = localPlayer.isDead || p.isLocalPlayer || (sameFloor && dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
             }
             if (isVisible) {
                 SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
@@ -1660,26 +1759,81 @@ class AIController {
             }
         }
 
-        const ROOM_NODES = {
-            bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
-            medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
-            weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
-            security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
-            fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
-            electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
-            shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
-            ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
-            o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
-            nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
-            kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
-            cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
-            comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
-            records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
-            cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
-            workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
-            thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
-            thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
-            yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+        const selectedMap = window.gameInstance ? window.gameInstance.selectedMap : 'whisker_station';
+        let ROOM_NODES = {};
+        let spineX = 1800;
+
+        if (selectedMap === 'catnip_observatory') {
+            spineX = 1400;
+            ROOM_NODES = {
+                // Floor 1
+                bridge: { center: { x: 1400, y: 325 }, door: { x: 1400, y: 500 } },
+                greenhouse: { center: { x: 425, y: 325 }, door: { x: 650, y: 325 } },
+                laser_weapons: { center: { x: 2375, y: 325 }, door: { x: 2150, y: 325 } },
+                medical: { center: { x: 425, y: 975 }, door: { x: 650, y: 975 } },
+                security: { center: { x: 1400, y: 975 }, door: { x: 1400, y: 975 } },
+                electrical: { center: { x: 2375, y: 975 }, door: { x: 2150, y: 975 } },
+                reactor: { center: { x: 425, y: 1650 }, door: { x: 650, y: 1650 } },
+                comms: { center: { x: 1400, y: 1650 }, door: { x: 1400, y: 1650 } },
+                thrusters: { center: { x: 2375, y: 1650 }, door: { x: 2150, y: 1650 } },
+                // Floor 2
+                fish_storage: { center: { x: 425, y: 3325 }, door: { x: 650, y: 3325 } },
+                ship_quarters: { center: { x: 1400, y: 3325 }, door: { x: 1400, y: 3325 } },
+                shields: { center: { x: 2375, y: 3325 }, door: { x: 2150, y: 3325 } },
+                o2: { center: { x: 425, y: 3975 }, door: { x: 650, y: 3975 } },
+                nap_quarters: { center: { x: 1400, y: 3975 }, door: { x: 1400, y: 3975 } },
+                cargo_bay: { center: { x: 2375, y: 3975 }, door: { x: 2150, y: 3975 } },
+                kitchen: { center: { x: 425, y: 4650 }, door: { x: 650, y: 4650 } },
+                records: { center: { x: 1400, y: 4650 }, door: { x: 1400, y: 4650 } },
+                workshop: { center: { x: 2375, y: 4650 }, door: { x: 2150, y: 4650 } },
+                cat_garden: { center: { x: 1400, y: 5300 }, door: { x: 1400, y: 5300 } }
+            };
+        } else {
+            ROOM_NODES = {
+                bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
+                medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
+                weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
+                security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
+                fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
+                electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
+                shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
+                ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
+                o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
+                nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
+                kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
+                cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
+                comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
+                records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
+                cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
+                workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
+                thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
+                thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
+                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+            };
+        }
+
+        const buildPath = (startNode, targetNode, finalTarget) => {
+            const path = [];
+            path.push({ x: startNode.door.x, y: startNode.door.y });
+            
+            const startFloor = startNode.center.y >= 2800 ? 2 : 1;
+            const targetFloor = targetNode.center.y >= 2800 ? 2 : 1;
+            
+            if (selectedMap === 'catnip_observatory' && startFloor !== targetFloor) {
+                const currentLadderY = startFloor === 1 ? 650 : 3650;
+                const nextLadderY = startFloor === 1 ? 3650 : 650;
+                path.push({ x: spineX, y: startNode.door.y });
+                path.push({ x: spineX, y: currentLadderY, isLadderTransit: true });
+                path.push({ x: spineX, y: nextLadderY });
+                path.push({ x: spineX, y: targetNode.door.y });
+            } else {
+                path.push({ x: spineX, y: startNode.door.y });
+                path.push({ x: spineX, y: targetNode.door.y });
+            }
+            
+            path.push({ x: targetNode.door.x, y: targetNode.door.y });
+            path.push(finalTarget);
+            return path;
         };
 
         if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'evil Dog') {
@@ -1692,15 +1846,12 @@ class AIController {
                     if (d < minDist) { minDist = d; closestRoomKey = key; }
                 }
                 const startNode = ROOM_NODES[closestRoomKey];
-                const targetNode = ROOM_NODES['yarn_engine'];
+                const targetKey = selectedMap === 'catnip_observatory' ? 'thrusters' : 'yarn_engine';
+                const targetNode = ROOM_NODES[targetKey];
+                const fixX = selectedMap === 'catnip_observatory' ? 2375 : 1800;
+                const fixY = selectedMap === 'catnip_observatory' ? 1650 : 2260;
 
-                bot.currentPath = [
-                    { x: startNode.door.x, y: startNode.door.y },
-                    { x: 1800, y: startNode.door.y },
-                    { x: 1800, y: targetNode.door.y },
-                    { x: targetNode.door.x, y: targetNode.door.y },
-                    { x: 1800, y: 2260, isEngineFix: true }
-                ];
+                bot.currentPath = buildPath(startNode, targetNode, { x: fixX, y: fixY, isEngineFix: true });
                 bot.taskTimer = 0;
                 bot.currentTaskToComplete = null;
             }
@@ -1755,13 +1906,7 @@ class AIController {
                         }
                         const targetNode = ROOM_NODES[targetRoomKey];
 
-                        bot.currentPath = [
-                            { x: startNode.door.x, y: startNode.door.y },
-                            { x: 1800, y: startNode.door.y },
-                            { x: 1800, y: targetNode.door.y },
-                            { x: targetNode.door.x, y: targetNode.door.y },
-                            { x: targetX, y: targetY, taskObj: finalNode.taskObj }
-                        ];
+                        bot.currentPath = buildPath(startNode, targetNode, { x: targetX, y: targetY, taskObj: finalNode.taskObj });
                         return;
                     }
                 }
@@ -1796,13 +1941,7 @@ class AIController {
             const startNode = ROOM_NODES[closestRoomKey];
             const targetNode = ROOM_NODES[targetKey];
 
-            bot.currentPath = [
-                { x: startNode.door.x, y: startNode.door.y },
-                { x: 1800, y: startNode.door.y },
-                { x: 1800, y: targetNode.door.y },
-                { x: targetNode.door.x, y: targetNode.door.y },
-                taskTarget ? { x: taskTarget.x, y: taskTarget.y, taskObj: taskTarget.taskObj } : { x: targetNode.center.x, y: targetNode.center.y }
-            ];
+            bot.currentPath = buildPath(startNode, targetNode, taskTarget ? { x: taskTarget.x, y: taskTarget.y, taskObj: taskTarget.taskObj } : { x: targetNode.center.x, y: targetNode.center.y });
         }
 
         // Move towards next node in path
@@ -1813,6 +1952,13 @@ class AIController {
             const dist = Math.hypot(dx, dy);
 
             if (dist < 30) {
+                if (targetNode.isLadderTransit) {
+                    const startFloor = bot.y >= 2800 ? 2 : 1;
+                    bot.x = 1400;
+                    bot.y = startFloor === 1 ? 3650 : 650;
+                    bot.currentPath.shift();
+                    return;
+                }
                 if (targetNode.isEmergencyButtonTrigger) {
                     bot.currentPath = [];
                     onReportBody(bot, null);
@@ -2421,9 +2567,20 @@ class UIManager {
         const fillPct = (completedCatTasks / Math.max(1, totalCatTasks)) * 100;
         document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
 
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
         document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
+
+        // Floor Badge
+        const floorBadge = document.getElementById('hud-floor-badge');
+        if (floorBadge) {
+            if (this.game.selectedMap === 'catnip_observatory') {
+                floorBadge.classList.remove('hidden');
+                const floorName = player.y >= 2800 ? '2nd Floor' : '1st Floor';
+                document.getElementById('hud-floor-name').innerText = floorName;
+            } else {
+                floorBadge.classList.add('hidden');
+            }
+        }
 
         const ventBtn = document.getElementById('action-vent-btn');
         if (ventBtn) {
@@ -2458,6 +2615,13 @@ class UIManager {
         let canUse = false;
         let useText = "USE";
         let useIcon = "⚡";
+
+        if (this.game.selectedMap === 'catnip_observatory') {
+            const ladder = getNearbyLadder(player.x, player.y, 75);
+            if (ladder) {
+                canUse = true; useText = "CLIMB"; useIcon = "🪜";
+            }
+        }
 
         const bridge = ROOMS.find(r => r.id === 'bridge');
         if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {
@@ -2646,6 +2810,15 @@ class Game {
 
     handleUseAction() {
         if (this.localPlayer.isDead) return;
+        if (this.selectedMap === 'catnip_observatory') {
+            const ladder = getNearbyLadder(this.localPlayer.x, this.localPlayer.y, 75);
+            if (ladder) {
+                this.localPlayer.x = ladder.x;
+                this.localPlayer.y = ladder.y;
+                soundManager.playFootstep();
+                return;
+            }
+        }
         const bridge = ROOMS.find(r => r.id === 'bridge');
         if (Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY) <= 45) {
             this.triggerMeeting(this.localPlayer, null); return;

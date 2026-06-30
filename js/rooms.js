@@ -126,6 +126,7 @@ export const WHISKER_STATION_CORRIDORS = [
 ];
 
 export const CATNIP_OBSERVATORY_ROOMS = [
+    // FLOOR 1
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1150, y: 150, width: 500, height: 350, icon: '🚀',
@@ -174,10 +175,63 @@ export const CATNIP_OBSERVATORY_ROOMS = [
         x: 2150, y: 1450, width: 450, height: 400, icon: '🚀',
         tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 2270, y: 1650 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 2470, y: 1650 } ],
         hasEngineFixPanel: true, engineFixX: 2375, engineFixY: 1650
+    },
+
+    // FLOOR 2
+    {
+        id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
+        x: 200, y: 3150, width: 450, height: 350, icon: '🐟',
+        tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 320, y: 3320 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 520, y: 3320 } ]
+    },
+    {
+        id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#a29bfe', bgColor: '#27203d',
+        x: 1150, y: 3150, width: 500, height: 350, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1300, y: 3320 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1500, y: 3320 } ]
+    },
+    {
+        id: 'shields', name: '🛡️ Shields', color: '#e84118', bgColor: '#331c1c',
+        x: 2150, y: 3150, width: 450, height: 350, icon: '🛡️',
+        tasks: [ { id: 'prime_shields', name: 'Prime Deflector Shields', x: 2270, y: 3320 }, { id: 'realign_panels', name: 'Realign Shield Panels', x: 2470, y: 3320 } ]
+    },
+    {
+        id: 'o2', name: '💨 Oxygen', color: '#2ed573', bgColor: '#1c3325',
+        x: 200, y: 3800, width: 450, height: 350, icon: '💨',
+        tasks: [ { id: 'clean_filters', name: 'Clean Oxygen Filter', x: 320, y: 3970 }, { id: 'refill_tanks', name: 'Refill O2 Storage Tanks', x: 520, y: 3970 } ]
+    },
+    {
+        id: 'nap_quarters', name: '💤 Nap Quarters', color: '#9c88ff', bgColor: '#252136',
+        x: 1150, y: 3800, width: 500, height: 350, icon: '💤',
+        tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 1300, y: 3970 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 1500, y: 3970 } ]
+    },
+    {
+        id: 'cargo_bay', name: '📦 Cargo Bay', color: '#e84118', bgColor: '#301c22',
+        x: 2150, y: 3800, width: 450, height: 350, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 2270, y: 3970 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2470, y: 3970 } ]
+    },
+    {
+        id: 'kitchen', name: '🍽️ Kitchen', color: '#e1b12c', bgColor: '#332a1b',
+        x: 200, y: 4450, width: 450, height: 400, icon: '🍽️',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 320, y: 4620 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 520, y: 4620 } ]
+    },
+    {
+        id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
+        x: 1150, y: 4450, width: 500, height: 400, icon: '🗃️',
+        tasks: [ { id: 'file_records', name: 'File Catnip Inventory', x: 1300, y: 4620 }, { id: 'scan_id', name: 'Scan Crewmate Paw ID', x: 1500, y: 4620 } ]
+    },
+    {
+        id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
+        x: 2150, y: 4450, width: 450, height: 400, icon: '🛠️',
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 } ]
+    },
+    {
+        id: 'cat_garden', name: '🌿 Cat Garden', color: '#4cd137', bgColor: '#1b3320',
+        x: 1150, y: 5100, width: 500, height: 400, icon: '🌿',
+        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1300, y: 5270 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 1500, y: 5270 } ]
     }
 ];
 
 export const CATNIP_OBSERVATORY_CORRIDORS = [
+    // FLOOR 1
     { x1: 1400, y1: 300, x2: 1400, y2: 1800, width: 120 },
     { x1: 650, y1: 975, x2: 2150, y2: 975, width: 100 },
     { x1: 650, y1: 325, x2: 650, y2: 1650, width: 100 },
@@ -185,7 +239,15 @@ export const CATNIP_OBSERVATORY_CORRIDORS = [
     { x1: 650, y1: 325, x2: 1150, y2: 325, width: 100 },
     { x1: 1650, y1: 325, x2: 2150, y2: 325, width: 100 },
     { x1: 650, y1: 1650, x2: 1150, y2: 1650, width: 100 },
-    { x1: 1650, y1: 1650, x2: 2150, y2: 1650, width: 100 }
+    { x1: 1650, y1: 1650, x2: 2150, y2: 1650, width: 100 },
+    // FLOOR 2
+    { x1: 1400, y1: 3300, x2: 1400, y2: 5300, width: 120 },
+    { x1: 650, y1: 3325, x2: 2150, y2: 3325, width: 100 },
+    { x1: 650, y1: 3975, x2: 2150, y2: 3975, width: 100 },
+    { x1: 650, y1: 4650, x2: 2150, y2: 4650, width: 100 },
+    { x1: 650, y1: 5300, x2: 1150, y2: 5300, width: 100 },
+    { x1: 650, y1: 3325, x2: 650, y2: 4650, width: 100 },
+    { x1: 2150, y1: 3325, x2: 2150, y2: 4650, width: 100 }
 ];
 
 export const ROOMS = [...WHISKER_STATION_ROOMS];
@@ -194,7 +256,7 @@ export const CORRIDORS = [...WHISKER_STATION_CORRIDORS];
 export function loadMap(mapId) {
     if (mapId === 'catnip_observatory') {
         MAP_BOUNDS.width = 2800;
-        MAP_BOUNDS.height = 2200;
+        MAP_BOUNDS.height = 5700;
         
         ROOMS.length = 0;
         ROOMS.push(...CATNIP_OBSERVATORY_ROOMS);
@@ -233,4 +295,21 @@ export function loadMap(mapId) {
             { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' }
         );
     }
+}
+
+export function getNearbyLadder(playerX, playerY, maxDist = 60) {
+    const ladders = [
+        { x1: 1400, y1: 650, x2: 1400, y2: 3650, name: 'Main Elevator' },
+        { x1: 650, y1: 975, x2: 650, y2: 3975, name: 'Service Ladder Left' },
+        { x1: 2150, y1: 975, x2: 2150, y2: 3975, name: 'Service Ladder Right' }
+    ];
+    for (const l of ladders) {
+        if (Math.hypot(playerX - l.x1, playerY - l.y1) <= maxDist) {
+            return { x: l.x2, y: l.y2, label: l.name };
+        }
+        if (Math.hypot(playerX - l.x2, playerY - l.y2) <= maxDist) {
+            return { x: l.x1, y: l.y1, label: l.name };
+        }
+    }
+    return null;
 }

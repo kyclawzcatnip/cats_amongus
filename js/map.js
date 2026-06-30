@@ -172,16 +172,37 @@ export class MapRenderer {
             ctx.fillStyle = 'white'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌀', v.x, v.y + 4);
         }
 
-        // 6. Draw Players & Ghosts
+        // 6. Draw Ladders (Catnip Observatory only)
+        if (localPlayer && window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory') {
+            const ladders = [
+                { x: 1400, y: 650 },
+                { x: 1400, y: 3650 },
+                { x: 650, y: 975 },
+                { x: 650, y: 3975 },
+                { x: 2150, y: 975 },
+                { x: 2150, y: 3975 }
+            ];
+            for (const l of ladders) {
+                ctx.fillStyle = 'rgba(46, 213, 115, 0.2)';
+                ctx.beginPath(); ctx.arc(l.x, l.y, 25, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#2ed573'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('🪜', l.x, l.y + 5);
+            }
+        }
+
+        // 7. Draw Players & Ghosts
         for (const p of players) {
             if (p.inVent) continue; // Hidden while inside vent
+            
+            const sameFloor = (p.y >= 2800) === (localPlayer.y >= 2800);
             
             // Check vision / fog of war line of sight
             if (localPlayer) {
                 const dist = Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y);
                 const visionRadius = localPlayer.getVisionRadius(sabotageSystem.activeSabotage);
                 
-                const isVisible = localPlayer.isDead || p.isLocalPlayer || (dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
+                const isVisible = localPlayer.isDead || p.isLocalPlayer || (sameFloor && dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
                 
                 if (isVisible) {
                     SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
@@ -189,7 +210,7 @@ export class MapRenderer {
             } else {
                 SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
             }
-            if (localPlayer && !p.isLocalPlayer && !p.isDead) {
+            if (localPlayer && !p.isLocalPlayer && !p.isDead && sameFloor) {
                 const dx = p.x - localPlayer.x;
                 const dy = p.y - localPlayer.y;
                 const dist = Math.hypot(dx, dy);

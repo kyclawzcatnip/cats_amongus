@@ -3,7 +3,7 @@
 import { soundManager } from './sounds.js';
 import { Player } from './player.js';
 import { MapRenderer } from './map.js';
-import { MAP_BOUNDS, ROOMS, loadMap } from './rooms.js';
+import { MAP_BOUNDS, ROOMS, loadMap, getNearbyLadder } from './rooms.js';
 import { VentSystem } from './vents.js';
 import { SabotageSystem } from './sabotage.js';
 import { TaskManager } from './tasks.js';
@@ -136,6 +136,17 @@ class Game {
 
     handleUseAction() {
         if (this.localPlayer.isDead) return;
+
+        // Check ladder transition
+        if (this.selectedMap === 'catnip_observatory') {
+            const ladder = getNearbyLadder(this.localPlayer.x, this.localPlayer.y, 75);
+            if (ladder) {
+                this.localPlayer.x = ladder.x;
+                this.localPlayer.y = ladder.y;
+                soundManager.playFootstep();
+                return;
+            }
+        }
 
         // 1. Check Emergency Meeting Button in Bridge
         const bridge = ROOMS.find(r => r.id === 'bridge');
