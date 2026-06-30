@@ -51,7 +51,11 @@ export const TASK_DEFINITIONS = {
 
 export class TaskManager {
     static generateTaskList() {
-        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data' && k !== 'load_torpedoes');
+        const keys = Object.keys(TASK_DEFINITIONS).filter(k => {
+            if (k === 'upload_data' || k === 'load_torpedoes') return false;
+            const t = TASK_DEFINITIONS[k];
+            return ROOMS.some(r => r.name.includes(t.room));
+        });
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         const list = shuffled.slice(0, 5).map(key => ({
             id: key, ...TASK_DEFINITIONS[key], completed: false, progress: 0
@@ -407,11 +411,14 @@ export class TaskManager {
                             const workshopRoom = ROOMS.find(r => r.id === 'workshop');
                             if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
                                 const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                                const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+                                const rx = isHq ? 3325 : (isObs ? 2370 : 2570);
+                                const ry = isHq ? 2010 : (isObs ? 4720 : 1840);
                                 workshopRoom.tasks.push({
                                     id: 'pickup_torpedo_reload',
                                     name: 'Retrieve Torpedo (Reload)',
-                                    x: isObs ? 2370 : 2570,
-                                    y: isObs ? 4720 : 1840
+                                    x: rx,
+                                    y: ry
                                 });
                             }
                         }
@@ -439,11 +446,14 @@ export class TaskManager {
                         const workshopRoom = ROOMS.find(r => r.id === 'workshop');
                         if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
                             const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                            const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+                            const rx = isHq ? 3325 : (isObs ? 2370 : 2570);
+                            const ry = isHq ? 2010 : (isObs ? 4720 : 1840);
                             workshopRoom.tasks.push({
                                 id: 'pickup_torpedo_reload',
                                 name: 'Retrieve Torpedo (Reload)',
-                                x: isObs ? 2370 : 2570,
-                                y: isObs ? 4720 : 1840
+                                x: rx,
+                                y: ry
                             });
                         }
                     }
@@ -684,12 +694,32 @@ export class TaskManager {
 
             const grid = document.createElement('div');
             grid.style.cssText = 'display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; width:480px; justify-content:center;';
-            const feeds = [
-                { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
-                { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
-                { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
-                { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
-            ];
+            
+            const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+            const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+            let feeds = [];
+            if (isHq) {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1750, xMax: 2250, yMin: 150, yMax: 500 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 3150, xMax: 3550, yMin: 700, yMax: 1050 } },
+                    { name: 'CAM 3: CAT GARDEN', bounds: { xMin: 1750, xMax: 2250, yMin: 750, yMax: 1100 } },
+                    { name: 'CAM 4: CENTRAL HALLWAY', bounds: { xMin: 1900, xMax: 2100, yMin: 1100, yMax: 1850 } }
+                ];
+            } else if (isObs) {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1150, xMax: 1650, yMin: 150, yMax: 500 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2150, xMax: 2600, yMin: 800, yMax: 1150 } },
+                    { name: 'CAM 3: MEDICAL', bounds: { xMin: 200, xMax: 650, yMin: 800, yMax: 1150 } },
+                    { name: 'CAM 4: HALLWAY', bounds: { xMin: 1340, xMax: 1460, yMin: 1800, yMax: 3150 } }
+                ];
+            } else {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
+                    { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
+                    { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
+                ];
+            }
 
             const canvasList = [];
             feeds.forEach(f => {

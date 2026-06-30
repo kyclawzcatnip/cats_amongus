@@ -162,7 +162,29 @@ export class AIController {
         let ROOM_NODES = {};
         let spineX = 1800;
 
-        if (selectedMap === 'catnip_observatory') {
+        if (selectedMap === 'cat_hq') {
+            spineX = 2000;
+            ROOM_NODES = {
+                bridge: { center: { x: 2000, y: 325 }, door: { x: 2000, y: 500 } },
+                medical: { center: { x: 1275, y: 410 }, door: { x: 1500, y: 410 } },
+                weapons: { center: { x: 2725, y: 410 }, door: { x: 2500, y: 410 } },
+                security: { center: { x: 650, y: 875 }, door: { x: 850, y: 875 } },
+                ship_quarters: { center: { x: 1300, y: 910 }, door: { x: 1300, y: 1070 } },
+                cat_garden: { center: { x: 2000, y: 925 }, door: { x: 2000, y: 1100 } },
+                nap_quarters: { center: { x: 2700, y: 910 }, door: { x: 2700, y: 1070 } },
+                electrical: { center: { x: 3350, y: 875 }, door: { x: 3150, y: 875 } },
+                o2: { center: { x: 650, y: 1460 }, door: { x: 850, y: 1460 } },
+                fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1620 } },
+                admin: { center: { x: 2000, y: 1450 }, door: { x: 2000, y: 1600 } },
+                kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1620 } },
+                comms: { center: { x: 3350, y: 1460 }, door: { x: 3150, y: 1460 } },
+                records: { center: { x: 675, y: 2010 }, door: { x: 900, y: 2010 } },
+                cargo_bay: { center: { x: 2000, y: 2100 }, door: { x: 2000, y: 1900 } },
+                workshop: { center: { x: 3325, y: 2010 }, door: { x: 3100, y: 2010 } },
+                yarn_engine: { center: { x: 1250, y: 2550 }, door: { x: 1250, y: 2350 } },
+                shields: { center: { x: 2750, y: 2550 }, door: { x: 2750, y: 2350 } }
+            };
+        } else if (selectedMap === 'catnip_observatory') {
             spineX = 1400;
             ROOM_NODES = {
                 // Floor 1
@@ -521,6 +543,16 @@ export class AIController {
             }
         }
 
+        if (bot.role === 'Detective' && !bot.isDead && window.gameInstance && window.gameInstance.state === 'PLAYING') {
+            const nearbyKiller = players.find(p => !p.isDead && p.id !== bot.id && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(bot.x - p.x, bot.y - p.y) <= 250);
+            if (nearbyKiller && isLineOfSightClear(bot.x, bot.y, nearbyKiller.x, nearbyKiller.y)) {
+                window.gameInstance.detectiveAccusedId = nearbyKiller.id;
+                window.gameInstance.detectiveExposedDog = true;
+                window.gameInstance.triggerMeeting(bot, null);
+                return;
+            }
+        }
+
         if (bot.role === 'evil Dog') {
             if (bot.killCooldown > 0) bot.killCooldown -= dt;
             if (bot.escapeTimer > 0) bot.escapeTimer -= dt;
@@ -564,18 +596,29 @@ export class AIController {
                 }
             }
 
-            // 2. Target Selection (only chase isolated cats)
+            // 2. Target Selection (only chase isolated cats, unless Detective exposed the dog)
             if (!bot.justKilled && bot.killCooldown <= 0 && !bot.isLocalPlayer) {
                 let targetCat = null;
-                let minDist = 350;
-                for (const p of players) {
-                    if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
-                        if (checkIsolation(p)) {
-                            const d = Math.hypot(bot.x - p.x, bot.y - p.y);
-                            if (d < minDist) { minDist = d; targetCat = p; }
+                
+                if (window.gameInstance && window.gameInstance.detectiveExposedDog) {
+                    const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+                    if (detective) {
+                        targetCat = detective;
+                    }
+                }
+                
+                if (!targetCat) {
+                    let minDist = 350;
+                    for (const p of players) {
+                        if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
+                            if (checkIsolation(p)) {
+                                const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                                if (d < minDist) { minDist = d; targetCat = p; }
+                            }
                         }
                     }
                 }
+                
                 if (targetCat) {
                     bot.currentPath = [{ x: targetCat.x, y: targetCat.y }];
                 }
@@ -587,6 +630,7 @@ export class AIController {
                     if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
                         if (checkIsolation(target)) {
                             target.isDead = true;
+                            bot.lastKillTimestamp = Date.now();
                             bot.killCooldown = 30;
                             bot.justKilled = true;
                             bot.escapeTimer = 5.0;

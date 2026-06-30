@@ -341,7 +341,7 @@ export class MapRenderer {
                 const el = ROOMS.find(r => r.id === 'electrical');
                 if (el) { targetX = el.lightsFixX; targetY = el.lightsFixY; label = "FIX LIGHTS"; color = "#fdcb6e"; }
             } else if (sabotageSystem.activeSabotage === 'engine') {
-                const ye = ROOMS.find(r => r.id === 'yarn_engine');
+                const ye = ROOMS.find(r => r.hasEngineFixPanel);
                 if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
             } else if (sabotageSystem.activeSabotage === 'comms') {
                 const cm = ROOMS.find(r => r.id === 'comms');

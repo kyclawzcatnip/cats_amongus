@@ -76,7 +76,7 @@ class Game {
         soundManager.init();
         loadMap(this.selectedMap);
         
-        const roles = ['evil Dog', 'Captain'];
+        const roles = ['evil Dog', 'Captain', 'Detective'];
         
         // Medics: 2 if cats >= 25, otherwise 1
         const medicCount = this.catAmount >= 25 ? 2 : 1;
@@ -151,13 +151,14 @@ class Game {
         this.state = 'ROLE_REVEAL';
         this.uiManager.showScreen('role-screen');
 
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Detective: '🕵️', 'evil Dog': '🐶' };
         const roleDescs = {
             Citizen: 'Perform tasks across rooms and unmask the sneaky evil Dog!',
             Captain: 'Command the ship! You complete tasks 35% faster than standard cats.',
             Guard: 'Stay vigilant! You have 25% larger vision and see much better when lights go out.',
             Engineer: 'Use ship ventilation shafts to traverse rooms instantly.',
             Medic: 'Heal the crew! You can revive fallen cats up to 2 times per match.',
+            Detective: 'Investigate crime scenes! You can see who has eliminated someone in the last 15 seconds and expose them!',
             'evil Dog': 'Eliminate cats, sabotage systems, and do not get caught!'
         };
 
@@ -177,10 +178,29 @@ class Game {
     handleUseAction() {
         if (this.localPlayer.isDead) return;
 
+        if (this.localPlayer.role === 'Detective') {
+            const nearbyKiller = this.players.find(p => !p.isLocalPlayer && !p.isDead && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(this.localPlayer.x - p.x, this.localPlayer.y - p.y) <= 95);
+            if (nearbyKiller) {
+                this.detectiveAccusedId = nearbyKiller.id;
+                this.detectiveExposedDog = true;
+                this.triggerMeeting(this.localPlayer, null);
+                
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#00cec9; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #81ecec;';
+                banner.innerText = `🔍 EXPOSED THE SABOTEUR: ${nearbyKiller.name.toUpperCase()}!`;
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 3000);
+                return;
+            }
+        }
+
         // Check reloading at Workshop first!
-        const isObs = this.selectedMap === 'catnip_observatory';
-        const wsX = isObs ? 2370 : 2570;
-        const wsY = isObs ? 4720 : 1840;
+        let wsX = 2570, wsY = 1840;
+        if (this.selectedMap === 'catnip_observatory') {
+            wsX = 2370; wsY = 4720;
+        } else if (this.selectedMap === 'cat_hq') {
+            wsX = 3325; wsY = 2010;
+        }
         const nearWorkshop = Math.hypot(this.localPlayer.x - wsX, this.localPlayer.y - wsY) <= 95;
         if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 5 && nearWorkshop) {
             this.localPlayer.gunAmmo = 5;
@@ -304,8 +324,8 @@ class Game {
         }
 
         if (this.sabotageSystem.activeSabotage === 'engine') {
-            const ye = ROOMS.find(r => r.id === 'yarn_engine');
-            if (Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
+            const ye = ROOMS.find(r => r.hasEngineFixPanel);
+            if (ye && Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
                 const engineFixTask = { room: 'Yarn Engine', name: 'OVERLOAD REPAIR', type: 'rapid_click' };
                 this.uiManager.showScreen('task-modal');
                 TaskManager.renderTaskMinigame(engineFixTask, this.localPlayer, () => {
@@ -314,6 +334,24 @@ class Game {
                 });
                 return;
             }
+        }
+
+        const security = ROOMS.find(r => r.id === 'security');
+        let camX = 380, camY = 750;
+        if (this.selectedMap === 'catnip_observatory') {
+            camX = 1380; camY = 950;
+        } else if (this.selectedMap === 'cat_hq') {
+            camX = 550; camY = 875;
+        }
+        if (security && Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY) <= 75) {
+            const camTask = { id: 'monitor_cams_persistent', room: 'Security', name: 'Security Monitor', type: 'cams' };
+            this.activeTask = camTask;
+            this.uiManager.showScreen('task-modal');
+            this.activeTaskCleanup = TaskManager.renderTaskMinigame(camTask, this.localPlayer, () => {
+                this.uiManager.hideScreen('task-modal');
+                this.activeTask = null;
+            });
+            return;
         }
 
         // 3. Check Tasks
@@ -394,6 +432,7 @@ class Game {
         for (const target of this.players) {
             if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
                 target.isDead = true;
+                this.localPlayer.lastKillTimestamp = Date.now();
                 this.globalKillTimer = 15;
                 this.recordKillWitnesses(this.localPlayer, target);
                 this.reassignDeadCatTasks(target);
@@ -411,7 +450,15 @@ class Game {
         let feeds = [];
         let camX = 380, camY = 750;
         
-        if (this.selectedMap === 'catnip_observatory') {
+        if (this.selectedMap === 'cat_hq') {
+            feeds = [
+                { bounds: { xMin: 1750, xMax: 2250, yMin: 150, yMax: 500 } }, // BRIDGE
+                { bounds: { xMin: 3150, xMax: 3550, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+                { bounds: { xMin: 1750, xMax: 2250, yMin: 750, yMax: 1100 } }, // CAT GARDEN
+                { bounds: { xMin: 1900, xMax: 2100, yMin: 1100, yMax: 1850 } }  // CENTRAL HALLWAY
+            ];
+            camX = 550; camY = 875;
+        } else if (this.selectedMap === 'catnip_observatory') {
             feeds = [
                 { bounds: { xMin: 200, xMax: 650, yMin: 150, yMax: 500 } }, // GREENHOUSE
                 { bounds: { xMin: 2150, xMax: 2600, yMin: 150, yMax: 500 } }, // LASER WEAPONS
@@ -769,8 +816,12 @@ class Game {
                         }
                     }
                 } else {
-                    const camX = this.selectedMap === 'catnip_observatory' ? 1380 : 380;
-                    const camY = this.selectedMap === 'catnip_observatory' ? 950 : 750;
+                    let camX = 380, camY = 750;
+                    if (this.selectedMap === 'catnip_observatory') {
+                        camX = 1380; camY = 950;
+                    } else if (this.selectedMap === 'cat_hq') {
+                        camX = 550; camY = 875;
+                    }
                     const dist = Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY);
                     if (dist > 105) {
                         if (this.activeTaskCleanup) {
@@ -952,9 +1003,12 @@ class Game {
         // Let bots reload their guns at the Workshop if out of ammo
         this.players.forEach(p => {
             if (p.isLocalPlayer || p.isDead || p.role === 'evil Dog' || !p.hasGun || p.gunAmmo > 0) return;
-            const isObs = this.selectedMap === 'catnip_observatory';
-            const wsX = isObs ? 2370 : 2570;
-            const wsY = isObs ? 4720 : 1840;
+            let wsX = 2570, wsY = 1840;
+            if (this.selectedMap === 'catnip_observatory') {
+                wsX = 2370; wsY = 4720;
+            } else if (this.selectedMap === 'cat_hq') {
+                wsX = 3325; wsY = 2010;
+            }
             const nearWorkshop = Math.hypot(p.x - wsX, p.y - wsY) <= 95;
             if (nearWorkshop) {
                 p.gunAmmo = 5;

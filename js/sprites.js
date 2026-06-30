@@ -141,10 +141,20 @@ export class SpriteRenderer {
         ctx.globalAlpha = 1.0;
         ctx.font = '700 12px "Quicksand", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
+        
+        let displayName = player.name;
+        let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
+        if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
+            if (player.lastKillTimestamp && Date.now() - player.lastKillTimestamp <= 15000) {
+                fillStyle = '#ff7675';
+                displayName = '🔍 ' + player.name + ' (KILLED!)';
+            }
+        }
+        
+        ctx.fillStyle = fillStyle;
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 4;
-        ctx.fillText(player.name, 0, -radius - 12);
+        ctx.fillText(displayName, 0, -radius - 12);
         ctx.shadowBlur = 0;
 
         if (player.hasGun) {

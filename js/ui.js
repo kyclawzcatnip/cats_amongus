@@ -110,7 +110,8 @@ export class UIManager {
     changeMap(dir) {
         const maps = [
             { id: 'whisker_station', name: 'Whisker-Station' },
-            { id: 'catnip_observatory', name: 'Catnip Observatory' }
+            { id: 'catnip_observatory', name: 'Catnip Observatory' },
+            { id: 'cat_hq', name: 'CatHQ' }
         ];
         let curIdx = maps.findIndex(m => m.id === this.game.selectedMap);
         if (curIdx === -1) curIdx = 0;
@@ -204,7 +205,7 @@ export class UIManager {
         document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
 
         // Role Icon/Name
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Detective: '🕵️', 'evil Dog': '🐶' };
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
         document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
 
@@ -322,8 +323,12 @@ export class UIManager {
         }
         
         const security = ROOMS.find(r => r.id === 'security');
-        const camX = this.game.selectedMap === 'catnip_observatory' ? 1380 : 380;
-        const camY = this.game.selectedMap === 'catnip_observatory' ? 950 : 750;
+        let camX = 380, camY = 750;
+        if (this.game.selectedMap === 'catnip_observatory') {
+            camX = 1380; camY = 950;
+        } else if (this.game.selectedMap === 'cat_hq') {
+            camX = 550; camY = 875;
+        }
         if (security && Math.hypot(player.x - camX, player.y - camY) <= 75) {
             canUse = true; useText = "CAMERAS"; useIcon = "📹";
         }
@@ -336,7 +341,7 @@ export class UIManager {
         }
 
         if (sabotageSystem.activeSabotage === 'engine') {
-            const ye = ROOMS.find(r => r.id === 'yarn_engine');
+            const ye = ROOMS.find(r => r.hasEngineFixPanel);
             if (ye && Math.hypot(player.x - ye.engineFixX, player.y - ye.engineFixY) <= 95) {
                 canUse = true; useText = "REPAIR"; useIcon = "⚙️";
             }
@@ -350,9 +355,12 @@ export class UIManager {
         }
 
         if (!canUse && player.hasGun && this.game && this.game.defensiveProtocolActive) {
-            const isObs = this.game.selectedMap === 'catnip_observatory';
-            const wsX = isObs ? 2370 : 2570;
-            const wsY = isObs ? 4720 : 1840;
+            let wsX = 2570, wsY = 1840;
+            if (this.game.selectedMap === 'catnip_observatory') {
+                wsX = 2370; wsY = 4720;
+            } else if (this.game.selectedMap === 'cat_hq') {
+                wsX = 3325; wsY = 2010;
+            }
             const nearWorkshop = Math.hypot(player.x - wsX, player.y - wsY) <= 95;
             
             if (player.gunAmmo < 5 && nearWorkshop) {
@@ -375,6 +383,13 @@ export class UIManager {
             });
             if (nearbyDefTask) {
                 canUse = true; useText = "SABOTAGE"; useIcon = "⚠️";
+            }
+        }
+
+        if (!canUse && player.role === 'Detective') {
+            const nearbyKiller = this.game.players.find(p => !p.isLocalPlayer && !p.isDead && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(player.x - p.x, player.y - p.y) <= 95);
+            if (nearbyKiller) {
+                canUse = true; useText = "EXPOSE"; useIcon = "🔍";
             }
         }
 

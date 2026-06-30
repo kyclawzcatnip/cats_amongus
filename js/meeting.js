@@ -93,6 +93,30 @@ export class MeetingManager {
         soundManager.playEmergencyAlarm();
         this.setupMeetingUI(players);
 
+        // Check Detective accusation
+        const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+        const detectiveAccusedId = window.gameInstance && window.gameInstance.detectiveAccusedId;
+        if (detective && detectiveAccusedId) {
+            this.accusedId = detectiveAccusedId;
+            const accusedPlayer = players.find(p => p.id === detectiveAccusedId);
+            if (accusedPlayer) {
+                setTimeout(() => {
+                    if (this.active) {
+                        const msgText = `🚨 ${accusedPlayer.name} is the dog i investigated him and all signs point to ${accusedPlayer.name} being the dog`;
+                        if (detective.isLocalPlayer) {
+                            this.sendUserChatMessage(msgText, detective.name, players);
+                        } else {
+                            const chatContainer = document.getElementById('chat-messages-container');
+                            const msg = document.createElement('div');
+                            msg.className = 'chat-msg bot-msg';
+                            msg.innerHTML = `<strong>${detective.name}:</strong> ${msgText}`;
+                            this.appendChatMessage(chatContainer, msg);
+                        }
+                    }
+                }, 800);
+            }
+        }
+
         // If local player saw the kill, automatically post the witness chat line
         const localPlayer = players.find(p => p.isLocalPlayer);
         if (localPlayer && !localPlayer.isDead && localPlayer.witnessedKillerName) {
@@ -257,11 +281,18 @@ export class MeetingManager {
             const voteDelay = 800 + Math.random() * 2700;
             setTimeout(() => {
                 if (!this.active) return;
-                if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
+                if (bot.role === 'evil Dog') {
+                    const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+                    if (detective && this.accusedId === bot.id) {
+                        this.votes[bot.id] = detective.id;
+                    } else {
+                        this.votes[bot.id] = 'skip';
+                    }
+                } else if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
                     this.votes[bot.id] = bot.witnessedKillerId;
                 } else if (this.accusedId !== null) {
                     const r = Math.random();
-                    if (r < 0.85) { // Crewmates are much more unified when someone is accused!
+                    if (r < 0.85) { // 85% chance to agree with the detective/accused player!
                         this.votes[bot.id] = this.accusedId;
                     } else if (r < 0.95) {
                         this.votes[bot.id] = 'skip';
@@ -557,8 +588,12 @@ export class MeetingManager {
         }
 
         setTimeout(() => {
+            if (actualEjectedPlayer) {
                 actualEjectedPlayer.isDead = true;
                 actualEjectedPlayer.isEjected = true;
+            }
+            if (window.gameInstance) {
+                window.gameInstance.detectiveAccusedId = null;
             }
             this.onComplete(actualEjectedPlayer, isActualTie, isSkipped);
         }, 3500);

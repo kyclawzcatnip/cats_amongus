@@ -256,11 +256,146 @@ export const CATNIP_OBSERVATORY_CORRIDORS = [
     { x1: 2150, y1: 3325, x2: 2150, y2: 4650, width: 100 }
 ];
 
+export const CATHQ_ROOMS = [
+    {
+        id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
+        x: 1750, y: 150, width: 500, height: 350, icon: '🚀',
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ],
+        hasEmergencyButton: true, buttonX: 2000, buttonY: 320
+    },
+    {
+        id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
+        x: 1050, y: 250, width: 450, height: 320, icon: '🏥',
+        tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 1150, y: 380 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 1350, y: 380 } ]
+    },
+    {
+        id: 'weapons', name: '⚔️ Weapons', color: '#ff793f', bgColor: '#331e1b',
+        x: 2500, y: 250, width: 450, height: 320, icon: '⚔️',
+        tasks: [ { id: 'clear_asteroids', name: 'Clear Asteroids', x: 2600, y: 380 }, { id: 'load_torpedoes', name: 'Load Catnip Torpedoes', x: 2800, y: 380 } ]
+    },
+    {
+        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
+        x: 450, y: 700, width: 400, height: 350, icon: '📹',
+        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 550, y: 875 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 750, y: 875 } ]
+    },
+    {
+        id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#ffeaa7', bgColor: '#2d2d2d',
+        x: 1100, y: 750, width: 400, height: 320, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1200, y: 910 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1400, y: 910 } ]
+    },
+    {
+        id: 'cat_garden', name: '🌸 Cat Garden', color: '#10ac84', bgColor: '#1b332b',
+        x: 1750, y: 750, width: 500, height: 350, icon: '🌸',
+        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 920 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 2150, y: 920 } ]
+    },
+    {
+        id: 'nap_quarters', name: '😴 Nap Quarters', color: '#fd79a8', bgColor: '#3d252f',
+        x: 2500, y: 750, width: 400, height: 320, icon: '😴',
+        tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 2600, y: 910 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 2800, y: 910 } ]
+    },
+    {
+        id: 'electrical', name: '⚡ Electrical', color: '#fbc531', bgColor: '#332e1b',
+        x: 3150, y: 700, width: 400, height: 350, icon: '⚡',
+        tasks: [ { id: 'calibrate_distributor', name: 'Calibrate Power', x: 3250, y: 875 }, { id: 'download_data', name: 'Download Power Logs', x: 3450, y: 875 } ],
+        hasLightsFixPanel: true, lightsFixX: 3350, lightsFixY: 875
+    },
+    {
+        id: 'o2', name: '💨 Oxygen (O2)', color: '#74b9ff', bgColor: '#1c2e3d',
+        x: 450, y: 1300, width: 400, height: 320, icon: '💨',
+        tasks: [ { id: 'clean_filters', name: 'Clean Oxygen Filter', x: 550, y: 1460 }, { id: 'refill_tanks', name: 'Refill O2 Storage Tanks', x: 750, y: 1460 } ]
+    },
+    {
+        id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
+        x: 1050, y: 1300, width: 450, height: 320, icon: '🐟',
+        tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 1150, y: 1460 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 1350, y: 1460 } ]
+    },
+    {
+        id: 'admin', name: '📁 Admin Room', color: '#ffeaa7', bgColor: '#2c3e50',
+        x: 1800, y: 1300, width: 400, height: 300, icon: '📁',
+        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 1900, y: 1450 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 2100, y: 1450 } ]
+    },
+    {
+        id: 'kitchen', name: '🍳 Kitchen', color: '#e67e22', bgColor: '#3d2c1e',
+        x: 2500, y: 1300, width: 450, height: 320, icon: '🍳',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 2600, y: 1460 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 2800, y: 1460 } ]
+    },
+    {
+        id: 'comms', name: '📻 Communications (Comms)', color: '#0984e3', bgColor: '#1c2833',
+        x: 3150, y: 1300, width: 400, height: 320, icon: '📻',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3250, y: 1460 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3450, y: 1460 } ],
+        hasCommsFixPanel: true, commsFixX: 3350, commsFixY: 1460
+    },
+    {
+        id: 'records', name: '📂 Catnip Records', color: '#a29bfe', bgColor: '#241b3a',
+        x: 450, y: 1850, width: 450, height: 320, icon: '📂',
+        tasks: [ { id: 'file_records', name: 'File Catnip Inventory', x: 550, y: 2010 }, { id: 'scan_id', name: 'Scan Paw ID', x: 750, y: 2010 } ]
+    },
+    {
+        id: 'cargo_bay', name: '📦 Cargo Bay', color: '#ffeaa7', bgColor: '#2d3436',
+        x: 1700, y: 1900, width: 600, height: 400, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 1850, y: 2100 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2150, y: 2100 } ]
+    },
+    {
+        id: 'workshop', name: '🛠️ Workshop', color: '#81ecec', bgColor: '#1b2d2d',
+        x: 3100, y: 1850, width: 450, height: 320, icon: '🛠️',
+        tasks: [ { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 3200, y: 2010 }, { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 3350, y: 2010 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 3450, y: 2010 } ]
+    },
+    {
+        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#fd79a8', bgColor: '#2d1b2b',
+        x: 1000, y: 2350, width: 500, height: 400, icon: '🧶',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1150, y: 2550 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1350, y: 2550 } ],
+        hasEngineFixPanel: true, engineFixX: 1250, engineFixY: 2550
+    },
+    {
+        id: 'shields', name: '🛡️ Shields', color: '#74b9ff', bgColor: '#1c2833',
+        x: 2500, y: 2350, width: 500, height: 400, icon: '🛡️',
+        tasks: [ { id: 'prime_shields', name: 'Prime Deflector Shields', x: 2650, y: 2550 }, { id: 'realign_panels', name: 'Realign Shield Panels', x: 2850, y: 2550 } ]
+    }
+];
+
+export const CATHQ_CORRIDORS = [
+    // Central Spine (x = 2000)
+    { x1: 2000, y1: 500, x2: 2000, y2: 1900, width: 120 },
+    // Left Spine (x = 900)
+    { x1: 900, y1: 570, x2: 900, y2: 2350, width: 100 },
+    // Right Spine (x = 3100)
+    { x1: 3100, y1: 570, x2: 3100, y2: 2350, width: 100 },
+    // Top Horizontal Corridor (y = 570)
+    { x1: 900, y1: 570, x2: 3100, y2: 570, width: 100 },
+    // Middle Horizontal Corridor (y = 1170)
+    { x1: 650, y1: 1170, x2: 3350, y2: 1170, width: 100 },
+    // Lower Middle Horizontal Corridor (y = 1720)
+    { x1: 650, y1: 1720, x2: 3350, y2: 1720, width: 100 },
+    // Bottom Horizontal Corridor (y = 2270)
+    { x1: 900, y1: 2270, x2: 3100, y2: 2270, width: 100 }
+];
+
 export const ROOMS = [...WHISKER_STATION_ROOMS];
 export const CORRIDORS = [...WHISKER_STATION_CORRIDORS];
 
 export function loadMap(mapId) {
-    if (mapId === 'catnip_observatory') {
+    if (mapId === 'cat_hq') {
+        MAP_BOUNDS.width = 4000;
+        MAP_BOUNDS.height = 3000;
+        
+        ROOMS.length = 0;
+        ROOMS.push(...CATHQ_ROOMS);
+        
+        CORRIDORS.length = 0;
+        CORRIDORS.push(...CATHQ_CORRIDORS);
+        
+        VENTS.length = 0;
+        VENTS.push(
+            { id: 'hq_v1', roomId: 'security', x: 550, y: 800, connectId: 'hq_v2', targetRoom: 'Electrical' },
+            { id: 'hq_v2', roomId: 'electrical', x: 3250, y: 800, connectId: 'hq_v1', targetRoom: 'Security' },
+            { id: 'hq_v3', roomId: 'medical', x: 1150, y: 320, connectId: 'hq_v4', targetRoom: 'Weapons' },
+            { id: 'hq_v4', roomId: 'weapons', x: 2600, y: 320, connectId: 'hq_v3', targetRoom: 'Medical' },
+            { id: 'hq_v5', roomId: 'admin', x: 1900, y: 1350, connectId: 'hq_v6', targetRoom: 'Workshop' },
+            { id: 'hq_v6', roomId: 'workshop', x: 3200, y: 1900, connectId: 'hq_v5', targetRoom: 'Admin Room' },
+            { id: 'hq_v7', roomId: 'bridge', x: 1850, y: 200, connectId: 'hq_v8', targetRoom: 'Yarn Engine' },
+            { id: 'hq_v8', roomId: 'yarn_engine', x: 1150, y: 2450, connectId: 'hq_v7', targetRoom: 'Bridge' }
+        );
+    } else if (mapId === 'catnip_observatory') {
         MAP_BOUNDS.width = 2800;
         MAP_BOUNDS.height = 5700;
         

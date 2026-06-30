@@ -300,10 +300,18 @@ class SpriteRenderer {
             ctx.globalAlpha = 1.0;
             ctx.font = '700 13px "Quicksand", sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : '#ffffff';
+            let displayName = player.name;
+            let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : '#ffffff';
+            if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
+                if (player.lastKillTimestamp && Date.now() - player.lastKillTimestamp <= 15000) {
+                    fillStyle = '#ff7675';
+                    displayName = '🔍 ' + player.name + ' (KILLED!)';
+                }
+            }
+            ctx.fillStyle = fillStyle;
             ctx.shadowColor = 'black';
             ctx.shadowBlur = 4;
-            ctx.fillText(player.name, 0, -radius - 12);
+            ctx.fillText(displayName, 0, -radius - 12);
             ctx.shadowBlur = 0;
 
             if (player.hasGun) {
@@ -873,6 +881,120 @@ const CATNIP_OBSERVATORY_CORRIDORS = [
     { x1: 2150, y1: 3325, x2: 2150, y2: 4650, width: 100 }
 ];
 
+const CATHQ_ROOMS = [
+    {
+        id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
+        x: 1750, y: 150, width: 500, height: 350, icon: '🚀',
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ],
+        hasEmergencyButton: true, buttonX: 2000, buttonY: 320
+    },
+    {
+        id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
+        x: 1050, y: 250, width: 450, height: 320, icon: '🏥',
+        tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 1150, y: 380 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 1350, y: 380 } ]
+    },
+    {
+        id: 'weapons', name: '⚔️ Weapons', color: '#ff793f', bgColor: '#331e1b',
+        x: 2500, y: 250, width: 450, height: 320, icon: '⚔️',
+        tasks: [ { id: 'clear_asteroids', name: 'Clear Asteroids', x: 2600, y: 380 }, { id: 'load_torpedoes', name: 'Load Catnip Torpedoes', x: 2800, y: 380 } ]
+    },
+    {
+        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
+        x: 450, y: 700, width: 400, height: 350, icon: '📹',
+        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 550, y: 875 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 750, y: 875 } ]
+    },
+    {
+        id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#ffeaa7', bgColor: '#2d2d2d',
+        x: 1100, y: 750, width: 400, height: 320, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1200, y: 910 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1400, y: 910 } ]
+    },
+    {
+        id: 'cat_garden', name: '🌸 Cat Garden', color: '#10ac84', bgColor: '#1b332b',
+        x: 1750, y: 750, width: 500, height: 350, icon: '🌸',
+        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 920 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 2150, y: 920 } ]
+    },
+    {
+        id: 'nap_quarters', name: '😴 Nap Quarters', color: '#fd79a8', bgColor: '#3d252f',
+        x: 2500, y: 750, width: 400, height: 320, icon: '😴',
+        tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 2600, y: 910 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 2800, y: 910 } ]
+    },
+    {
+        id: 'electrical', name: '⚡ Electrical', color: '#fbc531', bgColor: '#332e1b',
+        x: 3150, y: 700, width: 400, height: 350, icon: '⚡',
+        tasks: [ { id: 'calibrate_distributor', name: 'Calibrate Power', x: 3250, y: 875 }, { id: 'download_data', name: 'Download Power Logs', x: 3450, y: 875 } ],
+        hasLightsFixPanel: true, lightsFixX: 3350, lightsFixY: 875
+    },
+    {
+        id: 'o2', name: '💨 Oxygen (O2)', color: '#74b9ff', bgColor: '#1c2e3d',
+        x: 450, y: 1300, width: 400, height: 320, icon: '💨',
+        tasks: [ { id: 'clean_filters', name: 'Clean Oxygen Filter', x: 550, y: 1460 }, { id: 'refill_tanks', name: 'Refill O2 Storage Tanks', x: 750, y: 1460 } ]
+    },
+    {
+        id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
+        x: 1050, y: 1300, width: 450, height: 320, icon: '🐟',
+        tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 1150, y: 1460 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 1350, y: 1460 } ]
+    },
+    {
+        id: 'admin', name: '📁 Admin Room', color: '#ffeaa7', bgColor: '#2c3e50',
+        x: 1800, y: 1300, width: 400, height: 300, icon: '📁',
+        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 1900, y: 1450 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 2100, y: 1450 } ]
+    },
+    {
+        id: 'kitchen', name: '🍳 Kitchen', color: '#e67e22', bgColor: '#3d2c1e',
+        x: 2500, y: 1300, width: 450, height: 320, icon: '🍳',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 2600, y: 1460 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 2800, y: 1460 } ]
+    },
+    {
+        id: 'comms', name: '📻 Communications (Comms)', color: '#0984e3', bgColor: '#1c2833',
+        x: 3150, y: 1300, width: 400, height: 320, icon: '📻',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3250, y: 1460 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3450, y: 1460 } ],
+        hasCommsFixPanel: true, commsFixX: 3350, commsFixY: 1460
+    },
+    {
+        id: 'records', name: '📂 Catnip Records', color: '#a29bfe', bgColor: '#241b3a',
+        x: 450, y: 1850, width: 450, height: 320, icon: '📂',
+        tasks: [ { id: 'file_records', name: 'File Catnip Inventory', x: 550, y: 2010 }, { id: 'scan_id', name: 'Scan Paw ID', x: 750, y: 2010 } ]
+    },
+    {
+        id: 'cargo_bay', name: '📦 Cargo Bay', color: '#ffeaa7', bgColor: '#2d3436',
+        x: 1700, y: 1900, width: 600, height: 400, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 1850, y: 2100 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2150, y: 2100 } ]
+    },
+    {
+        id: 'workshop', name: '🛠️ Workshop', color: '#81ecec', bgColor: '#1b2d2d',
+        x: 3100, y: 1850, width: 450, height: 320, icon: '🛠️',
+        tasks: [ { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 3200, y: 2010 }, { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 3350, y: 2010 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 3450, y: 2010 } ]
+    },
+    {
+        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#fd79a8', bgColor: '#2d1b2b',
+        x: 1000, y: 2350, width: 500, height: 400, icon: '🧶',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1150, y: 2550 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1350, y: 2550 } ],
+        hasEngineFixPanel: true, engineFixX: 1250, engineFixY: 2550
+    },
+    {
+        id: 'shields', name: '🛡️ Shields', color: '#74b9ff', bgColor: '#1c2833',
+        x: 2500, y: 2350, width: 500, height: 400, icon: '🛡️',
+        tasks: [ { id: 'prime_shields', name: 'Prime Deflector Shields', x: 2650, y: 2550 }, { id: 'realign_panels', name: 'Realign Shield Panels', x: 2850, y: 2550 } ]
+    }
+];
+
+const CATHQ_CORRIDORS = [
+    // Central Spine (x = 2000)
+    { x1: 2000, y1: 500, x2: 2000, y2: 1900, width: 120 },
+    // Left Spine (x = 900)
+    { x1: 900, y1: 570, x2: 900, y2: 2350, width: 100 },
+    // Right Spine (x = 3100)
+    { x1: 3100, y1: 570, x2: 3100, y2: 2350, width: 100 },
+    // Top Horizontal Corridor (y = 570)
+    { x1: 900, y1: 570, x2: 3100, y2: 570, width: 100 },
+    // Middle Horizontal Corridor (y = 1170)
+    { x1: 650, y1: 1170, x2: 3350, y2: 1170, width: 100 },
+    // Lower Middle Horizontal Corridor (y = 1720)
+    { x1: 650, y1: 1720, x2: 3350, y2: 1720, width: 100 },
+    // Bottom Horizontal Corridor (y = 2270)
+    { x1: 900, y1: 2270, x2: 3100, y2: 2270, width: 100 }
+];
+
 const ROOMS = [...WHISKER_STATION_ROOMS];
 const CORRIDORS = [...WHISKER_STATION_CORRIDORS];
 
@@ -888,7 +1010,25 @@ const VENTS = [
 ];
 
 function loadMap(mapId) {
-    if (mapId === 'catnip_observatory') {
+    if (mapId === 'cat_hq') {
+        MAP_BOUNDS.width = 4000;
+        MAP_BOUNDS.height = 3000;
+        ROOMS.length = 0;
+        ROOMS.push(...CATHQ_ROOMS);
+        CORRIDORS.length = 0;
+        CORRIDORS.push(...CATHQ_CORRIDORS);
+        VENTS.length = 0;
+        VENTS.push(
+            { id: 'hq_v1', roomId: 'security', x: 550, y: 800, connectId: 'hq_v2', targetRoom: 'Electrical' },
+            { id: 'hq_v2', roomId: 'electrical', x: 3250, y: 800, connectId: 'hq_v1', targetRoom: 'Security' },
+            { id: 'hq_v3', roomId: 'medical', x: 1150, y: 320, connectId: 'hq_v4', targetRoom: 'Weapons' },
+            { id: 'hq_v4', roomId: 'weapons', x: 2600, y: 320, connectId: 'hq_v3', targetRoom: 'Medical' },
+            { id: 'hq_v5', roomId: 'admin', x: 1900, y: 1350, connectId: 'hq_v6', targetRoom: 'Workshop' },
+            { id: 'hq_v6', roomId: 'workshop', x: 3200, y: 1900, connectId: 'hq_v5', targetRoom: 'Admin Room' },
+            { id: 'hq_v7', roomId: 'bridge', x: 1850, y: 200, connectId: 'hq_v8', targetRoom: 'Yarn Engine' },
+            { id: 'hq_v8', roomId: 'yarn_engine', x: 1150, y: 2450, connectId: 'hq_v7', targetRoom: 'Bridge' }
+        );
+    } else if (mapId === 'catnip_observatory') {
         MAP_BOUNDS.width = 2800;
         MAP_BOUNDS.height = 5700;
         ROOMS.length = 0;
@@ -1038,7 +1178,11 @@ const TASK_DEFINITIONS = {
 
 class TaskManager {
     static generateTaskList() {
-        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data' && k !== 'load_torpedoes');
+        const keys = Object.keys(TASK_DEFINITIONS).filter(k => {
+            if (k === 'upload_data' || k === 'load_torpedoes') return false;
+            const t = TASK_DEFINITIONS[k];
+            return ROOMS.some(r => r.name.includes(t.room));
+        });
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         const list = shuffled.slice(0, 5).map(key => ({
             id: key, ...TASK_DEFINITIONS[key], completed: false, progress: 0
@@ -1380,11 +1524,14 @@ class TaskManager {
                             const workshopRoom = ROOMS.find(r => r.id === 'workshop');
                             if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
                                 const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                                const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+                                const rx = isHq ? 3325 : (isObs ? 2370 : 2570);
+                                const ry = isHq ? 2010 : (isObs ? 4720 : 1840);
                                 workshopRoom.tasks.push({
                                     id: 'pickup_torpedo_reload',
                                     name: 'Retrieve Torpedo (Reload)',
-                                    x: isObs ? 2370 : 2570,
-                                    y: isObs ? 4720 : 1840
+                                    x: rx,
+                                    y: ry
                                 });
                             }
                         }
@@ -1412,11 +1559,14 @@ class TaskManager {
                         const workshopRoom = ROOMS.find(r => r.id === 'workshop');
                         if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
                             const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                            const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+                            const rx = isHq ? 3325 : (isObs ? 2370 : 2570);
+                            const ry = isHq ? 2010 : (isObs ? 4720 : 1840);
                             workshopRoom.tasks.push({
                                 id: 'pickup_torpedo_reload',
                                 name: 'Retrieve Torpedo (Reload)',
-                                x: isObs ? 2370 : 2570,
-                                y: isObs ? 4720 : 1840
+                                x: rx,
+                                y: ry
                             });
                         }
                     }
@@ -1657,12 +1807,31 @@ class TaskManager {
 
             const grid = document.createElement('div');
             grid.style.cssText = 'display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; width:480px; justify-content:center;';
-            const feeds = [
-                { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
-                { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
-                { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
-                { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
-            ];
+            const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+            const isHq = window.gameInstance && window.gameInstance.selectedMap === 'cat_hq';
+            let feeds = [];
+            if (isHq) {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1750, xMax: 2250, yMin: 150, yMax: 500 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 3150, xMax: 3550, yMin: 700, yMax: 1050 } },
+                    { name: 'CAM 3: CAT GARDEN', bounds: { xMin: 1750, xMax: 2250, yMin: 750, yMax: 1100 } },
+                    { name: 'CAM 4: CENTRAL HALLWAY', bounds: { xMin: 1900, xMax: 2100, yMin: 1100, yMax: 1850 } }
+                ];
+            } else if (isObs) {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1150, xMax: 1650, yMin: 150, yMax: 500 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2150, xMax: 2600, yMin: 800, yMax: 1150 } },
+                    { name: 'CAM 3: MEDICAL', bounds: { xMin: 200, xMax: 650, yMin: 800, yMax: 1150 } },
+                    { name: 'CAM 4: HALLWAY', bounds: { xMin: 1340, xMax: 1460, yMin: 1800, yMax: 3150 } }
+                ];
+            } else {
+                feeds = [
+                    { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
+                    { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
+                    { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
+                    { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
+                ];
+            }
 
             const canvasList = [];
             feeds.forEach(f => {
@@ -2251,7 +2420,7 @@ class MapRenderer {
                 const el = ROOMS.find(r => r.id === 'electrical');
                 if (el) { targetX = el.lightsFixX; targetY = el.lightsFixY; label = "FIX LIGHTS"; color = "#fdcb6e"; }
             } else if (sabotageSystem.activeSabotage === 'engine') {
-                const ye = ROOMS.find(r => r.id === 'yarn_engine');
+                const ye = ROOMS.find(r => r.hasEngineFixPanel);
                 if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
             } else if (sabotageSystem.activeSabotage === 'comms') {
                 const cm = ROOMS.find(r => r.id === 'comms');
@@ -2504,7 +2673,29 @@ class AIController {
         let ROOM_NODES = {};
         let spineX = 1800;
 
-        if (selectedMap === 'catnip_observatory') {
+        if (selectedMap === 'cat_hq') {
+            spineX = 2000;
+            ROOM_NODES = {
+                bridge: { center: { x: 2000, y: 325 }, door: { x: 2000, y: 500 } },
+                medical: { center: { x: 1275, y: 410 }, door: { x: 1500, y: 410 } },
+                weapons: { center: { x: 2725, y: 410 }, door: { x: 2500, y: 410 } },
+                security: { center: { x: 650, y: 875 }, door: { x: 850, y: 875 } },
+                ship_quarters: { center: { x: 1300, y: 910 }, door: { x: 1300, y: 1070 } },
+                cat_garden: { center: { x: 2000, y: 925 }, door: { x: 2000, y: 1100 } },
+                nap_quarters: { center: { x: 2700, y: 910 }, door: { x: 2700, y: 1070 } },
+                electrical: { center: { x: 3350, y: 875 }, door: { x: 3150, y: 875 } },
+                o2: { center: { x: 650, y: 1460 }, door: { x: 850, y: 1460 } },
+                fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1620 } },
+                admin: { center: { x: 2000, y: 1450 }, door: { x: 2000, y: 1600 } },
+                kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1620 } },
+                comms: { center: { x: 3350, y: 1460 }, door: { x: 3150, y: 1460 } },
+                records: { center: { x: 675, y: 2010 }, door: { x: 900, y: 2010 } },
+                cargo_bay: { center: { x: 2000, y: 2100 }, door: { x: 2000, y: 1900 } },
+                workshop: { center: { x: 3325, y: 2010 }, door: { x: 3100, y: 2010 } },
+                yarn_engine: { center: { x: 1250, y: 2550 }, door: { x: 1250, y: 2350 } },
+                shields: { center: { x: 2750, y: 2550 }, door: { x: 2750, y: 2350 } }
+            };
+        } else if (selectedMap === 'catnip_observatory') {
             spineX = 1400;
             ROOM_NODES = {
                 // Floor 1
@@ -2867,6 +3058,16 @@ class AIController {
             }
         }
 
+        if (bot.role === 'Detective' && !bot.isDead && window.gameInstance && window.gameInstance.state === 'PLAYING') {
+            const nearbyKiller = players.find(p => !p.isDead && p.id !== bot.id && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(bot.x - p.x, bot.y - p.y) <= 250);
+            if (nearbyKiller && isLineOfSightClear(bot.x, bot.y, nearbyKiller.x, nearbyKiller.y)) {
+                window.gameInstance.detectiveAccusedId = nearbyKiller.id;
+                window.gameInstance.detectiveExposedDog = true;
+                window.gameInstance.triggerMeeting(bot, null);
+                return;
+            }
+        }
+
         if (bot.role === 'evil Dog') {
             if (bot.killCooldown > 0) bot.killCooldown -= dt;
             if (bot.escapeTimer > 0) bot.escapeTimer -= dt;
@@ -2910,15 +3111,23 @@ class AIController {
                 }
             }
 
-            // 2. Target Selection (only chase isolated cats)
+            // 2. Target Selection (only chase isolated cats, unless Detective exposed the dog)
             if (!bot.justKilled && bot.killCooldown <= 0 && !bot.isLocalPlayer) {
                 let targetCat = null;
-                let minDist = 350;
-                for (const p of players) {
-                    if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
-                        if (checkIsolation(p)) {
-                            const d = Math.hypot(bot.x - p.x, bot.y - p.y);
-                            if (d < minDist) { minDist = d; targetCat = p; }
+                if (window.gameInstance && window.gameInstance.detectiveExposedDog) {
+                    const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+                    if (detective) {
+                        targetCat = detective;
+                    }
+                }
+                if (!targetCat) {
+                    let minDist = 350;
+                    for (const p of players) {
+                        if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
+                            if (checkIsolation(p)) {
+                                const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                                if (d < minDist) { minDist = d; targetCat = p; }
+                            }
                         }
                     }
                 }
@@ -2933,6 +3142,7 @@ class AIController {
                     if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
                         if (checkIsolation(target)) {
                             target.isDead = true;
+                            bot.lastKillTimestamp = Date.now();
                             bot.killCooldown = 30;
                             bot.justKilled = true;
                             bot.escapeTimer = 5.0;
@@ -3042,6 +3252,30 @@ class MeetingManager {
 
         soundManager.playEmergencyAlarm();
         this.setupMeetingUI(players);
+
+        // Check Detective accusation
+        const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+        const detectiveAccusedId = window.gameInstance && window.gameInstance.detectiveAccusedId;
+        if (detective && detectiveAccusedId) {
+            this.accusedId = detectiveAccusedId;
+            const accusedPlayer = players.find(p => p.id === detectiveAccusedId);
+            if (accusedPlayer) {
+                setTimeout(() => {
+                    if (this.active) {
+                        const msgText = `🚨 ${accusedPlayer.name} is the dog i investigated him and all signs point to ${accusedPlayer.name} being the dog`;
+                        if (detective.isLocalPlayer) {
+                            this.sendUserChatMessage(msgText, detective.name, players);
+                        } else {
+                            const chatContainer = document.getElementById('chat-messages-container');
+                            const msg = document.createElement('div');
+                            msg.className = 'chat-msg bot-msg';
+                            msg.innerHTML = `<strong>${detective.name}:</strong> ${msgText}`;
+                            this.appendChatMessage(chatContainer, msg);
+                        }
+                    }
+                }, 800);
+            }
+        }
 
         // If local player saw the kill, automatically post the witness chat line
         const localPlayer = players.find(p => p.isLocalPlayer);
@@ -3198,11 +3432,18 @@ class MeetingManager {
             const voteDelay = 800 + Math.random() * 2700;
             setTimeout(() => {
                 if (!this.active) return;
-                if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
+                if (bot.role === 'evil Dog') {
+                    const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+                    if (detective && this.accusedId === bot.id) {
+                        this.votes[bot.id] = detective.id;
+                    } else {
+                        this.votes[bot.id] = 'skip';
+                    }
+                } else if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
                     this.votes[bot.id] = bot.witnessedKillerId;
                 } else if (this.accusedId !== null) {
                     const r = Math.random();
-                    if (r < 0.85) {
+                    if (r < 0.85) { // 85% chance to agree with the detective/accused player!
                         this.votes[bot.id] = this.accusedId;
                     } else if (r < 0.95) {
                         this.votes[bot.id] = 'skip';
@@ -3475,6 +3716,9 @@ class MeetingManager {
                 ejectedPlayer.isDead = true;
                 ejectedPlayer.isEjected = true;
             }
+            if (window.gameInstance) {
+                window.gameInstance.detectiveAccusedId = null;
+            }
             this.onComplete(ejectedPlayer, isTie);
         }, 3500);
     }
@@ -3569,7 +3813,8 @@ class UIManager {
     changeMap(dir) {
         const maps = [
             { id: 'whisker_station', name: 'Whisker-Station' },
-            { id: 'catnip_observatory', name: 'Catnip Observatory' }
+            { id: 'catnip_observatory', name: 'Catnip Observatory' },
+            { id: 'cat_hq', name: 'CatHQ' }
         ];
         let curIdx = maps.findIndex(m => m.id === this.game.selectedMap);
         if (curIdx === -1) curIdx = 0;
@@ -3661,7 +3906,7 @@ class UIManager {
         const fillPct = (completedCatTasks / Math.max(1, totalCatTasks)) * 100;
         document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
 
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Detective: '🕵️', 'evil Dog': '🐶' };
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
         document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
 
@@ -3750,8 +3995,12 @@ class UIManager {
         }
         
         const security = ROOMS.find(r => r.id === 'security');
-        const camX = this.game.selectedMap === 'catnip_observatory' ? 1380 : 380;
-        const camY = this.game.selectedMap === 'catnip_observatory' ? 950 : 750;
+        let camX = 380, camY = 750;
+        if (this.game.selectedMap === 'catnip_observatory') {
+            camX = 1380; camY = 950;
+        } else if (this.game.selectedMap === 'cat_hq') {
+            camX = 550; camY = 875;
+        }
         if (security && Math.hypot(player.x - camX, player.y - camY) <= 75) {
             canUse = true; useText = "CAMERAS"; useIcon = "📹";
         }
@@ -3778,9 +4027,12 @@ class UIManager {
         }
 
         if (!canUse && player.hasGun && this.game && this.game.defensiveProtocolActive) {
-            const isObs = this.game.selectedMap === 'catnip_observatory';
-            const wsX = isObs ? 2370 : 2570;
-            const wsY = isObs ? 4720 : 1840;
+            let wsX = 2570, wsY = 1840;
+            if (this.game.selectedMap === 'catnip_observatory') {
+                wsX = 2370; wsY = 4720;
+            } else if (this.game.selectedMap === 'cat_hq') {
+                wsX = 3325; wsY = 2010;
+            }
             const nearWorkshop = Math.hypot(player.x - wsX, player.y - wsY) <= 95;
             
             if (player.gunAmmo < 5 && nearWorkshop) {
@@ -3803,6 +4055,13 @@ class UIManager {
             });
             if (nearbyDefTask) {
                 canUse = true; useText = "SABOTAGE"; useIcon = "⚠️";
+            }
+        }
+
+        if (!canUse && player.role === 'Detective') {
+            const nearbyKiller = this.game.players.find(p => !p.isLocalPlayer && !p.isDead && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(player.x - p.x, player.y - p.y) <= 95);
+            if (nearbyKiller) {
+                canUse = true; useText = "EXPOSE"; useIcon = "🔍";
             }
         }
 
@@ -3907,7 +4166,7 @@ class Game {
         soundManager.init();
         loadMap(this.selectedMap);
         
-        const roles = ['evil Dog', 'Captain'];
+        const roles = ['evil Dog', 'Captain', 'Detective'];
         
         // Medics: 2 if cats >= 25, otherwise 1
         const medicCount = this.catAmount >= 25 ? 2 : 1;
@@ -3980,13 +4239,14 @@ class Game {
 
     showRoleReveal() {
         this.state = 'ROLE_REVEAL'; this.uiManager.showScreen('role-screen');
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Detective: '🕵️', 'evil Dog': '🐶' };
         const roleDescs = {
             Citizen: 'Perform tasks across rooms and unmask the sneaky evil Dog!',
             Captain: 'Command the ship! You complete tasks 35% faster than standard cats.',
             Guard: 'Stay vigilant! You have 25% larger vision and see much better when lights go out.',
             Engineer: 'Use ship ventilation shafts to traverse rooms instantly.',
             Medic: 'Heal the crew! You can revive fallen cats up to 2 times per match.',
+            Detective: 'Investigate crime scenes! You can see who has eliminated someone in the last 15 seconds and expose them!',
             'evil Dog': 'Eliminate cats, sabotage systems, and do not get caught!'
         };
         document.getElementById('role-icon').innerText = roleIcons[this.localPlayer.role];
@@ -3998,10 +4258,29 @@ class Game {
     handleUseAction() {
         if (this.localPlayer.isDead) return;
 
+        if (this.localPlayer.role === 'Detective') {
+            const nearbyKiller = this.players.find(p => !p.isLocalPlayer && !p.isDead && p.lastKillTimestamp && (Date.now() - p.lastKillTimestamp <= 15000) && Math.hypot(this.localPlayer.x - p.x, this.localPlayer.y - p.y) <= 95);
+            if (nearbyKiller) {
+                this.detectiveAccusedId = nearbyKiller.id;
+                this.detectiveExposedDog = true;
+                this.triggerMeeting(this.localPlayer, null);
+                
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#00cec9; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #81ecec;';
+                banner.innerText = `🔍 EXPOSED THE SABOTEUR: ${nearbyKiller.name.toUpperCase()}!`;
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 3000);
+                return;
+            }
+        }
+
         // Check reloading at Workshop first!
-        const isObs = this.selectedMap === 'catnip_observatory';
-        const wsX = isObs ? 2370 : 2570;
-        const wsY = isObs ? 4720 : 1840;
+        let wsX = 2570, wsY = 1840;
+        if (this.selectedMap === 'catnip_observatory') {
+            wsX = 2370; wsY = 4720;
+        } else if (this.selectedMap === 'cat_hq') {
+            wsX = 3325; wsY = 2010;
+        }
         const nearWorkshop = Math.hypot(this.localPlayer.x - wsX, this.localPlayer.y - wsY) <= 95;
         if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 5 && nearWorkshop) {
             this.localPlayer.gunAmmo = 5;
@@ -4092,8 +4371,12 @@ class Game {
             this.triggerMeeting(this.localPlayer, null); return;
         }
         const security = ROOMS.find(r => r.id === 'security');
-        const camX = this.selectedMap === 'catnip_observatory' ? 1380 : 380;
-        const camY = this.selectedMap === 'catnip_observatory' ? 950 : 750;
+        let camX = 380, camY = 750;
+        if (this.selectedMap === 'catnip_observatory') {
+            camX = 1380; camY = 950;
+        } else if (this.selectedMap === 'cat_hq') {
+            camX = 550; camY = 875;
+        }
         if (security && Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY) <= 75) {
             const camTask = { id: 'monitor_cams_persistent', room: 'Security', name: 'Security Monitor', type: 'cams' };
             this.activeTask = camTask;
@@ -4123,8 +4406,8 @@ class Game {
             }
         }
         if (this.sabotageSystem.activeSabotage === 'engine') {
-            const ye = ROOMS.find(r => r.id === 'yarn_engine');
-            if (Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
+            const ye = ROOMS.find(r => r.hasEngineFixPanel);
+            if (ye && Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
                 const engineFixTask = { room: 'Yarn Engine', name: 'OVERLOAD REPAIR', type: 'rapid_click' };
                 this.uiManager.showScreen('task-modal');
                 this.activeTaskCleanup = TaskManager.renderTaskMinigame(engineFixTask, this.localPlayer, () => {
@@ -4195,6 +4478,7 @@ class Game {
         for (const target of this.players) {
             if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
                 target.isDead = true;
+                this.localPlayer.lastKillTimestamp = Date.now();
                 this.globalKillTimer = 15;
                 this.recordKillWitnesses(this.localPlayer, target);
                 this.reassignDeadCatTasks(target);
@@ -4394,13 +4678,32 @@ class Game {
     recordKillWitnesses(killer, victim) {
         if (!killer || !victim) return;
         
-        // Check if kill happened on cameras
-        const feeds = [
-            { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
-            { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
-            { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
-            { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
-        ];
+        let feeds = [];
+        let camX = 380, camY = 750;
+        if (this.selectedMap === 'cat_hq') {
+            feeds = [
+                { bounds: { xMin: 1750, xMax: 2250, yMin: 150, yMax: 500 } }, // BRIDGE
+                { bounds: { xMin: 3150, xMax: 3550, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+                { bounds: { xMin: 1750, xMax: 2250, yMin: 750, yMax: 1100 } }, // CAT GARDEN
+                { bounds: { xMin: 1900, xMax: 2100, yMin: 1100, yMax: 1850 } }  // CENTRAL HALLWAY
+            ];
+            camX = 550; camY = 875;
+        } else if (this.selectedMap === 'catnip_observatory') {
+            feeds = [
+                { bounds: { xMin: 200, xMax: 650, yMin: 150, yMax: 500 } }, // GREENHOUSE
+                { bounds: { xMin: 2150, xMax: 2600, yMin: 150, yMax: 500 } }, // LASER WEAPONS
+                { bounds: { xMin: 1150, xMax: 1650, yMin: 800, yMax: 1150 } }, // SECURITY
+                { bounds: { xMin: 2150, xMax: 2600, yMin: 800, yMax: 1150 } }  // ELECTRICAL
+            ];
+            camX = 1380; camY = 950;
+        } else {
+            feeds = [
+                { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
+                { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+                { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
+                { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
+            ];
+        }
         const isJammed = this.sabotageSystem && this.sabotageSystem.activeSabotage === 'comms';
         const onCamera = !isJammed && feeds.some(f => 
             victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
@@ -4410,7 +4713,7 @@ class Game {
         this.players.forEach(p => {
             if (!p.isDead && p.role !== 'evil Dog') {
                 const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
-                const isWatchingCams = Math.hypot(p.x - 380, p.y - 750) <= 90;
+                const isWatchingCams = Math.hypot(p.x - camX, p.y - camY) <= 90;
                 const sameFloor = (p.y >= 2800) === (victim.y >= 2800);
                 const isLOS = sameFloor && isLineOfSightClear(p.x, p.y, victim.x, victim.y);
                 
@@ -4547,8 +4850,12 @@ class Game {
                         }
                     }
                 } else {
-                    const camX = this.selectedMap === 'catnip_observatory' ? 1380 : 380;
-                    const camY = this.selectedMap === 'catnip_observatory' ? 950 : 750;
+                    let camX = 380, camY = 750;
+                    if (this.selectedMap === 'catnip_observatory') {
+                        camX = 1380; camY = 950;
+                    } else if (this.selectedMap === 'cat_hq') {
+                        camX = 550; camY = 875;
+                    }
                     const dist = Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY);
                     if (dist > 105) {
                         if (this.activeTaskCleanup) {
@@ -4709,9 +5016,12 @@ class Game {
         // Let bots reload their guns at the Workshop if out of ammo
         this.players.forEach(p => {
             if (p.isLocalPlayer || p.isDead || p.role === 'evil Dog' || !p.hasGun || p.gunAmmo > 0) return;
-            const isObs = this.selectedMap === 'catnip_observatory';
-            const wsX = isObs ? 2370 : 2570;
-            const wsY = isObs ? 4720 : 1840;
+            let wsX = 2570, wsY = 1840;
+            if (this.selectedMap === 'catnip_observatory') {
+                wsX = 2370; wsY = 4720;
+            } else if (this.selectedMap === 'cat_hq') {
+                wsX = 3325; wsY = 2010;
+            }
             const nearWorkshop = Math.hypot(p.x - wsX, p.y - wsY) <= 95;
             if (nearWorkshop) {
                 p.gunAmmo = 5;
