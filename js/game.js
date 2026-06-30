@@ -3,7 +3,7 @@
 import { soundManager } from './sounds.js';
 import { Player } from './player.js';
 import { MapRenderer } from './map.js';
-import { MAP_BOUNDS, ROOMS, loadMap, getNearbyLadder } from './rooms.js';
+import { MAP_BOUNDS, ROOMS, CORRIDORS, loadMap, getNearbyLadder } from './rooms.js';
 import { VentSystem } from './vents.js';
 import { SabotageSystem } from './sabotage.js';
 import { TaskManager } from './tasks.js';
@@ -810,15 +810,43 @@ class Game {
 
     updateSpaceInvaders(dt) {
         const speed = 80;
+        const isWalkable = (px, py) => {
+            const margin = 12;
+            for (const r of ROOMS) {
+                if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+            }
+            for (const c of CORRIDORS) {
+                let minX, maxX, minY, maxY;
+                if (c.x1 === c.x2) {
+                    minX = c.x1 - c.width / 2 + margin; maxX = c.x1 + c.width / 2 - margin;
+                    minY = Math.min(c.y1, c.y2) - margin; maxY = Math.max(c.y1, c.y2) + margin;
+                } else {
+                    minX = Math.min(c.x1, c.x2) - margin; maxX = Math.max(c.x1, c.x2) + margin;
+                    minY = c.y1 - c.width / 2 + margin; maxY = c.y1 + c.width / 2 - margin;
+                }
+                if (px >= minX && px <= maxX && py >= minY && py <= maxY) return true;
+            }
+            return false;
+        };
+
         this.invaders.forEach(inv => {
-            inv.x += inv.vx * dt;
-            inv.y += inv.vy * dt;
+            const nextX = inv.x + inv.vx * dt;
+            const nextY = inv.y + inv.vy * dt;
+            if (isWalkable(nextX, nextY)) {
+                inv.x = nextX;
+                inv.y = nextY;
+            } else {
+                const angle = Math.random() * Math.PI * 2;
+                inv.vx = Math.cos(angle) * speed;
+                inv.vy = Math.sin(angle) * speed;
+            }
             if (Math.random() < 0.02) {
                 const angle = Math.random() * Math.PI * 2;
                 inv.vx = Math.cos(angle) * speed;
                 inv.vy = Math.sin(angle) * speed;
             }
-            if (inv.x < 100 || inv.x > 3000) inv.vx *= -1;
+            if (inv.x < 100 || inv.x > 3200) inv.vx *= -1;
             if (inv.y < 100 || inv.y > 2500) inv.vy *= -1;
             this.players.forEach(p => {
                 if (p.isDead) return;
