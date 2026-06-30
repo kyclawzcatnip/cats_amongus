@@ -61,6 +61,8 @@ class Game {
                     this.handleReportAction();
                 } else if (e.code === 'KeyQ' && this.localPlayer?.role === 'evil Dog') {
                     this.handleKillAction();
+                } else if (e.code === 'KeyP') {
+                    this.toggleDevMenu();
                 }
             }
         });
@@ -467,6 +469,75 @@ class Game {
 
     triggerSabotage(type) {
         this.sabotageSystem.triggerSabotage(type);
+    }
+
+    toggleDevMenu() {
+        let menu = document.getElementById('dev-debug-menu');
+        if (menu) {
+            menu.remove();
+            return;
+        }
+
+        menu = document.createElement('div');
+        menu.id = 'dev-debug-menu';
+        menu.style.cssText = 'position:fixed; top:20px; right:20px; background:rgba(45, 52, 54, 0.95); border:3px solid #0984e3; border-radius:12px; padding:16px; width:260px; font-family:var(--font-heading); color:white; z-index:99999; box-shadow:0 12px 30px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:10px;';
+        
+        const title = document.createElement('h3');
+        title.innerText = '🛠️ Developer Debug Menu';
+        title.style.cssText = 'margin:0 0 6px 0; font-size:1.1rem; text-align:center; border-bottom:1.5px solid rgba(255,255,255,0.15); padding-bottom:6px; color:#74b9ff;';
+        menu.appendChild(title);
+
+        const createBtn = (label, color, onClick) => {
+            const btn = document.createElement('button');
+            btn.innerText = label;
+            btn.style.cssText = `background:${color}; color:white; border:none; padding:8px 12px; border-radius:6px; font-size:0.9rem; font-weight:bold; cursor:pointer; width:100%; text-align:center; transition:filter 0.15s;`;
+            btn.addEventListener('mouseover', () => btn.style.filter = 'brightness(1.15)');
+            btn.addEventListener('mouseout', () => btn.style.filter = 'none');
+            btn.addEventListener('click', onClick);
+            menu.appendChild(btn);
+        };
+
+        createBtn('🚨 Trigger Defensive Protocol', '#6c5ce7', () => {
+            if (!this.defensiveProtocolActive) {
+                this.triggerDefensiveProtocol();
+            }
+        });
+
+        createBtn('💡 Sabotage Lights', '#fdcb6e', () => {
+            this.sabotageSystem.triggerSabotage('lights');
+        });
+
+        createBtn('⚙️ Sabotage Yarn Engine', '#d63031', () => {
+            this.sabotageSystem.triggerSabotage('engine');
+        });
+
+        createBtn('📡 Sabotage Communications', '#0984e3', () => {
+            this.sabotageSystem.triggerSabotage('comms');
+        });
+
+        createBtn('❤️ Heal All Cats (3 HP)', '#2ed573', () => {
+            this.localPlayer.health = 3;
+            this.players.forEach(p => p.health = 3);
+            soundManager.playTaskComplete();
+            
+            // Auto remove healing task if present
+            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'post_def_heal');
+            this.players.forEach(p => {
+                if (p.tasks) p.tasks = p.tasks.filter(tk => tk.id !== 'post_def_heal');
+            });
+            ROOMS.forEach(r => r.tasks = r.tasks.filter(tk => tk.id !== 'post_def_heal'));
+        });
+
+        createBtn('☠️ Kill Nearest Crew Cat', '#ff7675', () => {
+            const nearest = this.players.filter(p => !p.isLocalPlayer && !p.isDead && p.role !== 'evil Dog')
+                .sort((a, b) => Math.hypot(a.x - this.localPlayer.x, a.y - this.localPlayer.y) - Math.hypot(b.x - this.localPlayer.x, b.y - this.localPlayer.y))[0];
+            if (nearest) {
+                nearest.isDead = true;
+                soundManager.playDefeat();
+            }
+        });
+
+        document.body.appendChild(menu);
     }
 
     triggerMeeting(reporter, bodyPlayer) {
