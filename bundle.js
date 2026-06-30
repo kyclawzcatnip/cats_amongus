@@ -2725,12 +2725,11 @@ class AIController {
                 weapons: { center: { x: 2725, y: 410 }, door: { x: 2500, y: 410 } },
                 security: { center: { x: 650, y: 875 }, door: { x: 850, y: 875 } },
                 ship_quarters: { center: { x: 1300, y: 910 }, door: { x: 1300, y: 1070 } },
-                cat_garden: { center: { x: 2000, y: 925 }, door: { x: 2000, y: 1100 } },
+                cafeteria: { center: { x: 2000, y: 1050 }, door: { x: 2000, y: 1350 } },
                 nap_quarters: { center: { x: 2700, y: 910 }, door: { x: 2700, y: 1070 } },
                 electrical: { center: { x: 3350, y: 875 }, door: { x: 3150, y: 875 } },
                 o2: { center: { x: 650, y: 1460 }, door: { x: 850, y: 1460 } },
                 fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1620 } },
-                admin: { center: { x: 2000, y: 1450 }, door: { x: 2000, y: 1600 } },
                 kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1620 } },
                 comms: { center: { x: 3350, y: 1460 }, door: { x: 3150, y: 1460 } },
                 records: { center: { x: 675, y: 2010 }, door: { x: 900, y: 2010 } },
@@ -2747,7 +2746,7 @@ class AIController {
                 greenhouse: { center: { x: 425, y: 325 }, door: { x: 650, y: 325 } },
                 laser_weapons: { center: { x: 2375, y: 325 }, door: { x: 2150, y: 325 } },
                 medical: { center: { x: 425, y: 975 }, door: { x: 650, y: 975 } },
-                security: { center: { x: 1400, y: 975 }, door: { x: 1400, y: 975 } },
+                cafeteria: { center: { x: 1400, y: 950 }, door: { x: 1400, y: 1250 } },
                 electrical: { center: { x: 2375, y: 975 }, door: { x: 2150, y: 975 } },
                 reactor: { center: { x: 425, y: 1650 }, door: { x: 650, y: 1650 } },
                 comms: { center: { x: 1400, y: 1650 }, door: { x: 1400, y: 1650 } },
@@ -2773,19 +2772,19 @@ class AIController {
                 fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
                 electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
                 shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
-                ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
+                cafeteria: { center: { x: 1800, y: 950 }, door: { x: 1800, y: 1250 } },
+                ship_quarters: { center: { x: 1800, y: 1510 }, door: { x: 1800, y: 1350 } },
                 o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
                 nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
-                kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
-                cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
-                comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
+                kitchen: { center: { x: 3175, y: 1325 }, door: { x: 2950, y: 1325 } },
+                cargo_bay: { center: { x: 2550, y: 1325 }, door: { x: 2300, y: 1325 } },
+                coms: { center: { x: 3150, y: 1775 }, door: { x: 2950, y: 1775 } },
                 records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
                 cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
                 workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
                 thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
                 thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
-                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } },
-                admin: { center: { x: 3150, y: 1790 }, door: { x: 2950, y: 1790 } }
+                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
             };
         }
 
@@ -3838,10 +3837,14 @@ class UIManager {
             this.hideScreen('eject-screen');
             this.showScreen('hud-screen');
             this.game.state = 'PLAYING';
+            this.game.keysPressed = {};
             this.game.players.forEach(p => {
                 p.witnessedKillerId = null;
                 p.witnessedKillerName = null;
                 p.witnessedVictimName = null;
+                p.currentPath = null;
+                p.currentTaskToComplete = null;
+                p.taskTimer = 0;
             });
             this.game.checkWinConditions();
         };

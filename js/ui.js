@@ -82,10 +82,14 @@ export class UIManager {
             this.hideScreen('eject-screen');
             this.showScreen('hud-screen');
             this.game.state = 'PLAYING';
+            this.game.keysPressed = {};
             this.game.players.forEach(p => {
                 p.witnessedKillerId = null;
                 p.witnessedKillerName = null;
                 p.witnessedVictimName = null;
+                p.currentPath = null;
+                p.currentTaskToComplete = null;
+                p.taskTimer = 0;
             });
             this.game.checkWinConditions();
         };
