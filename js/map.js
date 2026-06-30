@@ -25,6 +25,7 @@ const isPointWalkable = (px, py) => {
 };
 
 const isLineOfSightClear = (x1, y1, x2, y2) => {
+    if ((y1 >= 2800) !== (y2 >= 2800)) return false;
     const dist = Math.hypot(x2 - x1, y2 - y1);
     const steps = Math.ceil(dist / 25);
     for (let i = 1; i < steps; i++) {
@@ -35,6 +36,7 @@ const isLineOfSightClear = (x1, y1, x2, y2) => {
     }
     return true;
 };
+window.isLineOfSightClear = isLineOfSightClear;
 
 export class MapRenderer {
     constructor() {
@@ -217,6 +219,26 @@ export class MapRenderer {
                         ctx.shadowBlur = 10;
                         ctx.stroke();
                         ctx.restore();
+                    } else {
+                        let isSus = false;
+                        for (const bot of players) {
+                            if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels && bot.suspicionLevels[p.id] >= 50) {
+                                isSus = true;
+                                break;
+                            }
+                        }
+                        if (isSus) {
+                            ctx.save();
+                            ctx.translate(p.x, p.y);
+                            ctx.beginPath();
+                            ctx.arc(0, 0, p.radius + 6, 0, Math.PI * 2);
+                            ctx.strokeStyle = '#fdcb6e';
+                            ctx.lineWidth = 3;
+                            ctx.shadowColor = '#ffeaa7';
+                            ctx.shadowBlur = 8;
+                            ctx.stroke();
+                            ctx.restore();
+                        }
                     }
                 }
             } else {

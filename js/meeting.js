@@ -404,6 +404,20 @@ export class MeetingManager {
             actualEjectedPlayer = players.find(p => p.id == ejectedId);
         }
 
+        // Increase suspicion for players who got votes
+        for (const [id, count] of Object.entries(counts)) {
+            if (id === 'skip') continue;
+            const targetPlayer = players.find(p => p.id == id);
+            if (targetPlayer) {
+                players.forEach(p => {
+                    if (!p.isLocalPlayer) {
+                        if (!p.suspicionLevels) p.suspicionLevels = {};
+                        p.suspicionLevels[targetPlayer.id] = Math.min(100, (p.suspicionLevels[targetPlayer.id] || 0) + count * 15);
+                    }
+                });
+            }
+        }
+
         setTimeout(() => {
             if (actualEjectedPlayer && !isActualTie) {
                 actualEjectedPlayer.isDead = true;

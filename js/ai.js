@@ -46,6 +46,70 @@ export class AIController {
             }
         }
 
+        // 1. Proximity-to-Dead-Body Suspicion Check
+        if (bot.role !== 'evil Dog') {
+            for (const p of players) {
+                if (p.isDead && !p.bodyCleaned) {
+                    const sameFloor = (p.y >= 2800) === (bot.y >= 2800);
+                    if (sameFloor && Math.hypot(bot.x - p.x, bot.y - p.y) <= 280 && isLineOfSightClear(bot.x, bot.y, p.x, p.y)) {
+                        for (const sus of players) {
+                            if (sus.id !== bot.id && sus.id !== p.id && !sus.isDead) {
+                                const susFloor = (sus.y >= 2800) === (p.y >= 2800);
+                                if (susFloor && Math.hypot(sus.x - p.x, sus.y - p.y) <= 220 && isLineOfSightClear(sus.x, sus.y, p.x, p.y)) {
+                                    if (!bot.suspicionLevels) bot.suspicionLevels = {};
+                                    bot.suspicionLevels[sus.id] = Math.min(100, (bot.suspicionLevels[sus.id] || 0) + 1.5);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Fleeing Behavior
+        if (bot.role !== 'evil Dog') {
+            if (!bot.suspicionLevels) bot.suspicionLevels = {};
+            let nearestSusPlayer = null;
+            let minDist = 220;
+            for (const p of players) {
+                if (p.id !== bot.id && !p.isDead) {
+                    const susScore = bot.suspicionLevels[p.id] || 0;
+                    if (susScore >= 50) {
+                        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                        const sameFloor = (bot.y >= 2800) === (p.y >= 2800);
+                        if (sameFloor && d < minDist && isLineOfSightClear(bot.x, bot.y, p.x, p.y)) {
+                            minDist = d;
+                            nearestSusPlayer = p;
+                        }
+                    }
+                }
+            }
+
+            if (nearestSusPlayer) {
+                const angle = Math.atan2(bot.y - nearestSusPlayer.y, bot.x - nearestSusPlayer.x);
+                let escapeX = bot.x + Math.cos(angle) * 150;
+                let escapeY = bot.y + Math.sin(angle) * 150;
+                if (!isWalkable(escapeX, escapeY)) {
+                    for (let offset = 45; offset <= 180; offset += 45) {
+                        const altAngle1 = angle + (offset * Math.PI / 180);
+                        const altAngle2 = angle - (offset * Math.PI / 180);
+                        let ax = bot.x + Math.cos(altAngle1) * 150;
+                        let ay = bot.y + Math.sin(altAngle1) * 150;
+                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                        ax = bot.x + Math.cos(altAngle2) * 150;
+                        ay = bot.y + Math.sin(altAngle2) * 150;
+                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                    }
+                }
+                bot.currentPath = [{ x: escapeX, y: escapeY }];
+                bot.taskTimer = 0;
+                bot.currentTaskToComplete = null;
+                bot.isFleeing = true;
+            } else {
+                bot.isFleeing = false;
+            }
+        }
+
         const selectedMap = window.gameInstance ? window.gameInstance.selectedMap : 'whisker_station';
         let ROOM_NODES = {};
         let spineX = 1800;
@@ -294,7 +358,7 @@ export class AIController {
             } else {
                 if (dx < 0) bot.scaleX = -1;
                 else if (dx > 0) bot.scaleX = 1;
-                const moveDist = bot.speed * dt * 0.8;
+                const moveDist = bot.speed * dt * (bot.isFleeing ? 1.25 : 0.8);
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
 
@@ -349,6 +413,9 @@ export class AIController {
                             bot.x = connectedVent.x;
                             bot.y = connectedVent.y;
                             soundManager.playVentWhoosh();
+                            if (window.gameInstance) {
+                                window.gameInstance.checkVentWitnesses(bot);
+                            }
                         }
                         bot.justKilled = false;
                         bot.currentPath = null;

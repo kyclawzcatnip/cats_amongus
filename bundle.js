@@ -1330,6 +1330,7 @@ class Player {
         this.x = 1800; this.y = 280; this.radius = 32; this.speed = 220;
         this.isDead = false; this.bodyCleaned = false; this.inVent = false; this.currentVentId = null;
         this.killCooldown = 10; this.reviveUses = 2; this.tasks = []; this.stepTimer = 0;
+        this.suspicionLevels = {};
     }
 
     getVisionRadius(sabotageActive) {
@@ -1433,6 +1434,7 @@ const isPointWalkable = (px, py) => {
 };
 
 const isLineOfSightClear = (x1, y1, x2, y2) => {
+    if ((y1 >= 2800) !== (y2 >= 2800)) return false;
     const dist = Math.hypot(x2 - x1, y2 - y1);
     const steps = Math.ceil(dist / 25);
     for (let i = 1; i < steps; i++) {
@@ -1443,6 +1445,7 @@ const isLineOfSightClear = (x1, y1, x2, y2) => {
     }
     return true;
 };
+window.isLineOfSightClear = isLineOfSightClear;
 
 // ==========================================
 // 7. MAP RENDERER
@@ -1629,6 +1632,26 @@ class MapRenderer {
                     ctx.shadowBlur = 10;
                     ctx.stroke();
                     ctx.restore();
+                } else {
+                    let isSus = false;
+                    for (const bot of players) {
+                        if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels && bot.suspicionLevels[p.id] >= 50) {
+                            isSus = true;
+                            break;
+                        }
+                    }
+                    if (isSus) {
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, p.radius + 6, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#fdcb6e';
+                        ctx.lineWidth = 3;
+                        ctx.shadowColor = '#ffeaa7';
+                        ctx.shadowBlur = 8;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
                 }
             }
         }
@@ -1781,6 +1804,70 @@ class AIController {
         for (const p of players) {
             if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
                 onReportBody(bot, p); return;
+            }
+        }
+
+        // 1. Proximity-to-Dead-Body Suspicion Check
+        if (bot.role !== 'evil Dog') {
+            for (const p of players) {
+                if (p.isDead && !p.bodyCleaned) {
+                    const sameFloor = (p.y >= 2800) === (bot.y >= 2800);
+                    if (sameFloor && Math.hypot(bot.x - p.x, bot.y - p.y) <= 280 && isLineOfSightClear(bot.x, bot.y, p.x, p.y)) {
+                        for (const sus of players) {
+                            if (sus.id !== bot.id && sus.id !== p.id && !sus.isDead) {
+                                const susFloor = (sus.y >= 2800) === (p.y >= 2800);
+                                if (susFloor && Math.hypot(sus.x - p.x, sus.y - p.y) <= 220 && isLineOfSightClear(sus.x, sus.y, p.x, p.y)) {
+                                    if (!bot.suspicionLevels) bot.suspicionLevels = {};
+                                    bot.suspicionLevels[sus.id] = Math.min(100, (bot.suspicionLevels[sus.id] || 0) + 1.5);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Fleeing Behavior
+        if (bot.role !== 'evil Dog') {
+            if (!bot.suspicionLevels) bot.suspicionLevels = {};
+            let nearestSusPlayer = null;
+            let minDist = 220;
+            for (const p of players) {
+                if (p.id !== bot.id && !p.isDead) {
+                    const susScore = bot.suspicionLevels[p.id] || 0;
+                    if (susScore >= 50) {
+                        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                        const sameFloor = (bot.y >= 2800) === (p.y >= 2800);
+                        if (sameFloor && d < minDist && isLineOfSightClear(bot.x, bot.y, p.x, p.y)) {
+                            minDist = d;
+                            nearestSusPlayer = p;
+                        }
+                    }
+                }
+            }
+
+            if (nearestSusPlayer) {
+                const angle = Math.atan2(bot.y - nearestSusPlayer.y, bot.x - nearestSusPlayer.x);
+                let escapeX = bot.x + Math.cos(angle) * 150;
+                let escapeY = bot.y + Math.sin(angle) * 150;
+                if (!isWalkable(escapeX, escapeY)) {
+                    for (let offset = 45; offset <= 180; offset += 45) {
+                        const altAngle1 = angle + (offset * Math.PI / 180);
+                        const altAngle2 = angle - (offset * Math.PI / 180);
+                        let ax = bot.x + Math.cos(altAngle1) * 150;
+                        let ay = bot.y + Math.sin(altAngle1) * 150;
+                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                        ax = bot.x + Math.cos(altAngle2) * 150;
+                        ay = bot.y + Math.sin(altAngle2) * 150;
+                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                    }
+                }
+                bot.currentPath = [{ x: escapeX, y: escapeY }];
+                bot.taskTimer = 0;
+                bot.currentTaskToComplete = null;
+                bot.isFleeing = true;
+            } else {
+                bot.isFleeing = false;
             }
         }
 
@@ -2044,7 +2131,7 @@ class AIController {
             } else {
                 if (dx < 0) bot.scaleX = -1;
                 else if (dx > 0) bot.scaleX = 1;
-                const moveDist = bot.speed * dt * 0.8;
+                const moveDist = bot.speed * dt * (bot.isFleeing ? 1.25 : 0.8);
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
 
@@ -2099,6 +2186,9 @@ class AIController {
                             bot.x = connectedVent.x;
                             bot.y = connectedVent.y;
                             soundManager.playVentWhoosh();
+                            if (window.gameInstance) {
+                                window.gameInstance.checkVentWitnesses(bot);
+                            }
                         }
                         bot.justKilled = false;
                         bot.currentPath = null;
@@ -2521,6 +2611,20 @@ class MeetingManager {
         }
 
         const ejectedPlayer = players.find(p => p.id == ejectedId);
+
+        // Increase suspicion for players who got votes
+        for (const [id, count] of Object.entries(counts)) {
+            if (id === 'skip') continue;
+            const targetPlayer = players.find(p => p.id == id);
+            if (targetPlayer) {
+                players.forEach(p => {
+                    if (!p.isLocalPlayer) {
+                        if (!p.suspicionLevels) p.suspicionLevels = {};
+                        p.suspicionLevels[targetPlayer.id] = Math.min(100, (p.suspicionLevels[targetPlayer.id] || 0) + count * 15);
+                    }
+                });
+            }
+        }
 
         // Pause 3.5 seconds so players can see who voted for whom!
         setTimeout(() => {
@@ -3075,8 +3179,26 @@ class Game {
         const vent = VentSystem.getNearbyVent(this.localPlayer.x, this.localPlayer.y);
         if (vent) {
             soundManager.playVentWhoosh(); const targetVent = VentSystem.getVentById(vent.connectId);
-            if (targetVent) { this.localPlayer.x = targetVent.x; this.localPlayer.y = targetVent.y; }
+            if (targetVent) {
+                this.localPlayer.x = targetVent.x;
+                this.localPlayer.y = targetVent.y;
+                this.checkVentWitnesses(this.localPlayer);
+            }
         }
+    }
+
+    checkVentWitnesses(ventingPlayer) {
+        this.players.forEach(p => {
+            if (!p.isDead && !p.isLocalPlayer && p.role !== 'evil Dog' && p.id !== ventingPlayer.id) {
+                const sameFloor = (p.y >= 2800) === (ventingPlayer.y >= 2800);
+                if (sameFloor && Math.hypot(p.x - ventingPlayer.x, p.y - ventingPlayer.y) <= 280) {
+                    if (window.isLineOfSightClear && window.isLineOfSightClear(p.x, p.y, ventingPlayer.x, ventingPlayer.y)) {
+                        if (!p.suspicionLevels) p.suspicionLevels = {};
+                        p.suspicionLevels[ventingPlayer.id] = 100;
+                    }
+                }
+            }
+        });
     }
 
     handleSabotageAction() {

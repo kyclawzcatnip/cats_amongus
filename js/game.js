@@ -375,8 +375,23 @@ class Game {
             if (targetVent) {
                 this.localPlayer.x = targetVent.x;
                 this.localPlayer.y = targetVent.y;
+                this.checkVentWitnesses(this.localPlayer);
             }
         }
+    }
+
+    checkVentWitnesses(ventingPlayer) {
+        this.players.forEach(p => {
+            if (!p.isDead && !p.isLocalPlayer && p.role !== 'evil Dog' && p.id !== ventingPlayer.id) {
+                const sameFloor = (p.y >= 2800) === (ventingPlayer.y >= 2800);
+                if (sameFloor && Math.hypot(p.x - ventingPlayer.x, p.y - ventingPlayer.y) <= 280) {
+                    if (window.isLineOfSightClear && window.isLineOfSightClear(p.x, p.y, ventingPlayer.x, ventingPlayer.y)) {
+                        if (!p.suspicionLevels) p.suspicionLevels = {};
+                        p.suspicionLevels[ventingPlayer.id] = 100;
+                    }
+                }
+            }
+        });
     }
 
     handleSabotageAction() {

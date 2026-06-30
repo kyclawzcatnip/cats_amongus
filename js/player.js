@@ -26,6 +26,7 @@ export class Player {
         
         // Footstep audio timer
         this.stepTimer = 0;
+        this.suspicionLevels = {};
     }
 
     getVisionRadius(sabotageActive) {
