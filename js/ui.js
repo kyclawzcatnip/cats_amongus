@@ -391,6 +391,13 @@ export class UIManager {
             }
         }
 
+        if (!canUse && player.role !== 'evil Dog' && this.game && this.game.defensiveProtocolActive && this.game.invaders) {
+            const nearbyInvader = this.game.invaders.find(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 80);
+            if (nearbyInvader) {
+                canUse = true; useText = "STAB"; useIcon = "🔪";
+            }
+        }
+
         if (!canUse && player.role === 'evil Dog' && this.game && this.game.defensiveProtocolActive) {
             let nearbyDefTask = null;
             ROOMS.forEach(room => {

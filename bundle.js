@@ -4117,6 +4117,13 @@ class UIManager {
             }
         }
 
+        if (!canUse && player.role !== 'evil Dog' && this.game && this.game.defensiveProtocolActive && this.game.invaders) {
+            const nearbyInvader = this.game.invaders.find(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 80);
+            if (nearbyInvader) {
+                canUse = true; useText = "STAB"; useIcon = "🔪";
+            }
+        }
+
         if (!canUse && player.role === 'evil Dog' && this.game && this.game.defensiveProtocolActive) {
             let nearbyDefTask = null;
             ROOMS.forEach(room => {
@@ -4376,6 +4383,7 @@ class Game {
         }
 
         // Check if player has gun and ammo to shoot at the closest nearby invader
+        let shot = false;
         if (this.localPlayer.hasGun && this.localPlayer.gunAmmo > 0 && this.invaders) {
             const nearbyInvaders = this.invaders.filter(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 300);
             if (nearbyInvaders.length > 0) {
@@ -4383,6 +4391,7 @@ class Game {
                 const nearbyInvader = nearbyInvaders[0];
                 this.localPlayer.gunAmmo--;
                 soundManager.playVoteClick(); // Shoot sound effect!
+                shot = true;
                 
                 // Add laser beam effect
                 this.activeLaserLines = this.activeLaserLines || [];
@@ -4398,12 +4407,37 @@ class Game {
                 
                 if (this.localPlayer.gunAmmo === 0) {
                     const banner = document.createElement('div');
-                    banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ff7675; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #d63031;';
-                    banner.innerText = '⚠️ OUT OF AMMO! Go to the Workshop to reload.';
+                    banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#e74c3c; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #ff7675;';
+                    banner.innerText = '⚠️ OUT OF AMMO! RELOAD IN WORKSHOP!';
                     document.body.appendChild(banner);
-                    setTimeout(() => banner.remove(), 3000);
+                    setTimeout(() => banner.remove(), 2500);
                 }
-                return;
+            }
+        }
+        
+        // If they did not shoot (or don't have a gun/ammo), allow them to stab!
+        if (!shot && this.defensiveProtocolActive && this.invaders) {
+            const nearbyInvaders = this.invaders.filter(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 80);
+            if (nearbyInvaders.length > 0) {
+                nearbyInvaders.sort((a, b) => Math.hypot(this.localPlayer.x - a.x, this.localPlayer.y - a.y) - Math.hypot(this.localPlayer.x - b.x, this.localPlayer.y - b.y));
+                const nearbyInvader = nearbyInvaders[0];
+                
+                soundManager.playFootstep();
+                this.activeSlashLines = this.activeSlashLines || [];
+                this.activeSlashLines.push({
+                    fromX: this.localPlayer.x,
+                    fromY: this.localPlayer.y,
+                    toX: nearbyInvader.x,
+                    toY: nearbyInvader.y,
+                    timer: 0.15
+                });
+                this.killInvader(nearbyInvader.id, this.localPlayer);
+
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#e74c3c; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #ff7675;';
+                banner.innerText = '🔪 STABBED AN INVADER!';
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 1000);
             }
         }
         if (this.localPlayer.role === 'evil Dog' && this.defensiveProtocolActive) {
@@ -4911,6 +4945,10 @@ class Game {
                 this.activeLaserLines.forEach(line => line.timer -= dt);
                 this.activeLaserLines = this.activeLaserLines.filter(line => line.timer > 0);
             }
+            if (this.activeSlashLines) {
+                this.activeSlashLines.forEach(line => line.timer -= dt);
+                this.activeSlashLines = this.activeSlashLines.filter(line => line.timer > 0);
+            }
 
             this.defensiveProtocolTimer += dt;
             if (this.defensiveProtocolTimer >= 20) {
@@ -4990,6 +5028,26 @@ class Game {
             this.ctx.lineWidth = 4;
             this.ctx.strokeStyle = '#00cec9'; // Bright cyan laser beam!
             this.activeLaserLines.forEach(line => {
+                const fromX = line.fromX - camX + halfW;
+                const fromY = line.fromY - camY + halfH;
+                const toX = line.toX - camX + halfW;
+                const toY = line.toY - camY + halfH;
+                this.ctx.beginPath();
+                this.ctx.moveTo(fromX, fromY);
+                this.ctx.lineTo(toX, toY);
+                this.ctx.stroke();
+            });
+        }
+
+        // Draw active knife slash lines
+        if (this.activeSlashLines && this.activeSlashLines.length > 0) {
+            const camX = this.mapRenderer.cameraX;
+            const camY = this.mapRenderer.cameraY;
+            const halfW = this.canvas.width / 2;
+            const halfH = this.canvas.height / 2;
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeStyle = '#ff7675'; // Soft red/white slash!
+            this.activeSlashLines.forEach(line => {
                 const fromX = line.fromX - camX + halfW;
                 const fromY = line.fromY - camY + halfH;
                 const toX = line.toX - camX + halfW;
@@ -5113,6 +5171,29 @@ class Game {
                         timer: 0.15
                     });
                     this.killInvader(targetInv.id, p);
+                }
+            }
+        });
+
+        // Let bots stab invaders if close enough (knife is default)
+        this.players.forEach(p => {
+            if (p.isLocalPlayer || p.isDead || p.role === 'evil Dog') return;
+            p.stabCooldown = p.stabCooldown || 0;
+            if (p.stabCooldown > 0) {
+                p.stabCooldown -= dt;
+            } else {
+                const nearbyInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 80);
+                if (nearbyInv) {
+                    p.stabCooldown = 1.0; // 1s stab cooldown
+                    this.activeSlashLines = this.activeSlashLines || [];
+                    this.activeSlashLines.push({
+                        fromX: p.x,
+                        fromY: p.y,
+                        toX: nearbyInv.x,
+                        toY: nearbyInv.y,
+                        timer: 0.15
+                    });
+                    this.killInvader(nearbyInv.id, p);
                 }
             }
         });
