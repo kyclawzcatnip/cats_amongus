@@ -414,7 +414,7 @@ export class UIManager {
                 const baseTaskId = t.id.split('_reassigned_')[0];
                 let taskLoc = null;
                 for (const r of ROOMS) {
-                    if (t.room.includes(r.name) || r.name.includes(t.room)) {
+                    if (t.room.toLowerCase().includes(r.id) || r.id.includes(t.room.toLowerCase()) || r.name.toLowerCase().includes(t.room.toLowerCase())) {
                         const found = r.tasks.find(tk => tk.id === baseTaskId);
                         if (found) {
                             const dist = Math.hypot(player.x - found.x, player.y - found.y);
