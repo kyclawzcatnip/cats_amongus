@@ -2280,47 +2280,6 @@ class AIController {
             return false;
         };
 
-        if (bot.role !== 'evil Dog' && window.gameInstance && window.gameInstance.defensiveProtocolActive) {
-            if (!bot.panicTimer) bot.panicTimer = 0;
-            bot.panicTimer -= dt;
-            bot.hasKnife = false;
-
-            if (bot.panicTimer <= 0 || !bot.currentPath || bot.currentPath.length === 0) {
-                let foundPoint = false;
-                for (let attempts = 0; attempts < 15; attempts++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = Math.random() * 200 + 100;
-                    const px = bot.x + Math.cos(angle) * dist;
-                    const py = bot.y + Math.sin(angle) * dist;
-                    if (isWalkable(px, py)) {
-                        bot.currentPath = [{ x: px, y: py }];
-                        bot.panicTimer = Math.random() * 2 + 1;
-                        foundPoint = true;
-                        break;
-                    }
-                }
-                if (!foundPoint) {
-                    bot.panicTimer = 0.5;
-                }
-            }
-
-            if (bot.currentPath && bot.currentPath.length > 0) {
-                const targetNode = bot.currentPath[0];
-                const dx = targetNode.x - bot.x;
-                const dy = targetNode.y - bot.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist < 20) {
-                    bot.currentPath.shift();
-                } else {
-                    if (dx < 0) bot.scaleX = -1;
-                    else if (dx > 0) bot.scaleX = 1;
-                    const moveDist = bot.speed * dt * 1.3;
-                    bot.x += (dx / dist) * moveDist;
-                    bot.y += (dy / dist) * moveDist;
-                }
-            }
-            return;
-        }
 
         const isLineOfSightClear = (x1, y1, x2, y2) => {
             if ((y1 >= 2800) !== (y2 >= 2800)) return false;
@@ -2662,8 +2621,14 @@ class AIController {
             let targetKey = 'bridge';
             let taskTarget = null;
 
-            if (uncompletedTasks.length > 0) {
-                const nextTask = uncompletedTasks[Math.floor(Math.random() * uncompletedTasks.length)];
+            let tasksToSelect = uncompletedTasks;
+            const hasKnifeTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
+            if (hasKnifeTask) {
+                tasksToSelect = [hasKnifeTask];
+            }
+
+            if (tasksToSelect.length > 0) {
+                const nextTask = tasksToSelect[Math.floor(Math.random() * tasksToSelect.length)];
                 const roomObj = ROOMS.find(r => r.name.includes(nextTask.room));
                 if (roomObj) {
                     targetKey = roomObj.id;
