@@ -1861,9 +1861,19 @@ class AIController {
             return path;
         };
 
-        if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'evil Dog') {
+        if (sabotageSystem.activeSabotage && bot.role !== 'evil Dog') {
             const finalNode = bot.currentPath ? bot.currentPath[bot.currentPath.length - 1] : null;
-            if (!finalNode || !finalNode.isEngineFix) {
+            let targetSabType = sabotageSystem.activeSabotage;
+            
+            // Check if bot is already routing to fix this active sabotage
+            let isRoutingToFix = false;
+            if (finalNode) {
+                if (targetSabType === 'engine' && finalNode.isEngineFix) isRoutingToFix = true;
+                if (targetSabType === 'lights' && finalNode.isLightsFix) isRoutingToFix = true;
+                if (targetSabType === 'comms' && finalNode.isCommsFix) isRoutingToFix = true;
+            }
+            
+            if (!isRoutingToFix) {
                 let closestRoomKey = 'bridge';
                 let minDist = Infinity;
                 for (const key of Object.keys(ROOM_NODES)) {
@@ -1871,14 +1881,37 @@ class AIController {
                     if (d < minDist) { minDist = d; closestRoomKey = key; }
                 }
                 const startNode = ROOM_NODES[closestRoomKey];
-                const targetKey = selectedMap === 'catnip_observatory' ? 'thrusters' : 'yarn_engine';
-                const targetNode = ROOM_NODES[targetKey];
-                const fixX = selectedMap === 'catnip_observatory' ? 2375 : 1800;
-                const fixY = selectedMap === 'catnip_observatory' ? 1650 : 2260;
+                
+                let targetKey = '';
+                let fixX = 0, fixY = 0;
+                let targetNodeSpec = {};
 
-                bot.currentPath = buildPath(startNode, targetNode, { x: fixX, y: fixY, isEngineFix: true });
-                bot.taskTimer = 0;
-                bot.currentTaskToComplete = null;
+                if (targetSabType === 'engine') {
+                    targetKey = selectedMap === 'catnip_observatory' ? 'thrusters' : 'yarn_engine';
+                    const ye = ROOMS.find(r => r.id === targetKey);
+                    fixX = ye ? ye.engineFixX : (selectedMap === 'catnip_observatory' ? 2375 : 1800);
+                    fixY = ye ? ye.engineFixY : (selectedMap === 'catnip_observatory' ? 1650 : 2350);
+                    targetNodeSpec = { x: fixX, y: fixY, isEngineFix: true };
+                } else if (targetSabType === 'lights') {
+                    targetKey = 'electrical';
+                    const el = ROOMS.find(r => r.id === 'electrical');
+                    fixX = el ? el.lightsFixX : (selectedMap === 'catnip_observatory' ? 2375 : 2570);
+                    fixY = el ? el.lightsFixY : (selectedMap === 'catnip_observatory' ? 975 : 850);
+                    targetNodeSpec = { x: fixX, y: fixY, isLightsFix: true };
+                } else if (targetSabType === 'comms') {
+                    targetKey = 'comms';
+                    const cm = ROOMS.find(r => r.id === 'comms');
+                    fixX = cm ? cm.commsFixX : (selectedMap === 'catnip_observatory' ? 1400 : 3150);
+                    fixY = cm ? cm.commsFixY : (selectedMap === 'catnip_observatory' ? 1650 : 1325);
+                    targetNodeSpec = { x: fixX, y: fixY, isCommsFix: true };
+                }
+
+                const targetNode = ROOM_NODES[targetKey];
+                if (targetNode) {
+                    bot.currentPath = buildPath(startNode, targetNode, targetNodeSpec);
+                    bot.taskTimer = 0;
+                    bot.currentTaskToComplete = null;
+                }
             }
         }
 
@@ -1989,7 +2022,7 @@ class AIController {
                     onReportBody(bot, null);
                     return;
                 }
-                if (targetNode.isEngineFix) {
+                if (targetNode.isEngineFix || targetNode.isLightsFix || targetNode.isCommsFix) {
                     sabotageSystem.fixSabotage();
                     soundManager.playTaskComplete();
                     bot.currentPath = [];
