@@ -1618,6 +1618,18 @@ class MapRenderer {
             }
             if (isVisible) {
                 SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
+                if (localPlayer && localPlayer.isDead && p.role === 'evil Dog') {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.radius + 6, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#ff7675';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#d63031';
+                    ctx.shadowBlur = 10;
+                    ctx.stroke();
+                    ctx.restore();
+                }
             }
         }
         ctx.restore();
