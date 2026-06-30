@@ -45,6 +45,10 @@ export class UIManager {
 
         // Close Task Button
         document.getElementById('close-task-btn').onclick = () => {
+            if (this.game.activeTaskCleanup) {
+                this.game.activeTaskCleanup();
+                this.game.activeTaskCleanup = null;
+            }
             this.hideScreen('task-modal');
             this.game.activeTask = null;
         };

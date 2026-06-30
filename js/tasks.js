@@ -327,6 +327,9 @@ export class TaskManager {
             wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; color:white; font-family:var(--font-heading);';
             
             const isProtocol = window.gameInstance && window.gameInstance.defensiveProtocolActive;
+            if (isProtocol) {
+                task.completed = false;
+            }
             player.loadedTorpedoes = player.loadedTorpedoes || 0;
             let ammo = 0;
             if (player.loadedTorpedoes > 0) {
