@@ -141,10 +141,23 @@ class Game {
 
         // 2. Check Sabotage Fix Panels
         if (this.sabotageSystem.activeSabotage === 'lights') {
-            const ws = ROOMS.find(r => r.id === 'workshop');
-            if (Math.hypot(this.localPlayer.x - ws.lightsFixX, this.localPlayer.y - ws.lightsFixY) <= 95) {
+            const el = ROOMS.find(r => r.id === 'electrical');
+            if (el && Math.hypot(this.localPlayer.x - el.lightsFixX, this.localPlayer.y - el.lightsFixY) <= 95) {
                 this.sabotageSystem.fixSabotage();
                 soundManager.playTaskComplete();
+                return;
+            }
+        }
+
+        if (this.sabotageSystem.activeSabotage === 'comms') {
+            const cm = ROOMS.find(r => r.id === 'comms');
+            if (cm && Math.hypot(this.localPlayer.x - cm.commsFixX, this.localPlayer.y - cm.commsFixY) <= 95) {
+                const commsFixTask = { room: 'Communications', name: '📡 SYNC RADIO FREQUENCY', type: 'slider' };
+                this.uiManager.showScreen('task-modal');
+                TaskManager.renderTaskMinigame(commsFixTask, this.localPlayer, () => {
+                    this.sabotageSystem.fixSabotage();
+                    this.uiManager.hideScreen('task-modal');
+                });
                 return;
             }
         }
@@ -231,7 +244,8 @@ class Game {
             { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
             { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
         ];
-        const onCamera = feeds.some(f => 
+        const isJammed = this.sabotageSystem && this.sabotageSystem.activeSabotage === 'comms';
+        const onCamera = !isJammed && feeds.some(f => 
             victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
             victim.y >= f.bounds.yMin && victim.y <= f.bounds.yMax
         );

@@ -1,6 +1,7 @@
 // Task Mini-games & Management System for Cat Crew
 
 import { soundManager } from './sounds.js';
+import { SpriteRenderer } from './sprites.js';
 
 export const TASK_DEFINITIONS = {
     nav_ship: { name: 'Navigate Ship Path', room: 'Bridge', type: 'slider' },
@@ -331,6 +332,145 @@ export class TaskManager {
             btn.onmousedown = startFill; btn.onmouseup = stopFill; btn.onmouseleave = stopFill;
             btn.ontouchstart = startFill; btn.ontouchend = stopFill;
             wrap.appendChild(btn); container.appendChild(wrap);
+        } else if (task.type === 'cams') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; width:100%; height:100%;';
+            const p = document.createElement('p');
+            p.style.color = '#ccc'; p.style.marginBottom = '12px'; p.innerText = '👀 Watch camera feeds. Click "CLOSE" in top right when done.';
+            wrap.appendChild(p);
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; width:480px; justify-content:center;';
+            const feeds = [
+                { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
+                { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
+                { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
+                { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
+            ];
+
+            const canvasList = [];
+            feeds.forEach(f => {
+                const box = document.createElement('div');
+                box.style.cssText = 'background:#121216; border:2px solid #2d3436; border-radius:8px; padding:6px; display:flex; flex-direction:column; align-items:center;';
+                const title = document.createElement('div');
+                title.style.cssText = 'color:#00cec9; font-size:0.75rem; font-family:var(--font-heading); margin-bottom:4px; display:flex; justify-content:space-between; width:100%;';
+                title.innerHTML = `<span>${f.name}</span><span style="color:#ff7675; animation: camsBlink 1s infinite;">🔴 REC</span>`;
+                box.appendChild(title);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 200; canvas.height = 130;
+                canvas.style.cssText = 'background:#08080a; border:1px solid #1e272e; border-radius:4px;';
+                box.appendChild(canvas);
+                grid.appendChild(box);
+                canvasList.push({ canvas, bounds: f.bounds });
+            });
+            wrap.appendChild(grid); container.appendChild(wrap);
+
+            if (!document.getElementById('cams-blink-style')) {
+                const style = document.createElement('style');
+                style.id = 'cams-blink-style';
+                style.innerHTML = `@keyframes camsBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`;
+                document.head.appendChild(style);
+            }
+
+            let active = true;
+            const renderFeeds = () => {
+                if (!active || !window.gameInstance) return;
+                const isJammed = window.gameInstance.sabotageSystem && window.gameInstance.sabotageSystem.activeSabotage === 'comms';
+                canvasList.forEach(item => {
+                    const canvas = item.canvas;
+                    const ctx = canvas.getContext('2d');
+                    const b = item.bounds;
+
+                    if (isJammed) {
+                        const imgData = ctx.createImageData(canvas.width, canvas.height);
+                        const data = imgData.data;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const val = Math.floor(Math.random() * 255);
+                            data[i] = val;
+                            data[i+1] = val;
+                            data[i+2] = val;
+                            data[i+3] = 255;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+                        
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#ff7675';
+                        ctx.font = 'bold 11px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⚠️ NO SIGNAL ⚠️', canvas.width / 2, canvas.height / 2);
+                        return;
+                    }
+
+                    ctx.fillStyle = '#111216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.strokeStyle = '#20222a'; ctx.lineWidth = 1;
+                    const gridSpacing = 20;
+                    for (let x = 0; x < canvas.width; x += gridSpacing) {
+                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                    }
+                    for (let y = 0; y < canvas.height; y += gridSpacing) {
+                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                    }
+
+                    // Draw blueprint decorations for accuracy
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                    ctx.strokeStyle = 'rgba(0, 206, 201, 0.15)';
+                    ctx.lineWidth = 2;
+                    if (item.bounds.xMin === 1550) { // BRIDGE
+                        const cx = canvas.width / 2;
+                        const cy = canvas.height / 2 + 10;
+                        ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                        ctx.fillStyle = 'rgba(214, 48, 49, 0.3)';
+                        ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+                    } else if (item.bounds.xMin === 2350) { // ELECTRICAL
+                        ctx.fillRect(30, 40, 25, 45); ctx.strokeRect(30, 40, 25, 45);
+                        ctx.fillRect(145, 40, 25, 45); ctx.strokeRect(145, 40, 25, 45);
+                    } else if (item.bounds.xMin === 2300) { // WEAPONS
+                        ctx.fillRect(140, 20, 30, 15); ctx.strokeRect(140, 20, 30, 15);
+                        ctx.fillRect(140, 85, 30, 15); ctx.strokeRect(140, 85, 30, 15);
+                    } else if (item.bounds.xMin === 1740) { // HALLWAY
+                        ctx.fillStyle = '#0f1013';
+                        ctx.fillRect(0, 0, 15, canvas.height);
+                        ctx.fillRect(canvas.width - 15, 0, 15, canvas.height);
+                        ctx.strokeStyle = 'rgba(0, 206, 201, 0.3)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(15, canvas.height); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(canvas.width - 15, 0); ctx.lineTo(canvas.width - 15, canvas.height); ctx.stroke();
+                    }
+
+                    // Draw outer border representing room walls
+                    ctx.strokeStyle = '#2d3436';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+                    window.gameInstance.players.forEach(p => {
+                        if (p.x >= b.xMin && p.x <= b.xMax && p.y >= b.yMin && p.y <= b.yMax) {
+                            const relX = ((p.x - b.xMin) / (b.xMax - b.xMin)) * canvas.width;
+                            const relY = ((p.y - b.yMin) / (b.yMax - b.yMin)) * canvas.height;
+                            
+                            ctx.save();
+                            ctx.translate(relX, relY);
+                            ctx.scale(0.55, 0.55);
+                            
+                            const mockPlayer = { ...p, x: 0, y: 0, scaleX: p.scaleX, isDead: p.isDead };
+                            SpriteRenderer.drawPlayer(ctx, 0, 0, 32, mockPlayer);
+                            ctx.restore();
+
+                            ctx.fillStyle = p.isDead ? '#787878' : '#ffffff';
+                            ctx.font = '800 9px sans-serif'; ctx.textAlign = 'center';
+                            ctx.shadowColor = 'black'; ctx.shadowBlur = 3;
+                            ctx.fillText(p.name + (p.isDead ? ' (👻)' : ''), relX, relY - 18);
+                            ctx.shadowBlur = 0;
+                        }
+                    });
+                });
+                if (active) requestAnimationFrame(renderFeeds);
+            };
+            renderFeeds();
+
+            const originalOnComplete = onComplete;
+            onComplete = () => { active = false; task.completed = true; originalOnComplete(); };
         }
     }
 }

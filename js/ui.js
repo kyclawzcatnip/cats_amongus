@@ -59,8 +59,8 @@ export class UIManager {
             this.game.triggerSabotage('engine');
             this.hideScreen('sabotage-modal');
         };
-        document.getElementById('sab-doors-btn').onclick = () => {
-            this.game.triggerSabotage('doors');
+        document.getElementById('sab-comms-btn').onclick = () => {
+            this.game.triggerSabotage('comms');
             this.hideScreen('sabotage-modal');
         };
 
@@ -192,6 +192,9 @@ export class UIManager {
         } else if (sabotageSystem.activeSabotage === 'engine') {
             sabBanner.classList.remove('hidden');
             document.getElementById('sabotage-text').innerText = `CRITICAL ENGINE MELTDOWN! (${Math.ceil(sabotageSystem.engineTimer)}s)`;
+        } else if (sabotageSystem.activeSabotage === 'comms') {
+            sabBanner.classList.remove('hidden');
+            document.getElementById('sabotage-text').innerText = 'COMMUNICATIONS JAMMED! RECONNECT IN COMMS!';
         } else {
             sabBanner.classList.add('hidden');
         }
@@ -221,6 +224,13 @@ export class UIManager {
             const ye = ROOMS.find(r => r.id === 'yarn_engine');
             if (ye && Math.hypot(player.x - ye.engineFixX, player.y - ye.engineFixY) <= 95) {
                 canUse = true; useText = "REPAIR"; useIcon = "⚙️";
+            }
+        }
+
+        if (sabotageSystem.activeSabotage === 'comms') {
+            const cm = ROOMS.find(r => r.id === 'comms');
+            if (cm && Math.hypot(player.x - cm.commsFixX, player.y - cm.commsFixY) <= 95) {
+                canUse = true; useText = "FIX COMMS"; useIcon = "📡";
             }
         }
 

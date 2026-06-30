@@ -68,7 +68,8 @@ export const ROOMS = [
     {
         id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
         x: 2950, y: 1150, width: 400, height: 350, icon: '📡',
-        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ]
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ],
+        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1325
     },
     {
         id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',

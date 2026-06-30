@@ -2,11 +2,10 @@
 
 export class SabotageSystem {
     constructor() {
-        this.activeSabotage = null; // null | 'lights' | 'engine' | 'doors'
+        this.activeSabotage = null; // null | 'lights' | 'engine' | 'doors' | 'comms'
         this.engineTimer = 45;
         this.doorTimer = 0;
         this.cooldown = 10; // 10s initial grace period for Dog
-        this.engineProgress = 0;
     }
 
     update(dt) {
@@ -33,14 +32,12 @@ export class SabotageSystem {
 
     triggerSabotage(type) {
         if (this.cooldown > 0 || this.activeSabotage) return false;
-        if (type === 'doors') return false; // Door sabotage doesn't work!
 
         this.activeSabotage = type;
         this.cooldown = 20; // 20 second cooldown between sabotages
 
         if (type === 'engine') {
             this.engineTimer = 45;
-            this.engineProgress = 0;
         } else if (type === 'doors') {
             this.doorTimer = 15;
         }

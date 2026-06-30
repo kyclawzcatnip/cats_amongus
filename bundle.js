@@ -549,7 +549,8 @@ const ROOMS = [
     {
         id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
         x: 2950, y: 1150, width: 400, height: 350, icon: '📡',
-        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ]
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ],
+        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1325
     },
     {
         id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
@@ -650,7 +651,6 @@ class SabotageSystem {
     }
     triggerSabotage(type) {
         if (this.cooldown > 0 || this.activeSabotage) return false;
-        if (type === 'doors') return false; // Door sabotage doesn't work!
         this.activeSabotage = type;
         this.cooldown = 20; // 20s cooldown between sabotages
         if (type === 'engine') this.engineTimer = 45;
@@ -1022,10 +1022,32 @@ class TaskManager {
             let active = true;
             const renderFeeds = () => {
                 if (!active || !window.gameInstance) return;
+                const isJammed = window.gameInstance.sabotageSystem && window.gameInstance.sabotageSystem.activeSabotage === 'comms';
                 canvasList.forEach(item => {
                     const canvas = item.canvas;
                     const ctx = canvas.getContext('2d');
                     const b = item.bounds;
+
+                    if (isJammed) {
+                        const imgData = ctx.createImageData(canvas.width, canvas.height);
+                        const data = imgData.data;
+                        for (let i = 0; i < data.length; i += 4) {
+                            const val = Math.floor(Math.random() * 255);
+                            data[i] = val;
+                            data[i+1] = val;
+                            data[i+2] = val;
+                            data[i+3] = 255;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+                        
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#ff7675';
+                        ctx.font = 'bold 11px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⚠️ NO SIGNAL ⚠️', canvas.width / 2, canvas.height / 2);
+                        return;
+                    }
 
                     ctx.fillStyle = '#111216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.strokeStyle = '#20222a'; ctx.lineWidth = 1;
@@ -1365,6 +1387,13 @@ class MapRenderer {
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
                 ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚠️', room.engineFixX, room.engineFixY + 4.5);
             }
+            if (sabotageSystem.activeSabotage === 'comms' && room.hasCommsFixPanel) {
+                const pulse = 1 + 0.2 * Math.sin(Date.now() * 0.009);
+                ctx.fillStyle = 'rgba(9, 132, 227, 0.3)'; ctx.beginPath(); ctx.arc(room.commsFixX, room.commsFixY, 25 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#0984e3'; ctx.beginPath(); ctx.arc(room.commsFixX, room.commsFixY, 17, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('📡', room.commsFixX, room.commsFixY + 4.5);
+            }
         }
 
         const canSeeVents = localPlayer ? (localPlayer.role === 'Dog' || localPlayer.role === 'Engineer' || localPlayer.isDead) : true;
@@ -1403,6 +1432,9 @@ class MapRenderer {
             } else if (sabotageSystem.activeSabotage === 'engine') {
                 const ye = ROOMS.find(r => r.id === 'yarn_engine');
                 if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
+            } else if (sabotageSystem.activeSabotage === 'comms') {
+                const cm = ROOMS.find(r => r.id === 'comms');
+                if (cm) { targetX = cm.commsFixX; targetY = cm.commsFixY; label = "FIX COMMS"; color = "#0984e3"; }
             }
 
             if (targetX > 0 && targetY > 0) {
@@ -1466,6 +1498,17 @@ class MapRenderer {
     renderMinimap(canvas, localPlayer, players) {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        const isJammed = window.gameInstance && window.gameInstance.sabotageSystem && window.gameInstance.sabotageSystem.activeSabotage === 'comms';
+        if (isJammed) {
+            ctx.fillStyle = '#111216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#20222a'; ctx.lineWidth = 1;
+            for (let y = 0; y < canvas.height; y += 8) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+            ctx.fillStyle = '#ff7675'; ctx.font = '800 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('📡 COMMS OFFLINE', canvas.width / 2, canvas.height / 2 + 3);
+            return;
+        }
         const scaleX = canvas.width / MAP_BOUNDS.width;
         const scaleY = canvas.height / MAP_BOUNDS.height;
         ctx.fillStyle = '#0f111a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -2172,7 +2215,7 @@ class UIManager {
         document.getElementById('action-sabotage-btn').onclick = () => this.game.handleSabotageAction();
         document.getElementById('sab-lights-btn').onclick = () => { this.game.triggerSabotage('lights'); this.hideScreen('sabotage-modal'); };
         document.getElementById('sab-engine-btn').onclick = () => { this.game.triggerSabotage('engine'); this.hideScreen('sabotage-modal'); };
-        document.getElementById('sab-doors-btn').onclick = () => { this.game.triggerSabotage('doors'); this.hideScreen('sabotage-modal'); };
+        document.getElementById('sab-comms-btn').onclick = () => { this.game.triggerSabotage('comms'); this.hideScreen('sabotage-modal'); };
         document.getElementById('skip-vote-btn').onclick = () => {
             this.game.meetingManager.submitPlayerVote(this.game.localPlayer.id, this.game.players);
         };
@@ -2290,6 +2333,7 @@ class UIManager {
         const sabBanner = document.getElementById('sabotage-banner');
         if (sabotageSystem.activeSabotage === 'lights') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN ELECTRICAL!'; }
         else if (sabotageSystem.activeSabotage === 'engine') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = `CRITICAL ENGINE MELTDOWN! (${Math.ceil(sabotageSystem.engineTimer)}s)`; }
+        else if (sabotageSystem.activeSabotage === 'comms') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = 'COMMUNICATIONS JAMMED! RECONNECT IN COMMS!'; }
         else sabBanner.classList.add('hidden');
 
         let canUse = false;
@@ -2317,6 +2361,13 @@ class UIManager {
             const ye = ROOMS.find(r => r.id === 'yarn_engine');
             if (ye && Math.hypot(player.x - ye.engineFixX, player.y - ye.engineFixY) <= 95) {
                 canUse = true; useText = "REPAIR"; useIcon = "⚙️";
+            }
+        }
+
+        if (sabotageSystem.activeSabotage === 'comms') {
+            const cm = ROOMS.find(r => r.id === 'comms');
+            if (cm && Math.hypot(player.x - cm.commsFixX, player.y - cm.commsFixY) <= 95) {
+                canUse = true; useText = "FIX COMMS"; useIcon = "📡";
             }
         }
 
@@ -2480,6 +2531,18 @@ class Game {
                 this.sabotageSystem.fixSabotage(); soundManager.playTaskComplete(); return;
             }
         }
+        if (this.sabotageSystem.activeSabotage === 'comms') {
+            const cm = ROOMS.find(r => r.id === 'comms');
+            if (cm && Math.hypot(this.localPlayer.x - cm.commsFixX, this.localPlayer.y - cm.commsFixY) <= 95) {
+                const commsFixTask = { room: 'Communications', name: '📡 SYNC RADIO FREQUENCY', type: 'slider' };
+                this.uiManager.showScreen('task-modal');
+                this.activeTaskCleanup = TaskManager.renderTaskMinigame(commsFixTask, this.localPlayer, () => {
+                    this.sabotageSystem.fixSabotage();
+                    this.uiManager.hideScreen('task-modal');
+                });
+                return;
+            }
+        }
         if (this.sabotageSystem.activeSabotage === 'engine') {
             const ye = ROOMS.find(r => r.id === 'yarn_engine');
             if (Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
@@ -2622,7 +2685,8 @@ class Game {
             { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
             { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
         ];
-        const onCamera = feeds.some(f => 
+        const isJammed = this.sabotageSystem && this.sabotageSystem.activeSabotage === 'comms';
+        const onCamera = !isJammed && feeds.some(f => 
             victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
             victim.y >= f.bounds.yMin && victim.y <= f.bounds.yMax
         );

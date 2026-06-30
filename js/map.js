@@ -131,6 +131,13 @@ export class MapRenderer {
                 ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
                 ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('⚠️', room.engineFixX, room.engineFixY + 4.5);
             }
+            if (sabotageSystem.activeSabotage === 'comms' && room.hasCommsFixPanel) {
+                const pulse = 1 + 0.2 * Math.sin(Date.now() * 0.009);
+                ctx.fillStyle = 'rgba(9, 132, 227, 0.3)'; ctx.beginPath(); ctx.arc(room.commsFixX, room.commsFixY, 25 * pulse, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#0984e3'; ctx.beginPath(); ctx.arc(room.commsFixX, room.commsFixY, 17, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = '#ffffff'; ctx.font = '700 13px sans-serif'; ctx.fillText('📡', room.commsFixX, room.commsFixY + 4.5);
+            }
         }
 
         // 5. Draw Vents (visible to Dog & Engineer)
@@ -191,6 +198,9 @@ export class MapRenderer {
             } else if (sabotageSystem.activeSabotage === 'engine') {
                 const ye = ROOMS.find(r => r.id === 'yarn_engine');
                 if (ye) { targetX = ye.engineFixX; targetY = ye.engineFixY; label = "FIX ENGINE"; color = "#d63031"; }
+            } else if (sabotageSystem.activeSabotage === 'comms') {
+                const cm = ROOMS.find(r => r.id === 'comms');
+                if (cm) { targetX = cm.commsFixX; targetY = cm.commsFixY; label = "FIX COMMS"; color = "#0984e3"; }
             }
 
             if (targetX > 0 && targetY > 0) {
@@ -282,7 +292,19 @@ export class MapRenderer {
     }
 
     renderMinimap(canvas, localPlayer, players) {
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        const isJammed = window.gameInstance && window.gameInstance.sabotageSystem && window.gameInstance.sabotageSystem.activeSabotage === 'comms';
+        if (isJammed) {
+            ctx.fillStyle = '#111216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#20222a'; ctx.lineWidth = 1;
+            for (let y = 0; y < canvas.height; y += 8) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+            ctx.fillStyle = '#ff7675'; ctx.font = '800 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('📡 COMMS OFFLINE', canvas.width / 2, canvas.height / 2 + 3);
+            return;
+        }
         const scaleX = canvas.width / MAP_BOUNDS.width;
         const scaleY = canvas.height / MAP_BOUNDS.height;
 
