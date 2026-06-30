@@ -2567,6 +2567,7 @@ class UIManager {
         const fillPct = (completedCatTasks / Math.max(1, totalCatTasks)) * 100;
         document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
 
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
         document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
 
