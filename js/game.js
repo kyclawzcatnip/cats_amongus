@@ -96,6 +96,8 @@ class Game {
         }
 
         this.sabotageSystem = new SabotageSystem();
+        const sabBanner = document.getElementById('sabotage-banner');
+        if (sabBanner) sabBanner.classList.add('hidden');
         this.showRoleReveal();
     }
 
@@ -257,6 +259,12 @@ class Game {
     }
 
     triggerMeeting(reporter, bodyPlayer) {
+        if (this.sabotageSystem) {
+            this.sabotageSystem.fixSabotage();
+        }
+        const sabBanner = document.getElementById('sabotage-banner');
+        if (sabBanner) sabBanner.classList.add('hidden');
+
         this.state = 'MEETING';
         this.uiManager.showScreen('meeting-screen');
         // Teleport all players to the Bridge meeting table area

@@ -4,6 +4,38 @@ import { ROOMS, CORRIDORS, MAP_BOUNDS } from './rooms.js';
 import { VENTS } from './vents.js';
 import { SpriteRenderer } from './sprites.js';
 
+const isPointWalkable = (px, py) => {
+    const margin = 8;
+    for (const r of ROOMS) {
+        if (px >= r.x + margin && px <= r.x + r.width - margin &&
+            py >= r.y + margin && py <= r.y + r.height - margin) return true;
+    }
+    for (const c of CORRIDORS) {
+        let minX, maxX, minY, maxY;
+        if (c.x1 === c.x2) {
+            minX = c.x1 - c.width / 2 + margin; maxX = c.x1 + c.width / 2 - margin;
+            minY = Math.min(c.y1, c.y2) - margin; maxY = Math.max(c.y1, c.y2) + margin;
+        } else {
+            minX = Math.min(c.x1, c.x2) - margin; maxX = Math.max(c.x1, c.x2) + margin;
+            minY = c.y1 - c.width / 2 + margin; maxY = c.y1 + c.width / 2 - margin;
+        }
+        if (px >= minX && px <= maxX && py >= minY && py <= maxY) return true;
+    }
+    return false;
+};
+
+const isLineOfSightClear = (x1, y1, x2, y2) => {
+    const dist = Math.hypot(x2 - x1, y2 - y1);
+    const steps = Math.ceil(dist / 25);
+    for (let i = 1; i < steps; i++) {
+        const t = i / steps;
+        const px = x1 + (x2 - x1) * t;
+        const py = y1 + (y2 - y1) * t;
+        if (!isPointWalkable(px, py)) return false;
+    }
+    return true;
+};
+
 export class MapRenderer {
     constructor() {
         this.cameraX = 1750;
@@ -68,9 +100,12 @@ export class MapRenderer {
                     return baseId === t.id && !tk.completed && !isLocked;
                 });
                 if (hasTask) {
-                    ctx.fillStyle = '#fdcb6e'; ctx.beginPath(); ctx.arc(t.x, t.y, 14, 0, Math.PI * 2); ctx.fill();
-                    ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 3; ctx.stroke();
-                    ctx.fillStyle = '#2d3436'; ctx.font = '700 12px sans-serif'; ctx.fillText('⚡', t.x, t.y + 4);
+                    const isVisible = !localPlayer || localPlayer.isDead || isLineOfSightClear(localPlayer.x, localPlayer.y, t.x, t.y);
+                    if (isVisible) {
+                        ctx.fillStyle = '#fdcb6e'; ctx.beginPath(); ctx.arc(t.x, t.y, 14, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 3; ctx.stroke();
+                        ctx.fillStyle = '#2d3436'; ctx.font = '700 12px sans-serif'; ctx.fillText('⚡', t.x, t.y + 4);
+                    }
                 }
             }
 
@@ -115,9 +150,9 @@ export class MapRenderer {
                 const dist = Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y);
                 const visionRadius = localPlayer.getVisionRadius(sabotageSystem.activeSabotage);
                 
-                const isVisible = localPlayer.isDead || p.isLocalPlayer || dist <= visionRadius;
+                const isVisible = localPlayer.isDead || p.isLocalPlayer || (dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
                 
-                if (isVisible || p.isDead) {
+                if (isVisible) {
                     SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
                 }
             } else {
