@@ -231,11 +231,25 @@ export class MeetingManager {
                 if (tag) tag.innerText = '🗳️ VOTED';
                 soundManager.playVoteClick();
 
-                // Check if meeting should end early because everyone voted
+                // Check if meeting should end early because everyone voted (with 10s minimum)
                 const alivePlayers = players.filter(pl => !pl.isDead);
                 const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
                 if (allVoted) {
-                    this.tallyVotes(players);
+                    const elapsed = 30 - this.timer;
+                    if (elapsed >= 10) {
+                        this.tallyVotes(players);
+                    } else {
+                        const remainingToWait = (10 - elapsed) * 1000;
+                        setTimeout(() => {
+                            if (this.active) {
+                                const checkAlive = players.filter(pl => !pl.isDead);
+                                const checkAllVoted = checkAlive.every(pl => this.votes[pl.id] !== undefined);
+                                if (checkAllVoted) {
+                                    this.tallyVotes(players);
+                                }
+                            }
+                        }, remainingToWait);
+                    }
                 }
             }, voteDelay);
         });
@@ -350,7 +364,21 @@ export class MeetingManager {
         const alivePlayers = players.filter(pl => !pl.isDead);
         const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
         if (allVoted) {
-            this.tallyVotes(players);
+            const elapsed = 30 - this.timer;
+            if (elapsed >= 10) {
+                this.tallyVotes(players);
+            } else {
+                const remainingToWait = (10 - elapsed) * 1000;
+                setTimeout(() => {
+                    if (this.active) {
+                        const checkAlive = players.filter(pl => !pl.isDead);
+                        const checkAllVoted = checkAlive.every(pl => this.votes[pl.id] !== undefined);
+                        if (checkAllVoted) {
+                            this.tallyVotes(players);
+                        }
+                    }
+                }, remainingToWait);
+            }
         }
     }
 

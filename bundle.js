@@ -2662,11 +2662,25 @@ class MeetingManager {
                 if (tag) tag.innerText = '🗳️ VOTED';
                 soundManager.playVoteClick();
 
-                // Check if meeting should end early because everyone voted
+                // Check if meeting should end early because everyone voted (with 10s minimum)
                 const alivePlayers = players.filter(pl => !pl.isDead);
                 const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
                 if (allVoted) {
-                    this.tallyVotes(players);
+                    const elapsed = 30 - this.timer;
+                    if (elapsed >= 10) {
+                        this.tallyVotes(players);
+                    } else {
+                        const remainingToWait = (10 - elapsed) * 1000;
+                        setTimeout(() => {
+                            if (this.active) {
+                                const checkAlive = players.filter(pl => !pl.isDead);
+                                const checkAllVoted = checkAlive.every(pl => this.votes[pl.id] !== undefined);
+                                if (checkAllVoted) {
+                                    this.tallyVotes(players);
+                                }
+                            }
+                        }, remainingToWait);
+                    }
                 }
             }, voteDelay);
         });
@@ -2709,7 +2723,21 @@ class MeetingManager {
         const alivePlayers = players.filter(pl => !pl.isDead);
         const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
         if (allVoted) {
-            this.tallyVotes(players);
+            const elapsed = 30 - this.timer;
+            if (elapsed >= 10) {
+                this.tallyVotes(players);
+            } else {
+                const remainingToWait = (10 - elapsed) * 1000;
+                setTimeout(() => {
+                    if (this.active) {
+                        const checkAlive = players.filter(pl => !pl.isDead);
+                        const checkAllVoted = checkAlive.every(pl => this.votes[pl.id] !== undefined);
+                        if (checkAllVoted) {
+                            this.tallyVotes(players);
+                        }
+                    }
+                }, remainingToWait);
+            }
         }
     }
     sendUserChatMessage(msgText, localPlayerName, players) {
@@ -3516,12 +3544,22 @@ class Game {
             if (!p.isDead && p.role !== 'evil Dog') {
                 const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
                 const isWatchingCams = Math.hypot(p.x - 380, p.y - 750) <= 90;
+                const sameFloor = (p.y >= 2800) === (victim.y >= 2800);
+                const isLOS = sameFloor && isLineOfSightClear(p.x, p.y, victim.x, victim.y);
                 
-                if (distToKill <= 280) {
+                if (distToKill <= 280 && isLOS) {
                     p.witnessedKillerId = killer.id;
                     p.witnessedKillerName = killer.name;
                     p.witnessedVictimName = victim.name;
                     p.witnessedViaCams = false;
+                    
+                    if (!p.isLocalPlayer) {
+                        setTimeout(() => {
+                            if (this.state === 'PLAYING') {
+                                this.triggerMeeting(p, victim);
+                            }
+                        }, 500); // 500ms reaction delay
+                    }
                 } else if (onCamera && isWatchingCams) {
                     p.witnessedKillerId = killer.id;
                     p.witnessedKillerName = killer.name;

@@ -41,7 +41,7 @@ export class AIController {
         };
 
         for (const p of players) {
-            if (p.isDead && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
+            if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
                 onReportBody(bot, p); return;
             }
         }
