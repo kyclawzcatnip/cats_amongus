@@ -4365,7 +4365,7 @@ class Game {
             .filter(t => t.id.startsWith('def_'))
             .every(t => t.completed);
         const allInvadersKilled = this.invaders.length === 0;
-        if (allTasksDone && allInvadersKilled) {
+        if (allTasksDone || allInvadersKilled) {
             this.defensiveProtocolActive = false;
             this.localPlayer.tasks = this.localPlayer.tasks.filter(t => !t.id.startsWith('def_'));
             this.players.forEach(p => {
