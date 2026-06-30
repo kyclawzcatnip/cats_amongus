@@ -978,19 +978,23 @@ const CATHQ_ROOMS = [
 
 const CATHQ_CORRIDORS = [
     // Central Spine (x = 2000)
-    { x1: 2000, y1: 500, x2: 2000, y2: 1900, width: 120 },
+    { x1: 2000, y1: 500, x2: 2000, y2: 2450, width: 120 },
     // Left Spine (x = 900)
-    { x1: 900, y1: 570, x2: 900, y2: 2350, width: 100 },
+    { x1: 900, y1: 570, x2: 900, y2: 2450, width: 100 },
     // Right Spine (x = 3100)
-    { x1: 3100, y1: 570, x2: 3100, y2: 2350, width: 100 },
+    { x1: 3100, y1: 570, x2: 3100, y2: 2450, width: 100 },
     // Top Horizontal Corridor (y = 570)
     { x1: 900, y1: 570, x2: 3100, y2: 570, width: 100 },
+    // Quarters Horizontal Corridor (y = 910)
+    { x1: 900, y1: 910, x2: 3100, y2: 910, width: 100 },
     // Middle Horizontal Corridor (y = 1170)
     { x1: 650, y1: 1170, x2: 3350, y2: 1170, width: 100 },
+    // Storage/Kitchen Horizontal Corridor (y = 1460)
+    { x1: 900, y1: 1460, x2: 3100, y2: 1460, width: 100 },
     // Lower Middle Horizontal Corridor (y = 1720)
     { x1: 650, y1: 1720, x2: 3350, y2: 1720, width: 100 },
-    // Bottom Horizontal Corridor (y = 2270)
-    { x1: 900, y1: 2270, x2: 3100, y2: 2270, width: 100 }
+    // Bottom Horizontal Corridor (y = 2400)
+    { x1: 900, y1: 2400, x2: 3100, y2: 2400, width: 100 }
 ];
 
 const ROOMS = [...WHISKER_STATION_ROOMS];
