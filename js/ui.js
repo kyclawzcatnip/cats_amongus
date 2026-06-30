@@ -29,6 +29,10 @@ export class UIManager {
         document.getElementById('prev-map-btn').onclick = () => this.changeMap(-1);
         document.getElementById('next-map-btn').onclick = () => this.changeMap(1);
 
+        // Cat Amount Selectors
+        document.getElementById('prev-cats-btn').onclick = () => this.changeCats(-1);
+        document.getElementById('next-cats-btn').onclick = () => this.changeCats(1);
+
         // Role Continue Button
         document.getElementById('role-continue-btn').onclick = () => {
             this.showScreen('hud-screen');
@@ -113,6 +117,14 @@ export class UIManager {
         const nextIdx = (curIdx + dir + maps.length) % maps.length;
         this.game.selectedMap = maps[nextIdx].id;
         document.getElementById('map-preview-name').innerText = maps[nextIdx].name;
+    }
+
+    changeCats(dir) {
+        let newAmount = this.game.catAmount + dir;
+        if (newAmount < 10) newAmount = 30;
+        else if (newAmount > 30) newAmount = 10;
+        this.game.catAmount = newAmount;
+        document.getElementById('cats-preview-amount').innerText = `${newAmount} Cats`;
     }
 
     showScreen(id) {

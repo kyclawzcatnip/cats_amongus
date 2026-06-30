@@ -20,6 +20,7 @@ class Game {
         this.menuColorIndex = 0;
         this.menuHatIndex = 1;
         this.selectedMap = 'whisker_station';
+        this.catAmount = 10;
 
         this.mapRenderer = new MapRenderer();
         this.sabotageSystem = new SabotageSystem();
@@ -70,16 +71,49 @@ class Game {
         soundManager.init();
         loadMap(this.selectedMap);
         
-        const roles = ['evil Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
+        const roles = ['evil Dog', 'Captain'];
+        
+        // Medics: 2 if cats >= 25, otherwise 1
+        const medicCount = this.catAmount >= 25 ? 2 : 1;
+        for (let i = 0; i < medicCount; i++) roles.push('Medic');
+        
+        // Engineers: scale up to 5 max
+        let engCount = 1;
+        if (this.catAmount >= 30) engCount = 5;
+        else if (this.catAmount >= 25) engCount = 4;
+        else if (this.catAmount >= 20) engCount = 3;
+        else if (this.catAmount >= 15) engCount = 2;
+        for (let i = 0; i < engCount; i++) roles.push('Engineer');
+        
+        // Guards: scale up to 6 max
+        let guardCount = 1;
+        if (this.catAmount >= 28) guardCount = 6;
+        else if (this.catAmount >= 24) guardCount = 5;
+        else if (this.catAmount >= 20) guardCount = 4;
+        else if (this.catAmount >= 16) guardCount = 3;
+        else if (this.catAmount >= 12) guardCount = 2;
+        for (let i = 0; i < guardCount; i++) roles.push('Guard');
+        
+        // Fill remaining with Citizens
+        while (roles.length < this.catAmount) {
+            roles.push('Citizen');
+        }
+
         const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
 
-        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'];
+        const botNames = [
+            'Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield',
+            'Chloe', 'Bella', 'Lucy', 'Lily', 'Sophie', 'Lola', 'Zoe', 'Kitty', 'Princess',
+            'Simba', 'Milo', 'Tiger', 'Oreo', 'Jack', 'Charlie', 'Rusty', 'Toby', 'Gizmo', 'Boots',
+            'Patch', 'Ziggy', 'Coco', 'Pepper', 'Oscar', 'Buster', 'Salem',
+            'Lucky', 'Merlin', 'Ginger', 'Max', 'Sammy', 'Peanut', 'Sassy', 'Cookie'
+        ];
         const shuffledNames = [...botNames].sort(() => 0.5 - Math.random());
 
         this.players = [];
         
-        // Create 10 players (1 human + 9 AI bots)
-        for (let i = 0; i < 10; i++) {
+        // Create configured amount of players (1 human + AI bots)
+        for (let i = 0; i < this.catAmount; i++) {
             const isLocal = i === 0;
             const name = isLocal ? playerName : shuffledNames[i - 1];
             const colorIdx = isLocal ? this.menuColorIndex : (i * 2 + 1) % 8;
@@ -366,7 +400,11 @@ class Game {
         this.uiManager.showScreen('meeting-screen');
         // Teleport all players to the Bridge meeting table area
         this.players.forEach((p, idx) => {
-            p.x = 1720 + (idx % 5) * 40;
+            if (this.selectedMap === 'catnip_observatory') {
+                p.x = 1320 + (idx % 5) * 40;
+            } else {
+                p.x = 1720 + (idx % 5) * 40;
+            }
             p.y = 250 + Math.floor(idx / 5) * 40;
             p.inVent = false;
             p.currentVentId = null;
