@@ -220,6 +220,27 @@ class SpriteRenderer {
             // Always draw normal cute Cat sprite
             this.drawCat(ctx, radius, colorObj, player);
 
+            if (player.health < 3 && player.health > 0) {
+                ctx.save();
+                ctx.strokeStyle = '#d63031';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
+                ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
+                ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
+                ctx.stroke();
+
+                if (player.health === 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(4, -8); ctx.lineTo(10, 2);
+                    ctx.moveTo(8, -10); ctx.lineTo(14, 0);
+                    ctx.moveTo(0, -6); ctx.lineTo(6, 4);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
             // Draw Hat on top
             if (player.hatIndex > 0 && HATS[player.hatIndex]) {
                 this.drawHat(ctx, radius, HATS[player.hatIndex].type);
