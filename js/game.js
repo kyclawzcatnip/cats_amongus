@@ -193,10 +193,12 @@ class Game {
             return;
         }
 
-        // Check if player has gun and ammo to shoot at a nearby invader
+        // Check if player has gun and ammo to shoot at the closest nearby invader
         if (this.localPlayer.hasGun && this.localPlayer.gunAmmo > 0 && this.invaders) {
-            const nearbyInvader = this.invaders.find(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 300);
-            if (nearbyInvader) {
+            const nearbyInvaders = this.invaders.filter(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 300);
+            if (nearbyInvaders.length > 0) {
+                nearbyInvaders.sort((a, b) => Math.hypot(this.localPlayer.x - a.x, this.localPlayer.y - a.y) - Math.hypot(this.localPlayer.x - b.x, this.localPlayer.y - b.y));
+                const nearbyInvader = nearbyInvaders[0];
                 this.localPlayer.gunAmmo--;
                 soundManager.playVoteClick(); // Shoot sound effect!
                 

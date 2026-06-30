@@ -149,22 +149,51 @@ export class SpriteRenderer {
 
         if (player.hasGun) {
             ctx.save();
-            ctx.translate(player.scaleX === -1 ? -radius - 6 : radius + 6, radius * 0.1);
-            
-            // Blaster Handle
-            ctx.fillStyle = '#2d3436';
-            ctx.fillRect(-6, 2, 4, 8);
-            
-            // Blaster Barrel
-            ctx.fillStyle = '#7f8c8d';
-            if (player.scaleX === -1) {
-                ctx.fillRect(-12, -2, 10, 5);
-                ctx.fillStyle = '#00cec9'; // Glowing cyan cell
-                ctx.fillRect(-10, -1, 4, 3);
+            let targetInv = null;
+            if (window.gameInstance && window.gameInstance.defensiveProtocolActive && window.gameInstance.invaders) {
+                const nearby = window.gameInstance.invaders.filter(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 300);
+                if (nearby.length > 0) {
+                    nearby.sort((a, b) => Math.hypot(player.x - a.x, player.y - a.y) - Math.hypot(player.x - b.x, player.y - b.y));
+                    targetInv = nearby[0];
+                }
+            }
+
+            if (targetInv) {
+                const handX = player.scaleX * (radius + 6);
+                const handY = radius * 0.1;
+                const targetLocalX = (targetInv.x - player.x) * player.scaleX;
+                const targetLocalY = targetInv.y - player.y;
+                const angle = Math.atan2(targetLocalY - handY, targetLocalX - handX);
+                
+                ctx.translate(handX, handY);
+                ctx.rotate(angle);
+                
+                // Draw gun pointing forward relative to the rotation angle
+                ctx.fillStyle = '#2d3436';
+                ctx.fillRect(-6, 2, 4, 8); // Handle
+                
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(0, -2, 10, 5); // Barrel
+                ctx.fillStyle = '#00cec9';
+                ctx.fillRect(4, -1, 4, 3); // Cyan power cell
             } else {
-                ctx.fillRect(2, -2, 10, 5);
-                ctx.fillStyle = '#00cec9'; // Glowing cyan cell
-                ctx.fillRect(6, -1, 4, 3);
+                ctx.translate(player.scaleX === -1 ? -radius - 6 : radius + 6, radius * 0.1);
+                
+                // Blaster Handle
+                ctx.fillStyle = '#2d3436';
+                ctx.fillRect(-6, 2, 4, 8);
+                
+                // Blaster Barrel
+                ctx.fillStyle = '#7f8c8d';
+                if (player.scaleX === -1) {
+                    ctx.fillRect(-12, -2, 10, 5);
+                    ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                    ctx.fillRect(-10, -1, 4, 3);
+                } else {
+                    ctx.fillRect(2, -2, 10, 5);
+                    ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                    ctx.fillRect(6, -1, 4, 3);
+                }
             }
             ctx.restore();
         }
