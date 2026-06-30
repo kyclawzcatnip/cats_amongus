@@ -320,7 +320,14 @@ export class TaskManager {
         } else if (task.type === 'shoot_asteroids') {
             const wrap = document.createElement('div');
             wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; color:white; font-family:var(--font-heading);';
-            wrap.innerHTML = `<p style="font-size:1.1rem; margin-bottom:4px;">💥 Shoot the asteroids before they drift away! (Destroyed: <span id="ast-count">0</span> / 10)</p>`;
+            
+            const isProtocol = window.gameInstance && window.gameInstance.defensiveProtocolActive;
+            let ammoHTML = '';
+            if (isProtocol) {
+                ammoHTML = `<div id="ammo-status" style="font-weight:bold; color:#ffeaa7; font-size:1.1rem; margin-top:4px;">🔋 Ammo: <span id="ammo-count">10</span> / 10</div>`;
+            }
+            
+            wrap.innerHTML = `<p style="font-size:1.1rem; margin-bottom:4px;">💥 Shoot the targets before they drift away! (Destroyed: <span id="ast-count">0</span> / 10)</p>${ammoHTML}`;
 
             const canvas = document.createElement('canvas');
             canvas.width = 400; canvas.height = 300;
@@ -335,6 +342,8 @@ export class TaskManager {
             let explosions = [];
             let mousePos = { x: 200, y: 150 };
             let active = true;
+            let ammo = 10;
+            let reloading = false;
 
             const spawnAsteroid = () => {
                 if (!active) return;
@@ -352,7 +361,8 @@ export class TaskManager {
                     vy = Math.random() * 100 + 80;
                 }
                 const radius = Math.random() * 15 + 10;
-                asteroids.push({ x, y, vx, vy, radius, hp: 1 });
+                const isEnemyShip = isProtocol && Math.random() < 0.80;
+                asteroids.push({ x, y, vx, vy, radius, hp: 1, isEnemyShip });
             };
 
             const getMousePos = (e) => {
@@ -371,6 +381,28 @@ export class TaskManager {
 
             canvas.onmousedown = (e) => {
                 if (!active || task.completed) return;
+
+                if (isProtocol) {
+                    if (reloading) return;
+                    if (ammo <= 0) {
+                        reloading = true;
+                        const ammoEl = document.getElementById('ammo-status');
+                        if (ammoEl) ammoEl.innerHTML = `<span style="color:#d63031;">⏳ RELOADING...</span>`;
+                        soundManager.playVoteClick();
+                        setTimeout(() => {
+                            ammo = 10;
+                            reloading = false;
+                            const countEl = document.getElementById('ammo-status');
+                            if (countEl) countEl.innerHTML = `🔋 Ammo: <span id="ammo-count">10</span> / 10`;
+                            soundManager.playTaskComplete();
+                        }, 1200);
+                        return;
+                    }
+                    ammo--;
+                    const countEl = document.getElementById('ammo-count');
+                    if (countEl) countEl.innerText = ammo;
+                }
+
                 const clickPos = getMousePos(e);
                 
                 laserLine = {
@@ -454,30 +486,55 @@ export class TaskManager {
                 }
 
                 asteroids.forEach(ast => {
-                    ctx.fillStyle = '#b2bec3';
-                    ctx.strokeStyle = '#636e72';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    const steps = 8;
-                    for (let i = 0; i <= steps; i++) {
-                        const angle = (i / steps) * Math.PI * 2;
-                        const bumpyRadius = ast.radius + (Math.sin(angle * 3) * 2);
-                        const ax = ast.x + Math.cos(angle) * bumpyRadius;
-                        const ay = ast.y + Math.sin(angle) * bumpyRadius;
-                        if (i === 0) ctx.moveTo(ax, ay);
-                        else ctx.lineTo(ax, ay);
-                    }
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.stroke();
+                    if (ast.isEnemyShip) {
+                        ctx.fillStyle = '#ff7675';
+                        ctx.strokeStyle = '#d63031';
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        const angle = Math.atan2(ast.vy, ast.vx);
+                        const p1x = ast.x + Math.cos(angle) * ast.radius * 1.4;
+                        const p1y = ast.y + Math.sin(angle) * ast.radius * 1.4;
+                        const p2x = ast.x + Math.cos(angle + 2.5) * ast.radius;
+                        const p2y = ast.y + Math.sin(angle + 2.5) * ast.radius;
+                        const p3x = ast.x + Math.cos(angle - 2.5) * ast.radius;
+                        const p3y = ast.y + Math.sin(angle - 2.5) * ast.radius;
+                        ctx.moveTo(p1x, p1y);
+                        ctx.lineTo(p2x, p2y);
+                        ctx.lineTo(p3x, p3y);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
 
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                    ctx.beginPath();
-                    ctx.arc(ast.x - ast.radius/3, ast.y - ast.radius/3, ast.radius/4, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.arc(ast.x + ast.radius/4, ast.y + ast.radius/5, ast.radius/6, 0, Math.PI * 2);
-                    ctx.fill();
+                        ctx.fillStyle = '#ff0000';
+                        ctx.beginPath();
+                        ctx.arc(ast.x, ast.y, ast.radius / 3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.fillStyle = '#b2bec3';
+                        ctx.strokeStyle = '#636e72';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        const steps = 8;
+                        for (let i = 0; i <= steps; i++) {
+                            const angle = (i / steps) * Math.PI * 2;
+                            const bumpyRadius = ast.radius + (Math.sin(angle * 3) * 2);
+                            const ax = ast.x + Math.cos(angle) * bumpyRadius;
+                            const ay = ast.y + Math.sin(angle) * bumpyRadius;
+                            if (i === 0) ctx.moveTo(ax, ay);
+                            else ctx.lineTo(ax, ay);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                        ctx.beginPath();
+                        ctx.arc(ast.x - ast.radius/3, ast.y - ast.radius/3, ast.radius/4, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(ast.x + ast.radius/4, ast.y + ast.radius/5, ast.radius/6, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 });
 
                 if (laserLine) {
@@ -512,6 +569,22 @@ export class TaskManager {
                 ctx.moveTo(mousePos.x, mousePos.y - 22); ctx.lineTo(mousePos.x, mousePos.y - 8);
                 ctx.moveTo(mousePos.x, mousePos.y + 8); ctx.lineTo(mousePos.x, mousePos.y + 22);
                 ctx.stroke();
+
+                if (isProtocol && ammo <= 0) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ff7675';
+                    ctx.font = 'bold 16px var(--font-heading)';
+                    ctx.textAlign = 'center';
+                    if (reloading) {
+                        ctx.fillText('⏳ RELOADING...', canvas.width / 2, canvas.height / 2);
+                    } else {
+                        ctx.fillText('⚠️ OUT OF AMMO! ⚠️', canvas.width / 2, canvas.height / 2 - 12);
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText('CLICK ANYWHERE TO RELOAD', canvas.width / 2, canvas.height / 2 + 12);
+                    }
+                }
+                ctx.textAlign = 'left'; // Reset alignment
 
                 requestAnimationFrame(tick);
             };
