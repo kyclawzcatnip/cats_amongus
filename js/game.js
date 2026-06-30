@@ -1,0 +1,414 @@
+// Main Game Orchestration for Cat Crew
+
+import { soundManager } from './sounds.js';
+import { Player } from './player.js';
+import { MapRenderer } from './map.js';
+import { MAP_BOUNDS, ROOMS } from './rooms.js';
+import { VentSystem } from './vents.js';
+import { SabotageSystem } from './sabotage.js';
+import { TaskManager } from './tasks.js';
+import { AIController } from './ai.js';
+import { MeetingManager } from './meeting.js';
+import { UIManager } from './ui.js';
+
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('game-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        
+        this.state = 'MENU'; // MENU | ROLE_REVEAL | PLAYING | MEETING | EJECT | GAME_OVER
+        this.menuColorIndex = 0;
+        this.menuHatIndex = 1;
+
+        this.mapRenderer = new MapRenderer();
+        this.sabotageSystem = new SabotageSystem();
+        this.meetingManager = new MeetingManager();
+        this.uiManager = new UIManager(this);
+
+        this.players = [];
+        this.localPlayer = null;
+        this.keysPressed = {};
+        this.activeTask = null;
+
+        this.setupWindow();
+        this.setupKeyListeners();
+        this.startLoop();
+    }
+
+    setupWindow() {
+        const resize = () => {
+            this.canvas.width = window.innerWidth;
+            this.canvas.height = window.innerHeight;
+        };
+        window.addEventListener('resize', resize);
+        resize();
+    }
+
+    setupKeyListeners() {
+        window.addEventListener('keydown', (e) => {
+            soundManager.init();
+            this.keysPressed[e.code] = true;
+
+            if (this.state === 'PLAYING') {
+                if (e.code === 'KeyE' || e.code === 'Space') {
+                    this.handleUseAction();
+                } else if (e.code === 'KeyR') {
+                    this.handleReportAction();
+                } else if (e.code === 'KeyQ' && this.localPlayer?.role === 'Dog') {
+                    this.handleKillAction();
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            this.keysPressed[e.code] = false;
+        });
+    }
+
+    startNewGame(playerName) {
+        soundManager.init();
+        
+        const roles = ['Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
+        const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
+
+        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'];
+        const shuffledNames = [...botNames].sort(() => 0.5 - Math.random());
+
+        this.players = [];
+        
+        // Create 10 players (1 human + 9 AI bots)
+        for (let i = 0; i < 10; i++) {
+            const isLocal = i === 0;
+            const name = isLocal ? playerName : shuffledNames[i - 1];
+            const colorIdx = isLocal ? this.menuColorIndex : (i * 2 + 1) % 8;
+            const hatIdx = isLocal ? this.menuHatIndex : (i + 2) % 8;
+            const role = shuffledRoles[i];
+
+            const p = new Player(i, name, colorIdx, hatIdx, role, isLocal);
+            p.tasks = TaskManager.generateTaskList();
+
+            // Spawn inside Bridge or central corridor
+            p.x = 1720 + (i % 5) * 40;
+            p.y = 250 + Math.floor(i / 5) * 40;
+
+            this.players.push(p);
+            if (isLocal) this.localPlayer = p;
+        }
+
+        this.sabotageSystem = new SabotageSystem();
+        this.showRoleReveal();
+    }
+
+    showRoleReveal() {
+        this.state = 'ROLE_REVEAL';
+        this.uiManager.showScreen('role-screen');
+
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Dog: '🐶' };
+        const roleDescs = {
+            Citizen: 'Perform tasks across rooms and unmask the sneaky Dog!',
+            Captain: 'Command the ship! You complete tasks 35% faster than standard cats.',
+            Guard: 'Stay vigilant! You have 25% larger vision and see much better when lights go out.',
+            Engineer: 'Use ship ventilation shafts to traverse rooms instantly.',
+            Medic: 'Heal the crew! You can revive fallen cats up to 2 times per match.',
+            Dog: 'Eliminate cats, sabotage systems, and do not get caught!'
+        };
+
+        document.getElementById('role-icon').innerText = roleIcons[this.localPlayer.role];
+        document.getElementById('role-title').innerText = `YOUR ROLE: ${this.localPlayer.role.toUpperCase()}`;
+        document.getElementById('role-description').innerText = roleDescs[this.localPlayer.role];
+
+        const teamList = document.getElementById('role-team-list');
+        teamList.innerHTML = '';
+        if (this.localPlayer.role === 'Dog') {
+            teamList.innerText = '⚠️ You are the solitary Dog impostor!';
+        } else {
+            teamList.innerText = '🐾 Work with your fellow crew cats to finish all tasks!';
+        }
+    }
+
+    handleUseAction() {
+        if (this.localPlayer.isDead) return;
+
+        // 1. Check Emergency Meeting Button in Bridge
+        const bridge = ROOMS.find(r => r.id === 'bridge');
+        const distToButton = Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY);
+        if (distToButton <= 45) {
+            this.triggerMeeting(this.localPlayer, null);
+            return;
+        }
+
+        // 2. Check Sabotage Fix Panels
+        if (this.sabotageSystem.activeSabotage === 'lights') {
+            const ws = ROOMS.find(r => r.id === 'workshop');
+            if (Math.hypot(this.localPlayer.x - ws.lightsFixX, this.localPlayer.y - ws.lightsFixY) <= 95) {
+                this.sabotageSystem.fixSabotage();
+                soundManager.playTaskComplete();
+                return;
+            }
+        }
+
+        if (this.sabotageSystem.activeSabotage === 'engine') {
+            const ye = ROOMS.find(r => r.id === 'yarn_engine');
+            if (Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
+                const engineFixTask = { room: 'Yarn Engine', name: 'OVERLOAD REPAIR', type: 'rapid_click' };
+                this.uiManager.showScreen('task-modal');
+                TaskManager.renderTaskMinigame(engineFixTask, this.localPlayer, () => {
+                    this.sabotageSystem.fixSabotage();
+                    this.uiManager.hideScreen('task-modal');
+                });
+                return;
+            }
+        }
+
+        // 3. Check Tasks
+        for (const t of this.localPlayer.tasks) {
+            if (t.completed) continue;
+            const roomObj = ROOMS.find(r => r.name.includes(t.room));
+            if (!roomObj) continue;
+            const baseTaskId = t.id.split('_reassigned_')[0];
+            const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+            if (taskLoc) {
+                const dist = Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y);
+                if (dist <= 60) {
+                    this.activeTask = t;
+                    this.uiManager.showScreen('task-modal');
+                    TaskManager.renderTaskMinigame(t, this.localPlayer, () => {
+                        this.uiManager.hideScreen('task-modal');
+                        this.activeTask = null;
+                        this.checkWinConditions();
+                    });
+                    return;
+                }
+            }
+        }
+
+        // 4. Check Vent
+        if (this.localPlayer.role === 'Dog' || this.localPlayer.role === 'Engineer') {
+            this.handleVentAction();
+        }
+    }
+
+    handleReportAction() {
+        if (this.localPlayer.isDead) return;
+
+        // Find nearby body
+        for (const p of this.players) {
+            if (p.isDead) {
+                const dist = Math.hypot(this.localPlayer.x - p.x, this.localPlayer.y - p.y);
+                if (dist <= 80) {
+                    this.triggerMeeting(this.localPlayer, p);
+                    return;
+                }
+            }
+        }
+    }
+
+    handleKillAction() {
+        if (this.localPlayer.role !== 'Dog' || this.localPlayer.isDead || this.localPlayer.killCooldown > 0 || this.globalKillTimer > 0) return;
+        for (const target of this.players) {
+            if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
+                target.isDead = true;
+                this.globalKillTimer = 15;
+                this.recordKillWitnesses(this.localPlayer, target);
+                this.reassignDeadCatTasks(target);
+                this.localPlayer.killCooldown = 30;
+                soundManager.playElimination();
+                this.checkWinConditions();
+                break;
+            }
+        }
+    }
+
+    handleReviveAction() {
+        if (this.localPlayer.role !== 'Medic' || this.localPlayer.isDead || this.localPlayer.reviveUses <= 0) return;
+
+        for (const p of this.players) {
+            if (this.localPlayer.canRevive(p)) {
+                p.isDead = false;
+                this.localPlayer.reviveUses -= 1;
+                soundManager.playTaskComplete();
+                break;
+            }
+        }
+    }
+
+    handleVentAction() {
+        if (this.localPlayer.role !== 'Dog' && this.localPlayer.role !== 'Engineer') return;
+        if (this.localPlayer.isDead) return;
+        const vent = VentSystem.getNearbyVent(this.localPlayer.x, this.localPlayer.y);
+        if (vent) {
+            soundManager.playVentWhoosh();
+            const targetVent = VentSystem.getVentById(vent.connectId);
+            if (targetVent) {
+                this.localPlayer.x = targetVent.x;
+                this.localPlayer.y = targetVent.y;
+            }
+        }
+    }
+
+    handleSabotageAction() {
+        if (this.localPlayer.role === 'Dog' && !this.localPlayer.isDead && this.sabotageSystem.cooldown <= 0) {
+            this.uiManager.showScreen('sabotage-modal');
+        }
+    }
+
+    triggerSabotage(type) {
+        this.sabotageSystem.triggerSabotage(type);
+    }
+
+    triggerMeeting(reporter, bodyPlayer) {
+        this.state = 'MEETING';
+        this.uiManager.showScreen('meeting-screen');
+        // Teleport all players to the Bridge meeting table area
+        this.players.forEach((p, idx) => {
+            p.x = 1720 + (idx % 5) * 40;
+            p.y = 250 + Math.floor(idx / 5) * 40;
+            p.inVent = false;
+            p.currentVentId = null;
+        });
+        if (this.localPlayer) {
+            this.mapRenderer.cameraX = this.localPlayer.x;
+            this.mapRenderer.cameraY = this.localPlayer.y;
+        }
+        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie) => {
+            this.showEjectionScreen(ejectedPlayer, isTie);
+        });
+    }
+
+    showEjectionScreen(ejectedPlayer, isTie) {
+        this.state = 'EJECT';
+        this.uiManager.showScreen('eject-screen');
+
+        const textEl = document.getElementById('eject-result-text');
+        const remEl = document.getElementById('eject-remaining-text');
+
+        if (isTie || !ejectedPlayer) {
+            textEl.innerText = 'No one was ejected. (Tie vote)';
+        } else {
+            textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'Dog' ? 'The Dog!' : 'not The Dog.'}`;
+        }
+
+        const remainingDogs = this.players.filter(p => !p.isDead && p.role === 'Dog').length;
+        remEl.innerText = `${remainingDogs} Dog impostor remains.`;
+    }
+
+    reassignDeadCatTasks(deadPlayer) {
+        if (!deadPlayer || deadPlayer.role === 'Dog') return;
+        const uncompleted = (deadPlayer.tasks || []).filter(t => !t.completed);
+        if (uncompleted.length === 0) return;
+
+        const livingCats = this.players.filter(p => !p.isDead && p.role !== 'Dog');
+        if (livingCats.length > 0) {
+            uncompleted.forEach((t, i) => {
+                const assignee = livingCats[i % livingCats.length];
+                assignee.tasks.push({ ...t, id: `${t.id}_reassigned_${Date.now()}_${i}` });
+            });
+        }
+        deadPlayer.tasks = deadPlayer.tasks.filter(t => t.completed);
+    }
+
+    checkWinConditions() {
+        if (this.state === 'GAME_OVER' || this.state === 'MENU' || (this.gameTimer || 0) < 5) return;
+        const aliveCats = this.players.filter(p => !p.isDead && p.role !== 'Dog').length;
+        const aliveDogs = this.players.filter(p => !p.isDead && p.role === 'Dog').length;
+        
+        const allCatTasks = [];
+        this.players.forEach(p => { if (p.role !== 'Dog' && p.tasks) allCatTasks.push(...p.tasks); });
+        const allTasksDone = allCatTasks.length > 0 && allCatTasks.every(t => t.completed);
+
+        if (aliveDogs === 0) this.endGame('VICTORY!', 'The Dog impostor was ejected!');
+        else if (aliveDogs >= aliveCats && aliveCats > 0) this.endGame('DEFEAT!', 'The Dog overran the spaceship!');
+        else if (allTasksDone) this.endGame('VICTORY!', 'All ship tasks have been completed!');
+    }
+
+    endGame(title, reason) {
+        this.state = 'GAME_OVER';
+        this.uiManager.showScreen('gameover-screen');
+
+        document.getElementById('gameover-title').innerText = title;
+        document.getElementById('gameover-reason').innerText = reason;
+
+        if (title.includes('VICTORY')) {
+            soundManager.playVictory();
+        } else {
+            soundManager.playDefeat();
+        }
+
+        const list = document.getElementById('gameover-roles-list');
+        list.innerHTML = '';
+        this.players.forEach(p => {
+            const div = document.createElement('div');
+            div.style.cssText = 'padding:4px 0; color:#d1d5db; font-size:0.9rem;';
+            div.innerText = `${p.name}: ${p.role} ${p.isDead ? '(Ejected)' : '(Surviving)'}`;
+            list.appendChild(div);
+        });
+    }
+
+    startLoop() {
+        let lastTime = performance.now();
+        const loop = (now) => {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            this.update(dt);
+            this.render();
+
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
+
+    update(dt) {
+        if (this.state === 'PLAYING') {
+            // Update local player
+            this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
+            this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
+
+            // Update Sabotage System
+            const sabResult = this.sabotageSystem.update(dt);
+            if (sabResult === 'ENGINE_MELTDOWN') {
+                this.endGame('DEFEAT!', 'Yarn Engine exploded!');
+            }
+
+            // Update Bots
+            this.players.forEach(p => {
+                if (!p.isLocalPlayer) {
+                    AIController.updateBot(p, dt, this.players, this.sabotageSystem, (bot, body) => {
+                        this.triggerMeeting(bot, body);
+                    });
+                }
+            });
+
+            // Update UI HUD
+            this.uiManager.updateHUD(this.localPlayer, this.players, this.localPlayer.tasks, this.sabotageSystem);
+        } else if (this.state === 'MEETING') {
+            this.meetingManager.update(dt, this.players);
+        }
+    }
+
+    render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (this.state === 'PLAYING' || this.state === 'MEETING' || this.state === 'EJECT') {
+            this.mapRenderer.render(
+                this.ctx,
+                this.canvas.width,
+                this.canvas.height,
+                this.localPlayer,
+                this.players,
+                this.sabotageSystem
+            );
+
+            // Minimap
+            const miniCanvas = document.getElementById('minimap-canvas');
+            if (miniCanvas) {
+                this.mapRenderer.renderMinimap(miniCanvas, this.localPlayer, this.players);
+            }
+        }
+    }
+}
+
+// Instantiate and start game when loaded
+window.addEventListener('DOMContentLoaded', () => {
+    new Game();
+});

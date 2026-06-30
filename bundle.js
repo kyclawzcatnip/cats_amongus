@@ -1,0 +1,2279 @@
+// Cat Crew Standalone Game Bundle (CORS-free for file:// protocol)
+
+// ==========================================
+// 1. SOUND MANAGER
+// ==========================================
+class SoundManager {
+    constructor() {
+        this.ctx = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playFootstep() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+    }
+
+    playTaskComplete() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.08);
+            gain.gain.setValueAtTime(0.15, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.2);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.2);
+        });
+    }
+
+    playVentWhoosh() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    }
+
+    playElimination() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+    }
+
+    playEmergencyAlarm() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        for (let i = 0; i < 3; i++) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, now + i * 0.25);
+            osc.frequency.setValueAtTime(698.46, now + i * 0.25 + 0.12);
+            gain.gain.setValueAtTime(0.1, now + i * 0.25);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.25 + 0.22);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.25);
+            osc.stop(now + i * 0.25 + 0.22);
+        }
+    }
+
+    playVoteClick() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+    }
+
+    playVictory() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const melody = [440, 554.37, 659.25, 880];
+        melody.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + i * 0.15);
+            gain.gain.setValueAtTime(0.2, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.4);
+        });
+    }
+
+    playDefeat() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const melody = [300, 280, 260, 220];
+        melody.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now + i * 0.2);
+            gain.gain.setValueAtTime(0.2, now + i * 0.2);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.2);
+            osc.stop(now + i * 0.2 + 0.35);
+        });
+    }
+}
+const soundManager = new SoundManager();
+
+// ==========================================
+// 2. SPRITE RENDERER & COLORS
+// ==========================================
+const CAT_COLORS = [
+    { name: 'Orange Tabby', main: '#F5A623', highlight: '#F7BF56', legs: '#E8941E', ear: '#FF8FAB', nose: '#FF6B8A', paw: '#FFFFFF' },
+    { name: 'Tuxedo', main: '#222222', highlight: '#333333', legs: '#1a1a1a', ear: '#FF8FAB', nose: '#FF6B8A', paw: '#FFFFFF' },
+    { name: 'Calico', main: '#E8A050', highlight: '#F0C080', legs: '#CC8833', ear: '#FFB6C1', nose: '#FF6B8A', paw: '#FFFFFF' },
+    { name: 'Shadow', main: '#2a2a3e', highlight: '#3a3a50', legs: '#1a1a2e', ear: '#8866AA', nose: '#AA88CC', paw: '#4a4a5e' },
+    { name: 'Snow', main: '#E8E8F0', highlight: '#F5F5FF', legs: '#D0D0DA', ear: '#FFB0C0', nose: '#FF8899', paw: '#FFFFFF' },
+    { name: 'Ginger', main: '#CC5500', highlight: '#DD7722', legs: '#AA4400', ear: '#FF8FAB', nose: '#FF4466', paw: '#FFE0CC' },
+    { name: 'Siamese', main: '#E8DCC8', highlight: '#F0E8D8', legs: '#8B7355', ear: '#8B7355', nose: '#A08060', paw: '#DDD0C0' },
+    { name: 'Galaxy', main: '#2B1055', highlight: '#4A2080', legs: '#1A0A40', ear: '#FF66AA', nose: '#FF88CC', paw: '#7B68EE' }
+];
+
+const HATS = [
+    { name: 'None', type: 'none' },
+    { name: 'Crown', type: 'crown' },
+    { name: 'Beanie', type: 'beanie' },
+    { name: 'Top Hat', type: 'top_hat' },
+    { name: 'Red Bow', type: 'bow' },
+    { name: 'Flower', type: 'flower' },
+    { name: 'Pirate Hat', type: 'pirate' },
+    { name: 'Astronaut Helmet', type: 'astronaut' }
+];
+
+class SpriteRenderer {
+    static drawPlayer(ctx, x, y, radius, player, isGhost = false) {
+        if (!player || !ctx) return;
+        try {
+            ctx.save();
+            ctx.translate(x, y);
+
+            const isActualGhost = isGhost || (player.isDead && player.bodyCleaned);
+
+            if (isActualGhost) {
+                ctx.globalAlpha = 0.5;
+            }
+
+            const colorObj = (player.colorIndex !== undefined && CAT_COLORS[Math.abs(player.colorIndex) % CAT_COLORS.length]) ? CAT_COLORS[Math.abs(player.colorIndex) % CAT_COLORS.length] : CAT_COLORS[0];
+
+            if (player.isDead && !player.bodyCleaned) {
+                this.drawDeadBody(ctx, radius, colorObj);
+                ctx.restore();
+                return;
+            }
+
+            // Standard Body Shadow
+            if (!isActualGhost) {
+                ctx.beginPath();
+                ctx.arc(0, radius * 0.5, radius * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fill();
+            }
+
+            // Subtle Red Impostor Aura for Local Dog Player only
+            if (player.role === 'Dog' && player.isLocalPlayer && !isActualGhost) {
+                ctx.beginPath();
+                ctx.arc(0, 0, radius + 5, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(214, 48, 49, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
+            // Always draw normal cute Cat sprite
+            this.drawCat(ctx, radius, colorObj, player);
+
+            // Draw Hat on top
+            if (player.hatIndex > 0 && HATS[player.hatIndex]) {
+                this.drawHat(ctx, radius, HATS[player.hatIndex].type);
+            }
+
+            // Draw Name Tag
+            ctx.globalAlpha = 1.0;
+            ctx.font = '700 13px "Quicksand", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = (player.role === 'Dog' && player.isLocalPlayer) ? '#ff7675' : '#ffffff';
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 4;
+            ctx.fillText(player.name, 0, -radius - 12);
+            ctx.shadowBlur = 0;
+
+            ctx.restore();
+        } catch (err) {
+            console.error('Error drawing player:', err);
+            try { ctx.restore(); } catch(e){}
+        }
+    }
+
+    static drawCat(ctx, radius, colorObj, player) {
+        const bodyColor = colorObj.main || '#F5A623';
+        const highlightColor = colorObj.highlight || '#F7BF56';
+        const earColor = colorObj.ear || '#FF8FAB';
+        const noseColor = colorObj.nose || '#FF6B8A';
+        const pawColor = colorObj.paw || '#FFFFFF';
+
+        // 1. Cat Tail
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.6, radius * 0.2);
+        ctx.quadraticCurveTo(-radius * 1.3, -radius * 0.2, -radius * 0.9, -radius * 0.6);
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = bodyColor;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // 2. Ears (Left & Right Pointy Ears)
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.7, -radius * 0.3);
+        ctx.lineTo(-radius * 0.95, -radius * 1.15);
+        ctx.lineTo(-radius * 0.25, -radius * 0.85);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = earColor;
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.65, -radius * 0.4);
+        ctx.lineTo(-radius * 0.85, -radius * 1.0);
+        ctx.lineTo(-radius * 0.3, -radius * 0.8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.moveTo(radius * 0.7, -radius * 0.3);
+        ctx.lineTo(radius * 0.95, -radius * 1.15);
+        ctx.lineTo(radius * 0.25, -radius * 0.85);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = earColor;
+        ctx.beginPath();
+        ctx.moveTo(radius * 0.65, -radius * 0.4);
+        ctx.lineTo(radius * 0.85, -radius * 1.0);
+        ctx.lineTo(radius * 0.3, -radius * 0.8);
+        ctx.closePath();
+        ctx.fill();
+
+        // 3. Main Round Cat Body & Head
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fillStyle = bodyColor;
+        ctx.fill();
+
+        // Highlight belly patch
+        ctx.beginPath();
+        ctx.arc(0, radius * 0.2, radius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = highlightColor;
+        ctx.fill();
+
+        // 4. Cute Cat Paws
+        ctx.fillStyle = pawColor;
+        ctx.beginPath();
+        ctx.arc(-radius * 0.4, radius * 0.7, 6, 0, Math.PI * 2);
+        ctx.arc(radius * 0.4, radius * 0.7, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 5. Cat Eyes
+        ctx.fillStyle = '#1e272e';
+        ctx.beginPath();
+        ctx.arc(-radius * 0.35, -radius * 0.1, 4.5, 0, Math.PI * 2);
+        ctx.arc(radius * 0.35, -radius * 0.1, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye shine highlights
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(-radius * 0.35 - 1.5, -radius * 0.1 - 1.5, 1.8, 0, Math.PI * 2);
+        ctx.arc(radius * 0.35 - 1.5, -radius * 0.1 - 1.5, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. Pink Nose & Whiskers
+        ctx.fillStyle = noseColor;
+        ctx.beginPath();
+        ctx.arc(0, radius * 0.1, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.3, radius * 0.1); ctx.lineTo(-radius * 1.15, 0);
+        ctx.moveTo(-radius * 0.3, radius * 0.18); ctx.lineTo(-radius * 1.15, radius * 0.22);
+        ctx.moveTo(radius * 0.3, radius * 0.1); ctx.lineTo(radius * 1.15, 0);
+        ctx.moveTo(radius * 0.3, radius * 0.18); ctx.lineTo(radius * 1.15, radius * 0.22);
+        ctx.stroke();
+    }
+
+    static drawDog(ctx, radius, colorObj, player) {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * 1.1, radius * 0.95, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#d63031';
+        ctx.fill();
+
+        ctx.fillStyle = '#b2bec3';
+        ctx.beginPath();
+        ctx.ellipse(-radius * 1.0, 0, 8, 16, Math.PI * 0.2, 0, Math.PI * 2);
+        ctx.ellipse(radius * 1.0, 0, 8, 16, -Math.PI * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffeaa7';
+        ctx.beginPath();
+        ctx.ellipse(0, radius * 0.25, 10, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#2d3436';
+        ctx.beginPath();
+        ctx.arc(0, radius * 0.15, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#d63031';
+        ctx.beginPath();
+        ctx.arc(-radius * 0.35, -radius * 0.15, 4, 0, Math.PI * 2);
+        ctx.arc(radius * 0.35, -radius * 0.15, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    static drawHat(ctx, radius, hatType) {
+        ctx.save();
+        ctx.translate(0, -radius * 0.85);
+
+        switch (hatType) {
+            case 'crown':
+                ctx.fillStyle = '#fdcb6e';
+                ctx.beginPath();
+                ctx.moveTo(-12, 0); ctx.lineTo(-15, -18); ctx.lineTo(-7, -8);
+                ctx.lineTo(0, -22); ctx.lineTo(7, -8); ctx.lineTo(15, -18); ctx.lineTo(12, 0);
+                ctx.closePath(); ctx.fill();
+                break;
+            case 'beanie':
+                ctx.fillStyle = '#6c5ce7';
+                ctx.beginPath(); ctx.arc(0, -5, 14, Math.PI, 0); ctx.fill();
+                ctx.fillStyle = '#ff758c';
+                ctx.beginPath(); ctx.arc(0, -18, 5, 0, Math.PI * 2); ctx.fill();
+                break;
+            case 'top_hat':
+                ctx.fillStyle = '#2d3436';
+                ctx.fillRect(-16, -2, 32, 4);
+                ctx.fillRect(-10, -20, 20, 18);
+                ctx.fillStyle = '#d63031';
+                ctx.fillRect(-10, -6, 20, 4);
+                break;
+            case 'bow':
+                ctx.fillStyle = '#ff7675';
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-12, -8); ctx.lineTo(-12, 8); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(12, -8); ctx.lineTo(12, 8); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+                break;
+            case 'flower':
+                ctx.fillStyle = '#ff758c';
+                for (let i = 0; i < 5; i++) {
+                    const ang = (i * Math.PI * 2) / 5;
+                    ctx.beginPath(); ctx.arc(Math.cos(ang) * 8, Math.sin(ang) * 8 - 5, 5, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.fillStyle = '#fdcb6e';
+                ctx.beginPath(); ctx.arc(0, -5, 5, 0, Math.PI * 2); ctx.fill();
+                break;
+            case 'pirate':
+                ctx.fillStyle = '#2d3436';
+                ctx.beginPath(); ctx.moveTo(-18, 2); ctx.quadraticCurveTo(0, -25, 18, 2); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = '10px sans-serif'; ctx.fillText('☠', 0, -6);
+                break;
+            case 'astronaut':
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(0, radius * 0.4, radius * 1.1, 0, Math.PI * 2); ctx.stroke();
+                break;
+        }
+        ctx.restore();
+    }
+
+    static drawDeadBody(ctx, radius, colorObj) {
+        ctx.save();
+        ctx.fillStyle = colorObj.main;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.7, -radius * 0.3); ctx.lineTo(-radius * 0.9, -radius * 0.9); ctx.lineTo(-radius * 0.2, -radius * 0.7); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(radius * 0.7, -radius * 0.3); ctx.lineTo(radius * 0.9, -radius * 0.9); ctx.lineTo(radius * 0.2, -radius * 0.7); ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#2d3436';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.4, -radius * 0.2); ctx.lineTo(-radius * 0.2, 0);
+        ctx.moveTo(-radius * 0.2, -radius * 0.2); ctx.lineTo(-radius * 0.4, 0);
+        ctx.moveTo(radius * 0.2, -radius * 0.2); ctx.lineTo(radius * 0.4, 0);
+        ctx.moveTo(radius * 0.4, -radius * 0.2); ctx.lineTo(radius * 0.2, 0);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#d63031';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-radius * 0.5, radius * 0.1); ctx.lineTo(radius * 0.2, Math.max(10, radius * 0.6));
+        ctx.moveTo(-radius * 0.3, -radius * 0.1); ctx.lineTo(radius * 0.4, radius * 0.4);
+        ctx.moveTo(-radius * 0.1, -radius * 0.3); ctx.lineTo(radius * 0.6, radius * 0.2);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
+const MAP_BOUNDS = { width: 3600, height: 2600 };
+
+const ROOMS = [
+    {
+        id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
+        x: 1550, y: 150, width: 500, height: 320, icon: '🚀',
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1680, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 1920, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1800, y: 200 } ],
+        hasEmergencyButton: true, buttonX: 1800, buttonY: 310
+    },
+    {
+        id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
+        x: 850, y: 250, width: 450, height: 320, icon: '🏥',
+        tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 970, y: 380 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 1180, y: 380 } ]
+    },
+    {
+        id: 'weapons', name: '⚔️ Weapons', color: '#ff793f', bgColor: '#331e1b',
+        x: 2300, y: 250, width: 450, height: 320, icon: '⚔️',
+        tasks: [ { id: 'clear_asteroids', name: 'Clear Asteroids', x: 2420, y: 380 }, { id: 'load_torpedoes', name: 'Load Catnip Torpedoes', x: 2620, y: 380 } ]
+    },
+    {
+        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
+        x: 250, y: 700, width: 400, height: 350, icon: '📹',
+        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 380, y: 750 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 520, y: 750 } ]
+    },
+    {
+        id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
+        x: 800, y: 700, width: 450, height: 350, icon: '🐟',
+        tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 920, y: 850 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 1120, y: 850 } ]
+    },
+    {
+        id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#a29bfe', bgColor: '#27203d',
+        x: 1550, y: 650, width: 500, height: 320, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1680, y: 780 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1920, y: 780 } ]
+    },
+    {
+        id: 'electrical', name: '⚡ Electrical', color: '#fbc531', bgColor: '#332e1b',
+        x: 2350, y: 700, width: 450, height: 350, icon: '⚡',
+        tasks: [ { id: 'calibrate_distributor', name: 'Calibrate Power', x: 2470, y: 850 }, { id: 'download_data', name: 'Download Power Logs', x: 2670, y: 850 } ],
+        hasLightsFixPanel: true, lightsFixX: 2570, lightsFixY: 850
+    },
+    {
+        id: 'shields', name: '🛡️ Shields', color: '#e84118', bgColor: '#331c1c',
+        x: 2950, y: 700, width: 400, height: 350, icon: '🛡️',
+        tasks: [ { id: 'prime_shields', name: 'Prime Deflector Shields', x: 3080, y: 850 }, { id: 'realign_panels', name: 'Realign Shield Panels', x: 3220, y: 850 } ]
+    },
+    {
+        id: 'o2', name: '💨 Oxygen', color: '#2ed573', bgColor: '#1c3325',
+        x: 250, y: 1150, width: 400, height: 350, icon: '💨',
+        tasks: [ { id: 'clean_filters', name: 'Clean Oxygen Filter', x: 380, y: 1300 }, { id: 'refill_tanks', name: 'Refill O2 Storage Tanks', x: 520, y: 1300 } ]
+    },
+    {
+        id: 'nap_quarters', name: '💤 Nap Quarters', color: '#9c88ff', bgColor: '#252136',
+        x: 850, y: 1150, width: 450, height: 350, icon: '💤',
+        tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 970, y: 1300 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 1180, y: 1300 } ]
+    },
+    {
+        id: 'cargo_bay', name: '📦 Cargo Bay', color: '#e84118', bgColor: '#301c22',
+        x: 1550, y: 1150, width: 500, height: 350, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 1680, y: 1300 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 1920, y: 1300 } ]
+    },
+    {
+        id: 'kitchen', name: '🍽️ Kitchen', color: '#e1b12c', bgColor: '#332a1b',
+        x: 2300, y: 1150, width: 450, height: 350, icon: '🍽️',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 2420, y: 1300 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 2620, y: 1300 } ]
+    },
+    {
+        id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
+        x: 2950, y: 1150, width: 400, height: 350, icon: '📡',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ]
+    },
+    {
+        id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
+        x: 250, y: 1600, width: 400, height: 350, icon: '🗃️',
+        tasks: [ { id: 'file_records', name: 'File Catnip Inventory', x: 380, y: 1770 }, { id: 'scan_id', name: 'Scan Crewmate Paw ID', x: 520, y: 1770 } ]
+    },
+    {
+        id: 'cat_garden', name: '🌿 Cat Garden', color: '#4cd137', bgColor: '#1b3320',
+        x: 800, y: 1600, width: 450, height: 380, icon: '🌿',
+        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 920, y: 1770 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 1120, y: 1770 } ]
+    },
+    {
+        id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
+        x: 2350, y: 1600, width: 450, height: 380, icon: '🛠️',
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 } ]
+    },
+    {
+        id: 'thruster_a', name: '🚀 Thruster A', color: '#e84118', bgColor: '#331b1b',
+        x: 200, y: 2050, width: 450, height: 420, icon: '🚀',
+        tasks: [ { id: 'prime_thruster_a', name: 'Prime Left Thruster', x: 320, y: 2240 }, { id: 'flush_fuel_a', name: 'Flush Engine Fuel A', x: 520, y: 2240 } ]
+    },
+    {
+        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#ff5252', bgColor: '#331b23',
+        x: 1550, y: 2050, width: 500, height: 420, icon: '🧶',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1680, y: 2240 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1920, y: 2240 } ],
+        hasEngineFixPanel: true, engineFixX: 1800, engineFixY: 2350
+    },
+    {
+        id: 'thruster_b', name: '🚀 Thruster B', color: '#e84118', bgColor: '#331b1b',
+        x: 2950, y: 2050, width: 450, height: 420, icon: '🚀',
+        tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 3070, y: 2240 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 3270, y: 2240 } ]
+    }
+];
+
+const CORRIDORS = [
+    { x1: 1800, y1: 300, x2: 1800, y2: 2260, width: 120 }, // Central vertical spine hallway
+    { x1: 1300, y1: 410, x2: 2300, y2: 410, width: 100 },  // Medical to Weapons
+    { x1: 1250, y1: 875, x2: 2350, y2: 875, width: 100 },  // Fish Storage / Quarters / Electrical
+    { x1: 1300, y1: 1325, x2: 2300, y2: 1325, width: 100 },// Nap Quarters / Cargo / Kitchen
+    { x1: 1250, y1: 1790, x2: 2350, y2: 1790, width: 100 },// Cat Garden / Workshop
+    { x1: 650, y1: 2260, x2: 2950, y2: 2260, width: 100 }, // Thruster A to Yarn Engine to Thruster B
+
+    // Corridors connecting new outer rooms
+    { x1: 650, y1: 875, x2: 800, y2: 875, width: 100 },    // Security to Fish Storage
+    { x1: 2800, y1: 875, x2: 2950, y2: 875, width: 100 },   // Electrical to Shields
+    { x1: 650, y1: 1325, x2: 850, y2: 1325, width: 100 },   // O2 to Nap Quarters
+    { x1: 2750, y1: 1325, x2: 2950, y2: 1325, width: 100 }, // Kitchen to Communications
+    { x1: 650, y1: 1790, x2: 800, y2: 1790, width: 100 },   // Records to Cat Garden
+    { x1: 1025, y1: 570, x2: 1025, y2: 700, width: 100 },   // Medical to Fish Storage
+    { x1: 1025, y1: 1050, x2: 1025, y2: 1150, width: 100 }, // Fish Storage to Nap Quarters
+    { x1: 1025, y1: 1500, x2: 1025, y2: 1600, width: 100 }, // Nap Quarters to Cat Garden
+    { x1: 2575, y1: 570, x2: 2575, y2: 700, width: 100 },   // Weapons to Electrical
+    { x1: 2575, y1: 1050, x2: 2575, y2: 1150, width: 100 }, // Electrical to Kitchen
+    { x1: 2575, y1: 1500, x2: 2575, y2: 1600, width: 100 }  // Kitchen to Workshop
+];
+
+const VENTS = [
+    { id: 'v1', roomId: 'fish_storage', x: 900, y: 950, connectId: 'v2', targetRoom: 'Kitchen' },
+    { id: 'v2', roomId: 'kitchen', x: 2600, y: 1400, connectId: 'v1', targetRoom: 'Fish Storage' },
+    { id: 'v3', roomId: 'yarn_engine', x: 1950, y: 2380, connectId: 'v4', targetRoom: 'Bridge' },
+    { id: 'v4', roomId: 'bridge', x: 1620, y: 380, connectId: 'v3', targetRoom: 'Yarn Engine' },
+    { id: 'v5', roomId: 'workshop', x: 2700, y: 1900, connectId: 'v6', targetRoom: 'Electrical' },
+    { id: 'v6', roomId: 'electrical', x: 2700, y: 950, connectId: 'v5', targetRoom: 'Workshop' },
+    { id: 'v7', roomId: 'medical', x: 950, y: 480, connectId: 'v8', targetRoom: 'Weapons' },
+    { id: 'v8', roomId: 'weapons', x: 2650, y: 480, connectId: 'v7', targetRoom: 'Medical' }
+];
+
+class VentSystem {
+    static getNearbyVent(playerX, playerY, maxDist = 60) {
+        for (const vent of VENTS) {
+            const dx = playerX - vent.x;
+            const dy = playerY - vent.y;
+            if (Math.hypot(dx, dy) <= maxDist) return vent;
+        }
+        return null;
+    }
+    static getVentById(id) { return VENTS.find(v => v.id === id); }
+}
+
+class SabotageSystem {
+    constructor() {
+        this.activeSabotage = null;
+        this.engineTimer = 45;
+        this.doorTimer = 0;
+        this.cooldown = 60; // 60-second initial grace period before sabotages can be triggered!
+    }
+    update(dt) {
+        if (this.cooldown > 0) this.cooldown -= dt;
+        if (this.activeSabotage === 'engine') {
+            this.engineTimer -= dt;
+            if (this.engineTimer <= 0) return 'ENGINE_MELTDOWN';
+        }
+        if (this.activeSabotage === 'doors') {
+            this.doorTimer -= dt;
+            if (this.doorTimer <= 0) this.activeSabotage = null;
+        }
+        return null;
+    }
+    triggerSabotage(type) {
+        if (this.cooldown > 0 || this.activeSabotage) return false;
+        if (type === 'doors') return false; // Door sabotage doesn't work!
+        this.activeSabotage = type;
+        this.cooldown = 20; // 20s cooldown between sabotages
+        if (type === 'engine') this.engineTimer = 45;
+        else if (type === 'doors') this.doorTimer = 15;
+        return true;
+    }
+    fixSabotage() { this.activeSabotage = null; }
+}
+
+// ==========================================
+// 5. TASKS SYSTEM
+// ==========================================
+const TASK_DEFINITIONS = {
+    nav_ship: { name: 'Navigate Ship Path', room: 'Bridge', type: 'slider' },
+    upload_data: { name: 'Upload Data to HQ', room: 'Bridge', type: 'fill_meter' },
+    scan_asteroids: { name: 'Scan Space Sector', room: 'Bridge', type: 'click_sequence' },
+    med_scan: { name: 'Submit Med Scan', room: 'Medical', type: 'rapid_click' },
+    treat_scratches: { name: 'Treat Paw Scratches', room: 'Medical', type: 'click_sequence' },
+    clear_asteroids: { name: 'Clear Asteroids', room: 'Weapons', type: 'click_sequence' },
+    load_torpedoes: { name: 'Load Catnip Torpedoes', room: 'Weapons', type: 'fill_meter' },
+    monitor_cams: { name: 'Monitor Security Feeds', room: 'Security', type: 'cams' },
+    rewind_tapes: { name: 'Rewind Security Tapes', room: 'Security', type: 'slider' },
+    sort_fish: { name: 'Sort Fish Bins', room: 'Fish Storage', type: 'click_sequence' },
+    check_freezer: { name: 'Check Freezer Temp', room: 'Fish Storage', type: 'slider' },
+    make_beds: { name: 'Make Scratching Beds', room: 'Ship Quarters', type: 'rapid_click' },
+    clean_litter: { name: 'Clean Space Litter', room: 'Ship Quarters', type: 'scrub' },
+    calibrate_distributor: { name: 'Calibrate Power', room: 'Electrical', type: 'wires' },
+    download_data: { name: 'Download Power Logs', room: 'Electrical', type: 'rapid_click' },
+    prime_shields: { name: 'Prime Deflector Shields', room: 'Shields', type: 'click_sequence' },
+    realign_panels: { name: 'Realign Shield Panels', room: 'Shields', type: 'slider' },
+    clean_filters: { name: 'Clean Oxygen Filter', room: 'Oxygen', type: 'scrub' },
+    refill_tanks: { name: 'Refill O2 Storage Tanks', room: 'Oxygen', type: 'fill_meter' },
+    fluff_pillows: { name: 'Fluff Nap Pillows', room: 'Nap Quarters', type: 'rapid_click' },
+    fix_clock: { name: 'Set Alarm Clock', room: 'Nap Quarters', type: 'slider' },
+    sort_boxes: { name: 'Sort Supply Crates', room: 'Cargo Bay', type: 'click_sequence' },
+    check_manifest: { name: 'Check Cargo Manifest', room: 'Cargo Bay', type: 'rapid_click' },
+    cook_fish: { name: 'Prepare Fish Feast', room: 'Kitchen', type: 'click_sequence' },
+    wash_bowls: { name: 'Wash Food Bowls', room: 'Kitchen', type: 'scrub' },
+    reboot_wifi: { name: 'Reboot Space Comm Router', room: 'Communications', type: 'rapid_click' },
+    download_comms: { name: 'Download Signal Decryption', room: 'Communications', type: 'fill_meter' },
+    file_records: { name: 'File Catnip Inventory', room: 'Catnip Records', type: 'click_sequence' },
+    scan_id: { name: 'Scan Crewmate Paw ID', room: 'Catnip Records', type: 'slider' },
+    water_plants: { name: 'Water Catnip', room: 'Cat Garden', type: 'fill_meter' },
+    trim_catnip: { name: 'Trim Garden Hedges', room: 'Cat Garden', type: 'rapid_click' },
+    fix_wiring: { name: 'Fix Electrical Wires', room: 'Workshop', type: 'wires' },
+    tighten_bolts: { name: 'Tighten Hull Bolts', room: 'Workshop', type: 'click_sequence' },
+    prime_thruster_a: { name: 'Prime Left Thruster', room: 'Thruster A', type: 'slider' },
+    flush_fuel_a: { name: 'Flush Engine Fuel A', room: 'Thruster A', type: 'fill_meter' },
+    untangle_yarn: { name: 'Untangle Yarn Spool', room: 'Yarn Engine', type: 'scrub' },
+    calibrate_engine: { name: 'Calibrate Engine Dials', room: 'Yarn Engine', type: 'slider' },
+    prime_thruster_b: { name: 'Prime Right Thruster', room: 'Thruster B', type: 'slider' },
+    flush_fuel_b: { name: 'Flush Engine Fuel B', room: 'Thruster B', type: 'fill_meter' }
+};
+
+class TaskManager {
+    static generateTaskList() {
+        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data');
+        const shuffled = [...keys].sort(() => 0.5 - Math.random());
+        const list = shuffled.slice(0, 5).map(key => ({
+            id: key, ...TASK_DEFINITIONS[key], completed: false, progress: 0
+        }));
+        const hasDownload = list.some(t => t.id === 'download_data' || t.id === 'download_comms');
+        if (hasDownload) {
+            list.push({
+                id: 'upload_data', ...TASK_DEFINITIONS.upload_data, completed: false, progress: 0, locked: true
+            });
+        }
+        return list;
+    }
+
+    static renderTaskMinigame(task, player, onComplete) {
+        const container = document.getElementById('task-canvas-container');
+        document.getElementById('task-modal-title').innerText = `${task.room} — ${task.name}`;
+        container.innerHTML = '';
+
+        const speedMultiplier = player.role === 'Captain' ? 1.35 : 1.0;
+        let currentVal = 0;
+
+        if (task.type === 'rapid_click') {
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary glow-button';
+            btn.style.cssText = 'padding:20px 40px; font-size:1.5rem;';
+            btn.innerText = 'PAW HERE! (0/5)';
+            btn.onclick = () => {
+                currentVal += 1 * speedMultiplier;
+                btn.innerText = `PAW HERE! (${Math.min(5, Math.floor(currentVal))}/5)`;
+                soundManager.playVoteClick();
+                if (currentVal >= 5) {
+                    task.completed = true;
+                    soundManager.playTaskComplete();
+                    onComplete();
+                }
+            };
+            container.appendChild(btn);
+        } else if (task.type === 'slider') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; color:white;';
+            wrap.innerHTML = `<p style="font-size:1.2rem;">Adjust system dial to target range (70 - 90):</p>`;
+
+            const slider = document.createElement('input');
+            slider.type = 'range'; slider.min = '0'; slider.max = '100'; slider.value = '20'; slider.style.width = '320px';
+            const valDisplay = document.createElement('h2'); valDisplay.innerText = '20'; valDisplay.style.fontSize = '2.5rem';
+
+            slider.oninput = () => {
+                valDisplay.innerText = slider.value;
+                if (parseInt(slider.value) >= 70 && parseInt(slider.value) <= 90) {
+                    task.completed = true; soundManager.playTaskComplete(); onComplete();
+                }
+            };
+            wrap.appendChild(slider); wrap.appendChild(valDisplay); container.appendChild(wrap);
+        } else if (task.type === 'wires') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; gap:12px; padding:10px; align-items:center;';
+            wrap.innerHTML = `<p style="color:white; font-size:1.1rem; margin-bottom:8px;">⚡ Connect All 4 Circuits:</p>`;
+            const colors = ['#ff7675', '#0984e3', '#fdcb6e', '#00b894'];
+            const labels = ['Red Circuit', 'Blue Circuit', 'Gold Circuit', 'Green Circuit'];
+            let wiredCount = 0;
+            colors.forEach((col, idx) => {
+                const b = document.createElement('button');
+                b.className = 'btn-secondary';
+                b.style.cssText = `width:280px; height:48px; background:${col}; color:white; font-weight:700; font-size:1rem; border:none; border-radius:12px; cursor:pointer; text-shadow:0 2px 4px rgba(0,0,0,0.5);`;
+                b.innerText = `CONNECT ${labels[idx].toUpperCase()}`;
+                b.onclick = () => {
+                    b.style.opacity = '0.4'; b.disabled = true; b.innerText = `✅ ${labels[idx].toUpperCase()} CONNECTED`;
+                    wiredCount++; soundManager.playVoteClick();
+                    if (wiredCount >= 4) { task.completed = true; soundManager.playTaskComplete(); onComplete(); }
+                };
+                wrap.appendChild(b);
+            });
+            container.appendChild(wrap);
+        } else if (task.type === 'fill_meter') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; color:white;';
+            wrap.innerHTML = `<p style="font-size:1.2rem;">Hold Paw Button to Fill System Gauge:</p>`;
+            const btn = document.createElement('button');
+            btn.className = 'btn-primary glow-button';
+            btn.style.cssText = 'padding:24px 48px; font-size:1.4rem; background:linear-gradient(135deg, #00cec9 0%, #0984e3 100%);';
+            btn.innerText = 'HOLD PAW TO FILL (0%)';
+            let fillTimer = null;
+            const startFill = () => {
+                fillTimer = setInterval(() => {
+                    currentVal += 4 * speedMultiplier;
+                    btn.innerText = `HOLD PAW TO FILL (${Math.min(100, Math.floor(currentVal))}%)`;
+                    soundManager.playVoteClick();
+                    if (currentVal >= 100) {
+                        clearInterval(fillTimer); task.completed = true; soundManager.playTaskComplete(); onComplete();
+                    }
+                }, 100);
+            };
+            const stopFill = () => { if (fillTimer) clearInterval(fillTimer); };
+            btn.onmousedown = startFill; btn.onmouseup = stopFill; btn.onmouseleave = stopFill;
+            btn.ontouchstart = startFill; btn.ontouchend = stopFill;
+            wrap.appendChild(btn); container.appendChild(wrap);
+        } else if (task.type === 'scrub') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; color:white;';
+            wrap.innerHTML = `<p style="font-size:1.2rem;">Scrub Paw Clean (4 Passes):</p>`;
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary';
+            btn.style.cssText = 'width:260px; height:120px; font-size:1.5rem; font-weight:700; background:#6c5ce7; border-radius:20px;';
+            btn.innerText = '🧼 SCRUB HERE! (0/4)';
+            btn.onclick = () => {
+                currentVal += 1 * speedMultiplier;
+                btn.innerText = `🧼 SCRUB HERE! (${Math.min(4, Math.floor(currentVal))}/4)`;
+                soundManager.playVoteClick();
+                if (currentVal >= 4) { task.completed = true; soundManager.playTaskComplete(); onComplete(); }
+            };
+            wrap.appendChild(btn); container.appendChild(wrap);
+        } else if (task.type === 'cams') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; width:100%; height:100%;';
+            const p = document.createElement('p');
+            p.style.color = '#ccc'; p.style.marginBottom = '12px'; p.innerText = '👀 Watch camera feeds. Click "CLOSE" in top right when done.';
+            wrap.appendChild(p);
+
+            const grid = document.createElement('div');
+            grid.style.cssText = 'display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; width:480px; justify-content:center;';
+            const feeds = [
+                { name: 'CAM 1: BRIDGE', bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } },
+                { name: 'CAM 2: ELECTRICAL', bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } },
+                { name: 'CAM 3: WEAPONS', bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } },
+                { name: 'CAM 4: HALLWAY', bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }
+            ];
+
+            const canvasList = [];
+            feeds.forEach(f => {
+                const box = document.createElement('div');
+                box.style.cssText = 'background:#121216; border:2px solid #2d3436; border-radius:8px; padding:6px; display:flex; flex-direction:column; align-items:center;';
+                const title = document.createElement('div');
+                title.style.cssText = 'color:#00cec9; font-size:0.75rem; font-family:var(--font-heading); margin-bottom:4px; display:flex; justify-content:space-between; width:100%;';
+                title.innerHTML = `<span>${f.name}</span><span style="color:#ff7675; animation: camsBlink 1s infinite;">🔴 REC</span>`;
+                box.appendChild(title);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = 200; canvas.height = 130;
+                canvas.style.cssText = 'background:#08080a; border:1px solid #1e272e; border-radius:4px;';
+                box.appendChild(canvas);
+                grid.appendChild(box);
+                canvasList.push({ canvas, bounds: f.bounds });
+            });
+            wrap.appendChild(grid); container.appendChild(wrap);
+
+            if (!document.getElementById('cams-blink-style')) {
+                const style = document.createElement('style');
+                style.id = 'cams-blink-style';
+                style.innerHTML = `@keyframes camsBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`;
+                document.head.appendChild(style);
+            }
+
+            let active = true;
+            const renderFeeds = () => {
+                if (!active || !window.gameInstance) return;
+                canvasList.forEach(item => {
+                    const canvas = item.canvas;
+                    const ctx = canvas.getContext('2d');
+                    const b = item.bounds;
+
+                    ctx.fillStyle = '#111216'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.strokeStyle = '#20222a'; ctx.lineWidth = 1;
+                    const gridSpacing = 20;
+                    for (let x = 0; x < canvas.width; x += gridSpacing) {
+                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                    }
+                    for (let y = 0; y < canvas.height; y += gridSpacing) {
+                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                    }
+
+                    // Draw blueprint decorations for accuracy
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                    ctx.strokeStyle = 'rgba(0, 206, 201, 0.15)';
+                    ctx.lineWidth = 2;
+                    if (item.bounds.xMin === 1550) { // BRIDGE
+                        const cx = canvas.width / 2;
+                        const cy = canvas.height / 2 + 10;
+                        ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                        ctx.fillStyle = 'rgba(214, 48, 49, 0.3)';
+                        ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+                    } else if (item.bounds.xMin === 2350) { // ELECTRICAL
+                        ctx.fillRect(30, 40, 25, 45); ctx.strokeRect(30, 40, 25, 45);
+                        ctx.fillRect(145, 40, 25, 45); ctx.strokeRect(145, 40, 25, 45);
+                    } else if (item.bounds.xMin === 2300) { // WEAPONS
+                        ctx.fillRect(140, 20, 30, 15); ctx.strokeRect(140, 20, 30, 15);
+                        ctx.fillRect(140, 85, 30, 15); ctx.strokeRect(140, 85, 30, 15);
+                    } else if (item.bounds.xMin === 1740) { // HALLWAY
+                        ctx.fillStyle = '#0f1013';
+                        ctx.fillRect(0, 0, 15, canvas.height);
+                        ctx.fillRect(canvas.width - 15, 0, 15, canvas.height);
+                        ctx.strokeStyle = 'rgba(0, 206, 201, 0.3)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(15, canvas.height); ctx.stroke();
+                        ctx.beginPath(); ctx.moveTo(canvas.width - 15, 0); ctx.lineTo(canvas.width - 15, canvas.height); ctx.stroke();
+                    }
+
+                    // Draw outer border representing room walls
+                    ctx.strokeStyle = '#2d3436';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+                    window.gameInstance.players.forEach(p => {
+                        if (p.x >= b.xMin && p.x <= b.xMax && p.y >= b.yMin && p.y <= b.yMax) {
+                            const relX = ((p.x - b.xMin) / (b.xMax - b.xMin)) * canvas.width;
+                            const relY = ((p.y - b.yMin) / (b.yMax - b.yMin)) * canvas.height;
+                            
+                            // High fidelity cat sprite render!
+                            ctx.save();
+                            ctx.translate(relX, relY);
+                            ctx.scale(0.55, 0.55);
+                            
+                            const mockPlayer = { ...p, x: 0, y: 0, scaleX: p.scaleX, isDead: p.isDead };
+                            SpriteRenderer.render(ctx, mockPlayer);
+                            ctx.restore();
+
+                            ctx.fillStyle = p.isDead ? '#787878' : '#ffffff';
+                            ctx.font = '800 9px sans-serif'; ctx.textAlign = 'center';
+                            ctx.shadowColor = 'black'; ctx.shadowBlur = 3;
+                            ctx.fillText(p.name + (p.isDead ? ' (👻)' : ''), relX, relY - 18);
+                            ctx.shadowBlur = 0;
+                        }
+                    });
+                });
+                if (active) requestAnimationFrame(renderFeeds);
+            };
+            renderFeeds();
+
+            const originalOnComplete = onComplete;
+            onComplete = () => { active = false; task.completed = true; originalOnComplete(); };
+            return () => { active = false; };
+        } else {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; padding:20px;';
+            for (let i = 1; i <= 4; i++) {
+                const item = document.createElement('button');
+                item.className = 'btn-secondary';
+                item.style.cssText = 'height:80px; font-size:1.2rem; font-family:var(--font-heading);';
+                item.innerText = `Complete Component #${i}`;
+                item.onclick = () => {
+                    item.style.background = '#00b894'; item.disabled = true;
+                    currentVal += 1; soundManager.playVoteClick();
+                    if (currentVal >= 4) { task.completed = true; soundManager.playTaskComplete(); onComplete(); }
+                };
+                wrap.appendChild(item);
+            }
+            container.appendChild(wrap);
+        }
+    }
+}
+
+// ==========================================
+// 6. PLAYER CLASS
+// ==========================================
+class Player {
+    constructor(id, name, colorIndex, hatIndex, role, isLocalPlayer = false) {
+        this.id = id; this.name = name; this.colorIndex = colorIndex; this.hatIndex = hatIndex;
+        this.role = role; this.isLocalPlayer = isLocalPlayer;
+        this.x = 1800; this.y = 280; this.radius = 32; this.speed = 220;
+        this.isDead = false; this.bodyCleaned = false; this.inVent = false; this.currentVentId = null;
+        this.killCooldown = 10; this.reviveUses = 2; this.tasks = []; this.stepTimer = 0;
+    }
+
+    getVisionRadius(sabotageActive) {
+        let baseVision = 750;
+        if (this.role === 'Guard') baseVision = 950;
+        if (this.role === 'Dog') baseVision = 1000;
+        if (sabotageActive === 'lights') {
+            if (this.role === 'Guard') return 350;
+            else if (this.role === 'Dog') return baseVision;
+            else return 250;
+        }
+        return baseVision;
+    }
+
+    update(dt, keysPressed, mapBounds) {
+        if (this.inVent) return;
+        let dx = 0, dy = 0;
+        if (this.isLocalPlayer) {
+            if (keysPressed['KeyW'] || keysPressed['ArrowUp'] || keysPressed['w'] || keysPressed['W']) dy -= 1;
+            if (keysPressed['KeyS'] || keysPressed['ArrowDown'] || keysPressed['s'] || keysPressed['S']) dy += 1;
+            if (keysPressed['KeyA'] || keysPressed['ArrowLeft'] || keysPressed['a'] || keysPressed['A']) dx -= 1;
+            if (keysPressed['KeyD'] || keysPressed['ArrowRight'] || keysPressed['d'] || keysPressed['D']) dx += 1;
+        }
+        if (dx !== 0 || dy !== 0) {
+            const length = Math.hypot(dx, dy);
+            const moveDist = this.speed * dt;
+            const nextX = this.x + (dx / length) * moveDist;
+            const nextY = this.y + (dy / length) * moveDist;
+
+            const isWalkable = (px, py) => {
+                const margin = 12;
+                for (const r of ROOMS) {
+                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                }
+                for (const c of CORRIDORS) {
+                    let minX, maxX, minY, maxY;
+                    if (c.x1 === c.x2) {
+                        minX = c.x1 - c.width / 2 + margin; maxX = c.x1 + c.width / 2 - margin;
+                        minY = Math.min(c.y1, c.y2) - margin; maxY = Math.max(c.y1, c.y2) + margin;
+                    } else {
+                        minX = Math.min(c.x1, c.x2) - margin; maxX = Math.max(c.x1, c.x2) + margin;
+                        minY = c.y1 - c.width / 2 + margin; maxY = c.y1 + c.width / 2 - margin;
+                    }
+                    if (px >= minX && px <= maxX && py >= minY && py <= maxY) return true;
+                }
+                return false;
+            };
+
+            if (isWalkable(nextX, nextY)) {
+                this.x = nextX; this.y = nextY;
+            } else if (isWalkable(nextX, this.y)) {
+                this.x = nextX;
+            } else if (isWalkable(this.x, nextY)) {
+                this.y = nextY;
+            }
+
+            this.stepTimer += dt;
+            if (this.stepTimer >= 0.35 && this.isLocalPlayer && !this.isDead) {
+                soundManager.playFootstep(); this.stepTimer = 0;
+            }
+        }
+        if (this.role === 'Dog' && this.killCooldown > 0) {
+            this.killCooldown -= dt; if (this.killCooldown < 0) this.killCooldown = 0;
+        }
+    }
+
+    canKill(targetPlayer) {
+        if (this.role !== 'Dog' || this.isDead || this.killCooldown > 0) return false;
+        if (!targetPlayer || targetPlayer.isDead || targetPlayer.id === this.id || targetPlayer.role === 'Dog') return false;
+        return Math.hypot(this.x - targetPlayer.x, this.y - targetPlayer.y) <= 80;
+    }
+
+    canRevive(targetPlayer) {
+        if (this.role !== 'Medic' || this.isDead || this.reviveUses <= 0) return false;
+        if (!targetPlayer || !targetPlayer.isDead) return false;
+        return Math.hypot(this.x - targetPlayer.x, this.y - targetPlayer.y) <= 80;
+    }
+}
+
+// ==========================================
+// 7. MAP RENDERER
+// ==========================================
+class MapRenderer {
+    constructor() { this.cameraX = 1750; this.cameraY = 260; }
+    renderRoomProps(ctx, room) {
+        if (room.id === 'security') {
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(340, 720, 80, 40); // desk
+            
+            ctx.fillStyle = '#1e272e';
+            ctx.fillRect(350, 725, 25, 18);
+            ctx.fillRect(385, 725, 25, 18);
+
+            ctx.fillStyle = '#00d2d3';
+            ctx.fillRect(352, 727, 21, 14);
+            ctx.fillRect(387, 727, 21, 14);
+
+            ctx.strokeStyle = '#57606f'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(362, 743); ctx.lineTo(362, 746); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(397, 743); ctx.lineTo(397, 746); ctx.stroke();
+            
+            ctx.fillStyle = '#00cec9'; ctx.font = '700 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('CAMS', 380, 755);
+        }
+    }
+    updateCamera(targetX, targetY, viewportWidth, viewportHeight) {
+        if (!targetX || !targetY) return;
+        this.cameraX += (targetX - this.cameraX) * 0.12;
+        this.cameraY += (targetY - this.cameraY) * 0.12;
+    }
+    render(ctx, width, height, localPlayer, players, sabotageSystem) {
+        ctx.save();
+        
+        // Fill full viewport background first
+        ctx.fillStyle = '#0a0c14';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.translate(width / 2 - this.cameraX, height / 2 - this.cameraY);
+
+        // Giant Cat Spaceship Hull Outline with Neon Glowing Ears & Whiskers
+        ctx.strokeStyle = 'rgba(255, 117, 140, 0.6)'; ctx.lineWidth = 16; ctx.beginPath();
+        ctx.moveTo(1800, 100); ctx.lineTo(2400, 50); ctx.lineTo(2350, 350); ctx.lineTo(3300, 1000); ctx.lineTo(3100, 2400);
+        ctx.quadraticCurveTo(1800, 2550, 500, 2400); ctx.lineTo(300, 1000); ctx.lineTo(1250, 350); ctx.lineTo(1200, 50); ctx.lineTo(1800, 100);
+        ctx.closePath(); ctx.stroke();
+
+        // High-Tech Hallways & Metal Grid Lines
+        ctx.fillStyle = '#1e272e';
+        for (const corr of CORRIDORS) {
+            ctx.beginPath();
+            if (corr.x1 === corr.x2) ctx.rect(corr.x1 - corr.width / 2, Math.min(corr.y1, corr.y2), corr.width, Math.abs(corr.y2 - corr.y1));
+            else ctx.rect(Math.min(corr.x1, corr.x2), corr.y1 - corr.width / 2, Math.abs(corr.x2 - corr.x1), corr.width);
+            ctx.fill();
+            
+            // Hallway Center LED Strip
+            ctx.strokeStyle = 'rgba(72, 219, 251, 0.4)'; ctx.lineWidth = 4; ctx.beginPath();
+            ctx.moveTo(corr.x1, corr.y1); ctx.lineTo(corr.x2, corr.y2); ctx.stroke();
+        }
+
+        // Render Rooms with Furniture & Detailed Scenery
+        for (const room of ROOMS) {
+            ctx.fillStyle = room.bgColor; ctx.fillRect(room.x, room.y, room.width, room.height);
+            ctx.strokeStyle = room.color; ctx.lineWidth = 6; ctx.strokeRect(room.x, room.y, room.width, room.height);
+            
+            // Room Metallic Tile Grid Lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
+            for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
+                ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
+            }
+            for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
+                ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+            }
+
+            // Room Name Header & Icon
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.font = '700 20px "Fredoka", cursive'; ctx.textAlign = 'center';
+            ctx.fillText(room.name, room.x + room.width / 2, room.y + 35);
+
+            // Render Specific Room Furniture & Props
+            this.renderRoomProps(ctx, room);
+
+            // Render Tasks Markers
+            for (const t of room.tasks) {
+                const hasTask = localPlayer && localPlayer.tasks.find(tk => {
+                    const baseId = tk.id.split('_reassigned_')[0];
+                    let isLocked = false;
+                    if (baseId === 'upload_data') {
+                        const hasUncompletedDownload = localPlayer.tasks.some(d => (d.id.includes('download_data') || d.id.includes('download_comms')) && !d.completed);
+                        isLocked = hasUncompletedDownload;
+                    }
+                    return baseId === t.id && !tk.completed && !isLocked;
+                });
+                if (hasTask) {
+                    ctx.fillStyle = '#fdcb6e'; ctx.beginPath(); ctx.arc(t.x, t.y, 14, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#ffeaa7'; ctx.lineWidth = 3; ctx.stroke();
+                    ctx.fillStyle = '#2d3436'; ctx.font = '700 12px sans-serif'; ctx.fillText('⚡', t.x, t.y + 4);
+                }
+            }
+
+            // Emergency Meeting Pedestal
+            if (room.hasEmergencyButton) {
+                ctx.fillStyle = 'rgba(214, 48, 49, 0.3)'; ctx.beginPath(); ctx.arc(room.buttonX, room.buttonY, 32, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#d63031'; ctx.beginPath(); ctx.arc(room.buttonX, room.buttonY, 20, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.stroke();
+                ctx.fillStyle = 'white'; ctx.font = '700 12px sans-serif'; ctx.fillText('MEET', room.buttonX, room.buttonY + 4);
+            }
+        }
+
+        const canSeeVents = localPlayer ? (localPlayer.role === 'Dog' || localPlayer.role === 'Engineer' || localPlayer.isDead) : true;
+        for (const v of VENTS) {
+            ctx.fillStyle = canSeeVents ? '#a29bfe' : '#636e72'; ctx.fillRect(v.x - 16, v.y - 16, 32, 32);
+            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(v.x - 16, v.y - 16, 32, 32);
+            ctx.fillStyle = 'white'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🌀', v.x, v.y + 4);
+        }
+
+        for (const p of players) {
+            if (p.inVent) continue;
+            SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
+        }
+        ctx.restore();
+    }
+
+    renderMinimap(canvas, localPlayer, players) {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const scaleX = canvas.width / MAP_BOUNDS.width;
+        const scaleY = canvas.height / MAP_BOUNDS.height;
+        ctx.fillStyle = '#0f111a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (const r of ROOMS) {
+            ctx.fillStyle = r.color; ctx.fillRect(r.x * scaleX, r.y * scaleY, r.width * scaleX, r.height * scaleY);
+        }
+        if (localPlayer) {
+            ctx.fillStyle = '#ff758c'; ctx.beginPath(); ctx.arc(localPlayer.x * scaleX, localPlayer.y * scaleY, 4, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+}
+
+// ==========================================
+// 8. AI CONTROLLER
+// ==========================================
+class AIController {
+    static updateBot(bot, dt, players, sabotageSystem, onReportBody) {
+        if (bot.isDead) return;
+
+        const isWalkable = (px, py) => {
+            const margin = 12;
+            for (const r of ROOMS) {
+                if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+            }
+            for (const c of CORRIDORS) {
+                let minX, maxX, minY, maxY;
+                if (c.x1 === c.x2) {
+                    minX = c.x1 - c.width / 2 + margin; maxX = c.x1 + c.width / 2 - margin;
+                    minY = Math.min(c.y1, c.y2) - margin; maxY = Math.max(c.y1, c.y2) + margin;
+                } else {
+                    minX = Math.min(c.x1, c.x2) - margin; maxX = Math.max(c.x1, c.x2) + margin;
+                    minY = c.y1 - c.width / 2 + margin; maxY = c.y1 + c.width / 2 - margin;
+                }
+                if (px >= minX && px <= maxX && py >= minY && py <= maxY) return true;
+            }
+            return false;
+        };
+
+        for (const p of players) {
+            if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
+                onReportBody(bot, p); return;
+            }
+        }
+
+        const ROOM_NODES = {
+            bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
+            medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
+            weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
+            security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
+            fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
+            electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
+            shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
+            ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
+            o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
+            nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
+            kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
+            cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
+            comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
+            records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
+            cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
+            workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
+            thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
+            thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
+            yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+        };
+
+        if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'Dog') {
+            const finalNode = bot.currentPath ? bot.currentPath[bot.currentPath.length - 1] : null;
+            if (!finalNode || !finalNode.isEngineFix) {
+                let closestRoomKey = 'bridge';
+                let minDist = Infinity;
+                for (const key of Object.keys(ROOM_NODES)) {
+                    const d = Math.hypot(bot.x - ROOM_NODES[key].center.x, bot.y - ROOM_NODES[key].center.y);
+                    if (d < minDist) { minDist = d; closestRoomKey = key; }
+                }
+                const startNode = ROOM_NODES[closestRoomKey];
+                const targetNode = ROOM_NODES['yarn_engine'];
+
+                bot.currentPath = [
+                    { x: startNode.door.x, y: startNode.door.y },
+                    { x: 1800, y: startNode.door.y },
+                    { x: 1800, y: targetNode.door.y },
+                    { x: targetNode.door.x, y: targetNode.door.y },
+                    { x: 1800, y: 2260, isEngineFix: true }
+                ];
+                bot.taskTimer = 0;
+                bot.currentTaskToComplete = null;
+            }
+        }
+
+        // If doing task, count down task timer
+        if (bot.taskTimer > 0) {
+            bot.taskTimer -= dt;
+            if (bot.taskTimer <= 0) {
+                if (bot.currentTaskToComplete) {
+                    bot.currentTaskToComplete.completed = true;
+                    soundManager.playVoteClick();
+                    bot.currentTaskToComplete = null;
+                }
+            }
+            return; // Pause movement while performing task!
+        }
+
+        // Initialize path or pick uncompleted task target
+        if (!bot.currentPath || bot.currentPath.length === 0) {
+            // 55% chance to travel in a group with another crewmate
+            if (bot.role !== 'Dog' && Math.random() < 0.55) {
+                const potentialLeaders = players.filter(p => !p.isLocalPlayer && !p.isDead && p.id !== bot.id && p.role !== 'Dog' && p.currentPath && p.currentPath.length > 0);
+                if (potentialLeaders.length > 0) {
+                    const leader = potentialLeaders[Math.floor(Math.random() * potentialLeaders.length)];
+                    const finalNode = leader.currentPath[leader.currentPath.length - 1];
+                    if (finalNode) {
+                        const offsetAngle = Math.random() * Math.PI * 2;
+                        const offsetDist = Math.random() * 15 + 5;
+                        const offsetX = Math.cos(offsetAngle) * offsetDist;
+                        const offsetY = Math.sin(offsetAngle) * offsetDist;
+                        let targetX = finalNode.x;
+                        let targetY = finalNode.y;
+                        if (isWalkable(finalNode.x + offsetX, finalNode.y + offsetY)) {
+                            targetX = finalNode.x + offsetX;
+                            targetY = finalNode.y + offsetY;
+                        }
+
+                        let closestRoomKey = 'bridge';
+                        let minDist = Infinity;
+                        for (const key of Object.keys(ROOM_NODES)) {
+                            const d = Math.hypot(bot.x - ROOM_NODES[key].center.x, bot.y - ROOM_NODES[key].center.y);
+                            if (d < minDist) { minDist = d; closestRoomKey = key; }
+                        }
+                        const startNode = ROOM_NODES[closestRoomKey];
+
+                        let targetRoomKey = 'bridge';
+                        for (const key of Object.keys(ROOM_NODES)) {
+                            if (Math.hypot(targetX - ROOM_NODES[key].center.x, targetY - ROOM_NODES[key].center.y) < 250) {
+                                targetRoomKey = key; break;
+                            }
+                        }
+                        const targetNode = ROOM_NODES[targetRoomKey];
+
+                        bot.currentPath = [
+                            { x: startNode.door.x, y: startNode.door.y },
+                            { x: 1800, y: startNode.door.y },
+                            { x: 1800, y: targetNode.door.y },
+                            { x: targetNode.door.x, y: targetNode.door.y },
+                            { x: targetX, y: targetY, taskObj: finalNode.taskObj }
+                        ];
+                        return;
+                    }
+                }
+            }
+
+            const uncompletedTasks = (bot.tasks || []).filter(t => !t.completed);
+            
+            let targetKey = 'bridge';
+            let taskTarget = null;
+
+            if (uncompletedTasks.length > 0) {
+                const nextTask = uncompletedTasks[Math.floor(Math.random() * uncompletedTasks.length)];
+                const roomObj = ROOMS.find(r => r.name.includes(nextTask.room));
+                if (roomObj) {
+                    targetKey = roomObj.id;
+                    const baseTaskId = nextTask.id.split('_reassigned_')[0];
+                    const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                    if (tkLoc) taskTarget = { ...tkLoc, taskObj: nextTask };
+                }
+            } else {
+                const roomKeys = Object.keys(ROOM_NODES);
+                targetKey = roomKeys[Math.floor(Math.random() * roomKeys.length)];
+            }
+
+            let closestRoomKey = 'bridge';
+            let minDist = Infinity;
+            for (const key of Object.keys(ROOM_NODES)) {
+                const d = Math.hypot(bot.x - ROOM_NODES[key].center.x, bot.y - ROOM_NODES[key].center.y);
+                if (d < minDist) { minDist = d; closestRoomKey = key; }
+            }
+
+            const startNode = ROOM_NODES[closestRoomKey];
+            const targetNode = ROOM_NODES[targetKey];
+
+            bot.currentPath = [
+                { x: startNode.door.x, y: startNode.door.y },
+                { x: 1800, y: startNode.door.y },
+                { x: 1800, y: targetNode.door.y },
+                { x: targetNode.door.x, y: targetNode.door.y },
+                taskTarget ? { x: taskTarget.x, y: taskTarget.y, taskObj: taskTarget.taskObj } : { x: targetNode.center.x, y: targetNode.center.y }
+            ];
+        }
+
+        // Move towards next node in path
+        if (bot.currentPath && bot.currentPath.length > 0) {
+            const targetNode = bot.currentPath[0];
+            const dx = targetNode.x - bot.x;
+            const dy = targetNode.y - bot.y;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist < 30) {
+                if (targetNode.isEngineFix) {
+                    sabotageSystem.fixSabotage();
+                    soundManager.playTaskComplete();
+                    bot.currentPath = [];
+                    return;
+                }
+                if (targetNode.taskObj) {
+                    bot.taskTimer = 4.0;
+                    bot.currentTaskToComplete = targetNode.taskObj;
+                }
+                if (targetNode.x === 1800 && targetNode.y === 310 && !bot.hasCalledEmergency) {
+                    const gameTime = window.gameInstance?.gameTimer || 0;
+                    if (gameTime > 30 && Math.random() < 0.2 && window.gameInstance && window.gameInstance.state === 'PLAYING') {
+                        bot.hasCalledEmergency = true;
+                        window.gameInstance.triggerMeeting(bot, null);
+                        return;
+                    }
+                }
+                bot.currentPath.shift();
+            } else {
+                const moveDist = bot.speed * dt * 0.8;
+                const nextX = bot.x + (dx / dist) * moveDist;
+                const nextY = bot.y + (dy / dist) * moveDist;
+
+                if (isWalkable(nextX, nextY)) {
+                    bot.x = nextX;
+                    bot.y = nextY;
+                } else if (isWalkable(nextX, bot.y)) {
+                    bot.x = nextX;
+                } else if (isWalkable(bot.x, nextY)) {
+                    bot.y = nextY;
+                } else {
+                    bot.currentPath = null;
+                }
+            }
+        }
+
+        if (bot.role === 'Dog') {
+            if (bot.killCooldown > 0) bot.killCooldown -= dt;
+
+            if (bot.killCooldown <= 0 && !bot.isLocalPlayer) {
+                let nearestCat = null, minDist = 300;
+                for (const p of players) {
+                    if (!p.isDead && p.id !== bot.id && p.role !== 'Dog') {
+                        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                        if (d < minDist) { minDist = d; nearestCat = p; }
+                    }
+                }
+                if (nearestCat) bot.currentPath = [{ x: nearestCat.x, y: nearestCat.y }];
+            }
+
+            if (bot.killCooldown <= 0 && (!window.gameInstance || window.gameInstance.globalKillTimer <= 0)) {
+                for (const target of players) {
+                    if (!target.isDead && target.id !== bot.id && target.role !== 'Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
+                        target.isDead = true; bot.killCooldown = 30; soundManager.playElimination();
+                        if (window.gameInstance) {
+                            window.gameInstance.globalKillTimer = 15; // 15s global lock
+                            window.gameInstance.recordKillWitnesses(bot, target);
+                            window.gameInstance.reassignDeadCatTasks(target);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!bot.isLocalPlayer && sabotageSystem.cooldown <= 0 && !sabotageSystem.activeSabotage) {
+                const sabTypes = ['lights', 'engine'];
+                sabotageSystem.triggerSabotage(sabTypes[Math.floor(Math.random() * sabTypes.length)]);
+            }
+        }
+    }
+}
+class MeetingManager {
+    constructor() {
+        this.active = false;
+        this.timer = 30;
+        this.reporter = null;
+        this.bodyPlayer = null;
+        this.votes = {};
+        this.selectedVote = null;
+        this.hasVoted = false;
+        this.accusedId = null;
+    }
+
+    appendChatMessage(container, element) {
+        if (!container) return;
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 60;
+        container.appendChild(element);
+        if (isNearBottom) {
+            container.scrollTop = container.scrollHeight;
+        }
+        setTimeout(() => {
+            element.classList.add('fade-out');
+            setTimeout(() => {
+                element.remove();
+            }, 1000);
+        }, 4000);
+    }
+
+    startMeeting(reporter, bodyPlayer, players, onComplete) {
+        this.active = true;
+        this.timer = 30;
+        this.reporter = reporter;
+        this.bodyPlayer = bodyPlayer;
+        this.votes = {};
+        this.selectedVote = null;
+        this.onComplete = onComplete;
+        this.hasVoted = false;
+        this.accusedId = null;
+
+        // Priority 1: Check if any bot witnessed the kill
+        let witnessedKillerId = null;
+        players.forEach(p => {
+            if (!p.isDead && !p.isLocalPlayer && p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
+                witnessedKillerId = p.witnessedKillerId;
+            }
+        });
+
+        // Establish initial AI voting consensus direction
+        const dogPlayer = players.find(p => !p.isDead && p.role === 'Dog');
+        const innocentPlayers = players.filter(p => !p.isDead && p.role !== 'Dog');
+        const rand = Math.random();
+
+        if (witnessedKillerId !== null) {
+            this.accusedId = witnessedKillerId; // Witness takes absolute priority
+        } else {
+            this.accusedId = null; // No one knows who it is!
+        }
+
+        soundManager.playEmergencyAlarm();
+        this.setupMeetingUI(players);
+    }
+
+    setupMeetingUI(players) {
+        const titleEl = document.getElementById('meeting-title');
+        titleEl.innerText = this.bodyPlayer ? `📢 DEAD BODY REPORTED BY ${this.reporter.name.toUpperCase()}!` : `🚨 EMERGENCY MEETING CALLED BY ${this.reporter.name.toUpperCase()}!`;
+        const grid = document.getElementById('voting-players-grid'); grid.innerHTML = '';
+        
+        const localPlayer = players.find(p => p.isLocalPlayer);
+        const skipBtn = document.getElementById('skip-vote-btn');
+
+        if (localPlayer && localPlayer.isDead) {
+            this.hasVoted = true;
+            if (skipBtn) {
+                skipBtn.innerText = 'SPECTATING';
+                skipBtn.disabled = true;
+                skipBtn.className = 'btn-secondary';
+            }
+        } else {
+            this.hasVoted = false;
+            if (skipBtn) {
+                skipBtn.innerText = 'SKIP VOTE';
+                skipBtn.disabled = false;
+                skipBtn.className = 'btn-secondary';
+            }
+        }
+
+        players.forEach(p => {
+            const card = document.createElement('div'); card.className = `player-vote-card ${p.isDead ? 'dead' : ''}`;
+            card.id = `vote-card-${p.id}`;
+            const colorObj = CAT_COLORS[p.colorIndex % CAT_COLORS.length];
+            card.innerHTML = `
+                <div class="player-info">
+                    <span style="display:inline-block; width:20px; height:20px; border-radius:50%; background:${colorObj.main}; border:2px solid ${colorObj.accent};"></span>
+                    <strong>${p.name}</strong>
+                </div>
+                <span class="vote-tag" id="vote-tag-${p.id}"></span>
+            `;
+            if (!p.isDead) {
+                card.onclick = () => {
+                    if (this.hasVoted) return;
+                    soundManager.playVoteClick();
+                    
+                    if (card.classList.contains('selected')) {
+                        card.classList.remove('selected');
+                        this.selectedVote = null;
+                        if (skipBtn) {
+                            skipBtn.innerText = 'SKIP VOTE';
+                            skipBtn.className = 'btn-secondary';
+                        }
+                    } else {
+                        document.querySelectorAll('.player-vote-card').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        this.selectedVote = p.id;
+                        if (skipBtn) {
+                            skipBtn.innerText = 'CONFIRM VOTE';
+                            skipBtn.className = 'btn-primary glow-button';
+                        }
+                    }
+                };
+            }
+            grid.appendChild(card);
+        });
+
+        const chatContainer = document.getElementById('chat-messages-container'); chatContainer.innerHTML = '';
+        
+        // Schedule dynamic AI bot dialogue & voting timers
+        const aliveBots = players.filter(p => !p.isLocalPlayer && !p.isDead);
+        const aliveNames = players.filter(p => !p.isDead).map(p => p.name);
+        const roomNames = ['Fish Storage', 'Yarn Engine', 'Nap Quarters', 'Kitchen', 'Workshop', 'Cat Garden', 'Bridge', 'Cargo Bay'];
+
+        aliveBots.forEach((bot, index) => {
+            // Dialogue timer
+            setTimeout(() => {
+                if (!this.active) return;
+                let lineText = "";
+                if (bot.witnessedKillerName) {
+                    lineText = `🚨 I SAW ${bot.witnessedKillerName.toUpperCase()} ELIMINATE SOMEONE IN FRONT OF ME! IT'S THEM!`;
+                } else if (this.accusedId !== null && Math.random() < 0.5) {
+                    const accusedPlayer = players.find(p => p.id === this.accusedId);
+                    if (accusedPlayer) {
+                        lineText = `I agree, ${accusedPlayer.name} looks super suspicious!`;
+                    } else {
+                        lineText = `Let's vote carefully crewmates.`;
+                    }
+                } else {
+                    const otherBot = aliveNames.filter(n => n !== bot.name)[Math.floor(Math.random() * (aliveNames.length - 1))];
+                    const room = roomNames[Math.floor(Math.random() * roomNames.length)];
+                    let lines = [
+                        `I was in ${room} finishing my tasks!`,
+                        `Did anyone see ${otherBot}? I saw them near ${room}.`,
+                        `I was with ${otherBot} in ${room}, they seem innocent!`,
+                        `Who was near ${room} when the meeting started?`,
+                        `I saw someone vent near ${room}! Super suspicious!`,
+                        `If we're not sure, let's skip this vote.`
+                    ];
+                    if (this.bodyPlayer) {
+                        lines.push(`Where exactly did you find ${this.bodyPlayer.name}'s body?`);
+                        lines.push(`I saw ${otherBot} walking away from ${room} right before the report!`);
+                    }
+                    lineText = lines[Math.floor(Math.random() * lines.length)];
+                }
+
+                const msg = document.createElement('div'); msg.className = 'chat-msg bot-msg';
+                msg.innerHTML = `<strong>${bot.name}:</strong> ${lineText}`;
+                this.appendChatMessage(chatContainer, msg);
+            }, (index + 1) * 800);
+
+            // Bot Vote casting timer
+            setTimeout(() => {
+                if (!this.active) return;
+                if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
+                    this.votes[bot.id] = bot.witnessedKillerId;
+                } else if (this.accusedId !== null) {
+                    const r = Math.random();
+                    if (r < 0.50) {
+                        this.votes[bot.id] = this.accusedId;
+                    } else if (r < 0.80) {
+                        this.votes[bot.id] = 'skip';
+                    } else {
+                        const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                        choices.push('skip');
+                        this.votes[bot.id] = choices[Math.floor(Math.random() * choices.length)];
+                    }
+                } else {
+                    const r = Math.random();
+                    if (r < 0.60) {
+                        this.votes[bot.id] = 'skip';
+                    } else {
+                        const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                        choices.push('skip');
+                        this.votes[bot.id] = choices[Math.floor(Math.random() * choices.length)];
+                    }
+                }
+                const tag = document.getElementById(`vote-tag-${bot.id}`);
+                if (tag) tag.innerText = '🗳️ VOTED';
+                soundManager.playVoteClick();
+
+                // Check if meeting should end early because everyone voted
+                const alivePlayers = players.filter(pl => !pl.isDead);
+                const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
+                if (allVoted) {
+                    this.tallyVotes(players);
+                }
+            }, (index + 1) * 1200 + 1000);
+        });
+    }
+    update(dt, players) {
+        if (!this.active) return;
+        this.timer -= dt; document.getElementById('meeting-timer').innerText = Math.ceil(this.timer);
+        if (this.timer <= 0) this.tallyVotes(players);
+    }
+    submitPlayerVote(localPlayerId, players) {
+        if (this.hasVoted) return;
+        this.hasVoted = true;
+
+        const skipBtn = document.getElementById('skip-vote-btn');
+        if (skipBtn) {
+            skipBtn.innerText = 'VOTED';
+            skipBtn.disabled = true;
+            skipBtn.className = 'btn-secondary';
+        }
+
+        const tag = document.getElementById(`vote-tag-${localPlayerId}`);
+        if (tag) tag.innerText = '🗳️ VOTED';
+
+        document.querySelectorAll('.player-vote-card').forEach(c => c.classList.remove('selected'));
+        
+        this.votes[localPlayerId] = this.selectedVote !== null ? this.selectedVote : 'skip';
+        soundManager.playVoteClick();
+
+        const alivePlayers = players.filter(pl => !pl.isDead);
+        const allVoted = alivePlayers.every(pl => this.votes[pl.id] !== undefined);
+        if (allVoted) {
+            this.tallyVotes(players);
+        }
+    }
+    sendUserChatMessage(msgText, localPlayerName, players) {
+        if (!this.active || !msgText.trim()) return;
+        const localP = players.find(p => p.isLocalPlayer);
+        if (localP && localP.isDead) {
+            const container = document.getElementById('chat-messages-container');
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg system-msg';
+            msg.style.cssText = 'color:#ff7675; background:rgba(255, 118, 117, 0.1); border:1px solid rgba(255, 118, 117, 0.2); width:100%; text-align:center; align-self:center; box-sizing:border-box;';
+            msg.innerHTML = `<em>👻 Dead cats cannot speak during emergency meetings!</em>`;
+            this.appendChatMessage(container, msg);
+            return;
+        }
+
+        const container = document.getElementById('chat-messages-container');
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg self-msg';
+        msg.innerHTML = `<strong>${localPlayerName} (You):</strong> ${msgText}`;
+        this.appendChatMessage(container, msg);
+
+        soundManager.playVoteClick();
+
+        // Trigger AI bot response
+        const aliveBots = players.filter(p => !p.isLocalPlayer && !p.isDead);
+        const aliveNames = players.filter(p => !p.isDead).map(p => p.name);
+        const roomNames = ['Fish Storage', 'Yarn Engine', 'Nap Quarters', 'Kitchen', 'Workshop', 'Cat Garden', 'Bridge', 'Cargo Bay'];
+
+        if (aliveBots.length > 0) {
+            const responder = aliveBots[Math.floor(Math.random() * aliveBots.length)];
+            const otherBot = aliveNames.filter(n => n !== responder.name && n !== localPlayerName)[0] || 'someone';
+            const room = roomNames[Math.floor(Math.random() * roomNames.length)];
+
+            const botResponses = [
+                `I agree with ${localPlayerName}! ${otherBot} was acting suspicious in ${room}.`,
+                `Wait ${localPlayerName}, are you sure? I was in ${room} with ${otherBot}!`,
+                `I saw ${otherBot} near the vents in ${room}!`,
+                `Let's vote carefully crewmates. ${localPlayerName} raises a good point.`
+            ];
+            setTimeout(() => {
+                if (!this.active) return;
+                const bMsg = document.createElement('div');
+                bMsg.className = 'chat-msg bot-msg';
+                bMsg.innerHTML = `<strong>${responder.name}:</strong> ${botResponses[Math.floor(Math.random() * botResponses.length)]}`;
+                this.appendChatMessage(container, bMsg);
+            }, 1000);
+        }
+    }
+    tallyVotes(players) {
+        this.active = false; const counts = { skip: 0 };
+        players.forEach(p => {
+            if (!p.isDead) {
+                let v = this.votes[p.id];
+                if (!v) {
+                    if (p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
+                        v = p.witnessedKillerId;
+                    } else if (this.accusedId !== null) {
+                        const r = Math.random();
+                        if (r < 0.65) v = this.accusedId;
+                        else if (r < 0.85) v = 'skip';
+                        else {
+                            const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                            choices.push('skip');
+                            v = choices[Math.floor(Math.random() * choices.length)];
+                        }
+                    } else {
+                        const r = Math.random();
+                        if (r < 0.60) v = 'skip';
+                        else {
+                            const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                            choices.push('skip');
+                            v = choices[Math.floor(Math.random() * choices.length)];
+                        }
+                    }
+                    this.votes[p.id] = v;
+                }
+                counts[v] = (counts[v] || 0) + 1;
+            }
+        });
+
+        // Display Among Us style voter icons on player cards!
+        players.forEach(voter => {
+            if (!voter.isDead && this.votes[voter.id]) {
+                const targetId = this.votes[voter.id];
+                const targetCard = document.getElementById(`vote-card-${targetId}`) || document.getElementById('skip-vote-btn');
+                if (targetCard) {
+                    let voterBox = targetCard.querySelector('.voters-box');
+                    if (!voterBox) {
+                        voterBox = document.createElement('div');
+                        voterBox.className = 'voters-box';
+                        voterBox.style.cssText = 'display:inline-flex; gap:4px; margin-left:8px; align-items:center;';
+                        targetCard.appendChild(voterBox);
+                    }
+                    const colorObj = CAT_COLORS[voter.colorIndex % CAT_COLORS.length];
+                    const dot = document.createElement('span');
+                    dot.title = `${voter.name} voted here`;
+                    dot.style.cssText = `width:16px; height:16px; border-radius:50%; background:${colorObj.main}; border:1.5px solid ${colorObj.accent}; display:inline-block; box-shadow:0 2px 4px rgba(0,0,0,0.5);`;
+                    voterBox.appendChild(dot);
+                }
+            }
+        });
+
+        let maxVotes = 0, ejectedId = null, isTie = false;
+        for (const [id, count] of Object.entries(counts)) {
+            if (id === 'skip') continue;
+            if (count > maxVotes) { maxVotes = count; ejectedId = id; isTie = false; }
+            else if (count === maxVotes) isTie = true;
+        }
+        
+        if (counts.skip >= maxVotes) {
+            ejectedId = null;
+        }
+
+        const ejectedPlayer = players.find(p => p.id == ejectedId);
+
+        // Pause 3.5 seconds so players can see who voted for whom!
+        setTimeout(() => {
+            if (ejectedPlayer && !isTie) ejectedPlayer.isDead = true;
+            this.onComplete(ejectedPlayer, isTie);
+        }, 3500);
+    }
+}
+
+// ==========================================
+// 10. UI MANAGER
+// ==========================================
+class UIManager {
+    constructor(game) { this.game = game; this.setupEventListeners(); }
+    setupEventListeners() {
+        document.getElementById('start-game-btn').onclick = () => {
+            const nameInput = document.getElementById('player-name-input').value.trim() || 'Whiskers';
+            this.game.startNewGame(nameInput);
+        };
+        document.getElementById('prev-color-btn').onclick = () => this.changeColor(-1);
+        document.getElementById('next-color-btn').onclick = () => this.changeColor(1);
+        document.getElementById('prev-hat-btn').onclick = () => this.changeHat(-1);
+        document.getElementById('next-hat-btn').onclick = () => this.changeHat(1);
+        document.getElementById('role-continue-btn').onclick = () => { this.showScreen('hud-screen'); this.game.state = 'PLAYING'; };
+        document.getElementById('close-task-btn').onclick = () => {
+            if (this.game.activeTask && this.game.activeTask.type === 'cams') {
+                if (this.game.activeTask.id === 'monitor_cams' || this.game.activeTask.id.includes('_reassigned_')) {
+                    this.game.activeTask.completed = true;
+                    soundManager.playTaskComplete();
+                    this.game.checkWinConditions();
+                } else {
+                    const realTask = this.game.localPlayer.tasks.find(tk => tk.id.split('_reassigned_')[0] === 'monitor_cams' && !tk.completed);
+                    if (realTask) {
+                        realTask.completed = true;
+                        soundManager.playTaskComplete();
+                        this.game.checkWinConditions();
+                    }
+                }
+            }
+            if (this.game.activeTaskCleanup) {
+                this.game.activeTaskCleanup();
+                this.game.activeTaskCleanup = null;
+            }
+            this.hideScreen('task-modal');
+            this.game.activeTask = null;
+        };
+        document.getElementById('close-sabotage-btn').onclick = () => { this.hideScreen('sabotage-modal'); };
+        document.getElementById('action-use-btn').onclick = () => this.game.handleUseAction();
+        document.getElementById('action-report-btn').onclick = () => this.game.handleReportAction();
+        document.getElementById('action-kill-btn').onclick = () => this.game.handleKillAction();
+        document.getElementById('action-revive-btn').onclick = () => this.game.handleReviveAction();
+        document.getElementById('action-vent-btn').onclick = () => this.game.handleVentAction();
+        document.getElementById('action-sabotage-btn').onclick = () => this.game.handleSabotageAction();
+        document.getElementById('sab-lights-btn').onclick = () => { this.game.triggerSabotage('lights'); this.hideScreen('sabotage-modal'); };
+        document.getElementById('sab-engine-btn').onclick = () => { this.game.triggerSabotage('engine'); this.hideScreen('sabotage-modal'); };
+        document.getElementById('sab-doors-btn').onclick = () => { this.game.triggerSabotage('doors'); this.hideScreen('sabotage-modal'); };
+        document.getElementById('skip-vote-btn').onclick = () => {
+            this.game.meetingManager.submitPlayerVote(this.game.localPlayer.id, this.game.players);
+        };
+        const sendChat = () => {
+            const input = document.getElementById('meeting-chat-input');
+            if (input && input.value.trim()) {
+                this.game.meetingManager.sendUserChatMessage(input.value, this.game.localPlayer.name, this.game.players);
+                input.value = '';
+            }
+        };
+        document.getElementById('meeting-chat-send-btn').onclick = sendChat;
+        document.getElementById('meeting-chat-input').onkeydown = (e) => {
+            if (e.key === 'Enter') sendChat();
+        };
+        document.getElementById('eject-continue-btn').onclick = () => { this.hideScreen('eject-screen'); this.showScreen('hud-screen'); this.game.state = 'PLAYING'; this.game.checkWinConditions(); };
+        document.getElementById('restart-game-btn').onclick = () => { this.showScreen('menu-screen'); this.game.state = 'MENU'; };
+    }
+    changeColor(dir) {
+        this.game.menuColorIndex = (this.game.menuColorIndex + dir + CAT_COLORS.length) % CAT_COLORS.length;
+        document.getElementById('color-preview-name').innerText = CAT_COLORS[this.game.menuColorIndex].name;
+    }
+    changeHat(dir) {
+        this.game.menuHatIndex = (this.game.menuHatIndex + dir + HATS.length) % HATS.length;
+        document.getElementById('hat-preview-name').innerText = HATS[this.game.menuHatIndex].name;
+    }
+    showScreen(id) {
+        if (id === 'task-modal' || id === 'sabotage-modal') {
+            // Do not hide HUD when opening overlays!
+            document.getElementById(id).classList.add('active');
+            document.getElementById(id).classList.remove('hidden');
+        } else {
+            document.querySelectorAll('.ui-screen').forEach(s => { s.classList.remove('active'); s.classList.add('hidden'); });
+            document.getElementById(id).classList.add('active');
+            document.getElementById(id).classList.remove('hidden');
+        }
+    }
+    hideScreen(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('active'); }
+    updateHUD(player, players, tasks, sabotageSystem) {
+        // Local player's task list UI
+        const listEl = document.getElementById('hud-task-list'); listEl.innerHTML = '';
+        const downloadTask = tasks.find(tk => (tk.id.includes('download_data') || tk.id.includes('download_comms')));
+        const uploadTask = tasks.find(tk => tk.id.includes('upload_data'));
+        if (uploadTask) {
+            uploadTask.locked = downloadTask && !downloadTask.completed;
+        }
+
+        tasks.forEach(t => {
+            const li = document.createElement('li');
+            if (t.completed) {
+                li.className = 'completed';
+                li.innerHTML = `✅ ${t.room}: ${t.name}`;
+            } else if (t.id.includes('upload_data') && t.locked) {
+                li.className = 'locked';
+                li.style.color = '#7f8c8d';
+                li.innerHTML = `🔒 ${t.room}: ${t.name} (Download first)`;
+            } else {
+                li.innerHTML = `📌 ${t.room}: ${t.name}`;
+            }
+            listEl.appendChild(li);
+        });
+
+        // Global Task Progress Bar (Sum of ALL tasks across ALL crewmate cats)
+        let totalCatTasks = 0;
+        let completedCatTasks = 0;
+        players.forEach(p => {
+            if (p.role !== 'Dog' && p.tasks) {
+                p.tasks.forEach(t => {
+                    totalCatTasks++;
+                    if (t.completed) completedCatTasks++;
+                });
+            }
+        });
+
+        const fillPct = (completedCatTasks / Math.max(1, totalCatTasks)) * 100;
+        document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
+
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Dog: '🐶' };
+        document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
+        document.getElementById('hud-role-name').innerText = player.role;
+
+        const ventBtn = document.getElementById('action-vent-btn');
+        if (ventBtn) {
+            if (player.role === 'Engineer' || player.role === 'Dog') {
+                ventBtn.classList.remove('hidden');
+            } else {
+                ventBtn.classList.add('hidden');
+            }
+        }
+
+        const killBtn = document.getElementById('action-kill-btn'), reviveBtn = document.getElementById('action-revive-btn'), sabBtn = document.getElementById('action-sabotage-btn'), cooldownOverlay = document.getElementById('kill-cooldown-timer');
+        if (player.role === 'Dog' && !player.isDead) {
+            killBtn.classList.remove('hidden'); sabBtn.classList.remove('hidden');
+            if (player.killCooldown > 0) { cooldownOverlay.style.display = 'flex'; cooldownOverlay.innerText = Math.ceil(player.killCooldown); }
+            else cooldownOverlay.style.display = 'none';
+        } else { killBtn.classList.add('hidden'); sabBtn.classList.add('hidden'); }
+
+        if (player.role === 'Medic' && !player.isDead && player.reviveUses > 0) reviveBtn.classList.remove('hidden'); else reviveBtn.classList.add('hidden');
+        if (ventBtn) {
+            if ((player.role === 'Dog' || player.role === 'Engineer') && !player.isDead) ventBtn.classList.remove('hidden'); else ventBtn.classList.add('hidden');
+        }
+
+        const sabBanner = document.getElementById('sabotage-banner');
+        if (sabotageSystem.activeSabotage === 'lights') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN ELECTRICAL!'; }
+        else if (sabotageSystem.activeSabotage === 'engine') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = `CRITICAL ENGINE MELTDOWN! (${Math.ceil(sabotageSystem.engineTimer)}s)`; }
+        else sabBanner.classList.add('hidden');
+    }
+}
+
+class Game {
+    constructor() {
+        window.gameInstance = this;
+        this.canvas = document.getElementById('game-canvas'); this.ctx = this.canvas.getContext('2d');
+        this.state = 'MENU'; this.menuColorIndex = 0; this.menuHatIndex = 1;
+        this.mapRenderer = new MapRenderer(); this.sabotageSystem = new SabotageSystem();
+        this.meetingManager = new MeetingManager(); this.uiManager = new UIManager(this);
+        this.players = []; this.localPlayer = null; this.keysPressed = {}; this.activeTask = null; this.activeTaskCleanup = null; this.globalKillTimer = 0;
+        this.setupWindow(); this.setupKeyListeners();
+        
+        // Immediately generate 8 cat crewmates so cats are visible everywhere!
+        this.initDefaultPlayers();
+        this.startLoop();
+    }
+
+    initDefaultPlayers() {
+        const roles = ['Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
+        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'];
+        this.players = [];
+        for (let i = 0; i < 10; i++) {
+            const isLocal = i === 0;
+            const p = new Player(i, isLocal ? 'Captain Whiskers' : botNames[i - 1], isLocal ? this.menuColorIndex : (i * 2 + 1) % 8, isLocal ? this.menuHatIndex : (i + 2) % 8, roles[i], isLocal);
+            p.tasks = TaskManager.generateTaskList();
+            p.x = 1720 + (i % 5) * 40; p.y = 250 + Math.floor(i / 5) * 40;
+            this.players.push(p); if (isLocal) this.localPlayer = p;
+        }
+        if (this.localPlayer) {
+            this.mapRenderer.cameraX = this.localPlayer.x;
+            this.mapRenderer.cameraY = this.localPlayer.y;
+        }
+    }
+
+    setupWindow() {
+        const resize = () => { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; };
+        window.addEventListener('resize', resize); resize();
+    }
+
+    setupKeyListeners() {
+        window.addEventListener('keydown', (e) => {
+            soundManager.init();
+            this.keysPressed[e.code] = true;
+            if (e.key) { this.keysPressed[e.key] = true; this.keysPressed[e.key.toLowerCase()] = true; }
+            if (this.state === 'PLAYING') {
+                const k = e.key ? e.key.toLowerCase() : '';
+                if (e.code === 'KeyE' || k === 'e' || e.code === 'Space' || k === ' ') this.handleUseAction();
+                else if (e.code === 'KeyR' || k === 'r') this.handleReportAction();
+                else if ((e.code === 'KeyQ' || k === 'q') && this.localPlayer?.role === 'Dog') this.handleKillAction();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            this.keysPressed[e.code] = false;
+            if (e.key) { this.keysPressed[e.key] = false; this.keysPressed[e.key.toLowerCase()] = false; }
+        });
+    }
+
+    startNewGame(playerName) {
+        soundManager.init();
+        this.gameTimer = 0;
+        const roles = ['Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
+        const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
+        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'].sort(() => 0.5 - Math.random());
+        this.players = [];
+        for (let i = 0; i < 10; i++) {
+            const isLocal = i === 0;
+            const p = new Player(i, isLocal ? playerName : botNames[i - 1], isLocal ? this.menuColorIndex : (i * 2 + 1) % 8, isLocal ? this.menuHatIndex : (i + 2) % 8, shuffledRoles[i], isLocal);
+            p.tasks = TaskManager.generateTaskList();
+            p.x = 1720 + (i % 5) * 40; p.y = 250 + Math.floor(i / 5) * 40;
+            if (!isLocal) p.killCooldown = 25;
+            this.players.push(p); if (isLocal) this.localPlayer = p;
+        }
+        this.sabotageSystem = new SabotageSystem();
+        if (this.localPlayer) {
+            this.mapRenderer.cameraX = this.localPlayer.x;
+            this.mapRenderer.cameraY = this.localPlayer.y;
+        }
+        this.state = 'PLAYING';
+        this.uiManager.showScreen('hud-screen');
+    }
+
+    showRoleReveal() {
+        this.state = 'ROLE_REVEAL'; this.uiManager.showScreen('role-screen');
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Dog: '🐶' };
+        const roleDescs = {
+            Citizen: 'Perform tasks across rooms and unmask the sneaky Dog!',
+            Captain: 'Command the ship! You complete tasks 35% faster than standard cats.',
+            Guard: 'Stay vigilant! You have 25% larger vision and see much better when lights go out.',
+            Engineer: 'Use ship ventilation shafts to traverse rooms instantly.',
+            Medic: 'Heal the crew! You can revive fallen cats up to 2 times per match.',
+            Dog: 'Eliminate cats, sabotage systems, and do not get caught!'
+        };
+        document.getElementById('role-icon').innerText = roleIcons[this.localPlayer.role];
+        document.getElementById('role-title').innerText = `YOUR ROLE: ${this.localPlayer.role.toUpperCase()}`;
+        document.getElementById('role-description').innerText = roleDescs[this.localPlayer.role];
+        document.getElementById('role-team-list').innerText = this.localPlayer.role === 'Dog' ? '⚠️ You are the solitary Dog impostor!' : '🐾 Work with your fellow crew cats to finish all tasks!';
+    }
+
+    handleUseAction() {
+        if (this.localPlayer.isDead) return;
+        const bridge = ROOMS.find(r => r.id === 'bridge');
+        if (Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY) <= 45) {
+            this.triggerMeeting(this.localPlayer, null); return;
+        }
+        const security = ROOMS.find(r => r.id === 'security');
+        if (security && Math.hypot(this.localPlayer.x - 380, this.localPlayer.y - 750) <= 75) {
+            const camTask = { id: 'monitor_cams_persistent', room: 'Security', name: 'Security Monitor', type: 'cams' };
+            this.activeTask = camTask;
+            this.uiManager.showScreen('task-modal');
+            this.activeTaskCleanup = TaskManager.renderTaskMinigame(camTask, this.localPlayer, () => {
+                this.uiManager.hideScreen('task-modal');
+                this.activeTask = null;
+            });
+            return;
+        }
+        if (this.sabotageSystem.activeSabotage === 'lights') {
+            const el = ROOMS.find(r => r.id === 'electrical');
+            if (el && Math.hypot(this.localPlayer.x - el.lightsFixX, this.localPlayer.y - el.lightsFixY) <= 95) {
+                this.sabotageSystem.fixSabotage(); soundManager.playTaskComplete(); return;
+            }
+        }
+        if (this.sabotageSystem.activeSabotage === 'engine') {
+            const ye = ROOMS.find(r => r.id === 'yarn_engine');
+            if (Math.hypot(this.localPlayer.x - ye.engineFixX, this.localPlayer.y - ye.engineFixY) <= 95) {
+                const engineFixTask = { room: 'Yarn Engine', name: 'OVERLOAD REPAIR', type: 'rapid_click' };
+                this.uiManager.showScreen('task-modal');
+                this.activeTaskCleanup = TaskManager.renderTaskMinigame(engineFixTask, this.localPlayer, () => {
+                    this.sabotageSystem.fixSabotage();
+                    this.uiManager.hideScreen('task-modal');
+                });
+                return;
+            }
+        }
+        for (const t of this.localPlayer.tasks) {
+            if (t.completed) continue;
+            const roomObj = ROOMS.find(r => r.name.includes(t.room));
+            if (!roomObj) continue;
+            const baseTaskId = t.id.split('_reassigned_')[0];
+            const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+            if (taskLoc && Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y) <= 95) {
+                if (baseTaskId === 'upload_data' && t.locked) {
+                    continue;
+                }
+                this.activeTask = t; this.uiManager.showScreen('task-modal');
+                this.activeTaskCleanup = TaskManager.renderTaskMinigame(t, this.localPlayer, () => {
+                    this.uiManager.hideScreen('task-modal'); this.activeTask = null; this.checkWinConditions();
+                });
+                return;
+            }
+        }
+        if (this.localPlayer.role === 'Dog' || this.localPlayer.role === 'Engineer') this.handleVentAction();
+    }
+
+    handleReportAction() {
+        if (this.localPlayer.isDead) return;
+        for (const p of this.players) {
+            if (p.isDead && !p.bodyCleaned && Math.hypot(this.localPlayer.x - p.x, this.localPlayer.y - p.y) <= 80) {
+                this.triggerMeeting(this.localPlayer, p); return;
+            }
+        }
+    }
+
+    handleKillAction() {
+        if (this.localPlayer.role !== 'Dog' || this.localPlayer.isDead || this.localPlayer.killCooldown > 0 || this.globalKillTimer > 0) return;
+        for (const target of this.players) {
+            if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
+                target.isDead = true;
+                this.globalKillTimer = 15;
+                this.recordKillWitnesses(this.localPlayer, target);
+                this.reassignDeadCatTasks(target);
+                this.localPlayer.killCooldown = 30; soundManager.playElimination(); this.checkWinConditions(); break;
+            }
+        }
+    }
+
+    handleReviveAction() {
+        if (this.localPlayer.role !== 'Medic' || this.localPlayer.isDead || this.localPlayer.reviveUses <= 0) return;
+        for (const p of this.players) {
+            if (this.localPlayer.canRevive(p)) {
+                p.isDead = false; this.localPlayer.reviveUses -= 1; soundManager.playTaskComplete(); break;
+            }
+        }
+    }
+
+    handleVentAction() {
+        if (this.localPlayer.role !== 'Dog' && this.localPlayer.role !== 'Engineer') return;
+        if (this.localPlayer.isDead) return;
+        const vent = VentSystem.getNearbyVent(this.localPlayer.x, this.localPlayer.y);
+        if (vent) {
+            soundManager.playVentWhoosh(); const targetVent = VentSystem.getVentById(vent.connectId);
+            if (targetVent) { this.localPlayer.x = targetVent.x; this.localPlayer.y = targetVent.y; }
+        }
+    }
+
+    handleSabotageAction() {
+        if (this.localPlayer.role === 'Dog' && !this.localPlayer.isDead && this.sabotageSystem.cooldown <= 0) {
+            this.uiManager.showScreen('sabotage-modal');
+        }
+    }
+
+    triggerSabotage(type) { this.sabotageSystem.triggerSabotage(type); }
+
+    triggerMeeting(reporter, bodyPlayer) {
+        this.state = 'MEETING'; this.uiManager.showScreen('meeting-screen');
+        // Teleport all players to the Bridge meeting table area
+        this.players.forEach((p, idx) => {
+            p.x = 1720 + (idx % 5) * 40;
+            p.y = 250 + Math.floor(idx / 5) * 40;
+            p.inVent = false;
+            p.currentVentId = null;
+        });
+        if (this.localPlayer) {
+            this.mapRenderer.cameraX = this.localPlayer.x;
+            this.mapRenderer.cameraY = this.localPlayer.y;
+        }
+        this.meetingManager.startMeeting(reporter, bodyPlayer, this.players, (ejectedPlayer, isTie) => {
+            this.showEjectionScreen(ejectedPlayer, isTie);
+        });
+    }
+
+    showEjectionScreen(ejectedPlayer, isTie) {
+        this.state = 'EJECT';
+        this.uiManager.showScreen('eject-screen');
+
+        // Clean up physical dead bodies from the ship floor after meeting!
+        this.players.forEach(p => {
+            if (p.isDead) p.bodyCleaned = true;
+        });
+
+        const catSprite = document.getElementById('ejected-cat-sprite');
+        if (catSprite && ejectedPlayer) {
+            const colorObj = CAT_COLORS[ejectedPlayer.colorIndex % CAT_COLORS.length];
+            catSprite.innerHTML = `<span style="display:inline-block; width:80px; height:80px; border-radius:50%; background:${colorObj.main}; border:4px solid ${colorObj.accent}; box-shadow:0 10px 25px rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; font-size:2.5rem;">🐱</span>`;
+        }
+
+        const textEl = document.getElementById('eject-result-text');
+        const remEl = document.getElementById('eject-remaining-text');
+        if (isTie || !ejectedPlayer) textEl.innerText = 'No one was ejected. (Tie vote)';
+        else textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'Dog' ? 'The Dog! 🐶' : 'not The Dog. 🐱'}`;
+        remEl.innerText = `${this.players.filter(p => !p.isDead && p.role === 'Dog').length} Dog impostor remains.`;
+
+        if (ejectedPlayer && !isTie && ejectedPlayer.role !== 'Dog') {
+            this.reassignDeadCatTasks(ejectedPlayer);
+        }
+    }
+
+    recordKillWitnesses(killer, victim) {
+        if (!killer || !victim) return;
+        this.players.forEach(p => {
+            if (!p.isLocalPlayer && !p.isDead && p.role !== 'Dog') {
+                const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
+                if (distToKill <= 280) { // AI cat witnessed the kill!
+                    p.witnessedKillerId = killer.id;
+                    p.witnessedKillerName = killer.name;
+                    p.witnessedVictimName = victim.name;
+                }
+            }
+        });
+    }
+
+    reassignDeadCatTasks(deadPlayer) {
+        if (!deadPlayer || deadPlayer.role === 'Dog') return;
+        const uncompleted = (deadPlayer.tasks || []).filter(t => !t.completed);
+        if (uncompleted.length === 0) return;
+
+        const livingCats = this.players.filter(p => !p.isDead && p.role !== 'Dog');
+        if (livingCats.length > 0) {
+            uncompleted.forEach((t, i) => {
+                const assignee = livingCats[i % livingCats.length];
+                assignee.tasks.push({ ...t, id: `${t.id}_reassigned_${Date.now()}_${i}` });
+            });
+        }
+        deadPlayer.tasks = deadPlayer.tasks.filter(t => t.completed);
+    }
+
+    checkWinConditions() {
+        if (this.state === 'GAME_OVER' || this.state === 'MENU' || (this.gameTimer || 0) < 5) return;
+        const aliveCats = this.players.filter(p => !p.isDead && p.role !== 'Dog').length;
+        const aliveDogs = this.players.filter(p => !p.isDead && p.role === 'Dog').length;
+        
+        const allCatTasks = [];
+        this.players.forEach(p => { if (p.role !== 'Dog' && p.tasks) allCatTasks.push(...p.tasks); });
+        const allTasksDone = allCatTasks.length > 0 && allCatTasks.every(t => t.completed);
+
+        if (aliveDogs === 0) this.endGame('VICTORY!', 'The Dog impostor was ejected!');
+        else if (aliveDogs >= aliveCats && aliveCats > 0) this.endGame('DEFEAT!', 'The Dog overran the spaceship!');
+        else if (allTasksDone) this.endGame('VICTORY!', 'All ship tasks have been completed!');
+    }
+
+    endGame(title, reason) {
+        this.state = 'GAME_OVER'; this.uiManager.showScreen('gameover-screen');
+        document.getElementById('gameover-title').innerText = title;
+        document.getElementById('gameover-reason').innerText = reason;
+        if (title.includes('VICTORY')) soundManager.playVictory(); else soundManager.playDefeat();
+        const list = document.getElementById('gameover-roles-list'); list.innerHTML = '';
+        this.players.forEach(p => {
+            const div = document.createElement('div'); div.style.cssText = 'padding:4px 0; color:#d1d5db; font-size:0.9rem;';
+            div.innerText = `${p.name}: ${p.role} ${p.isDead ? '(Ejected)' : '(Surviving)'}`; list.appendChild(div);
+        });
+    }
+
+    startLoop() {
+        let lastTime = performance.now();
+        const loop = (now) => {
+            const dt = Math.min((now - lastTime) / 1000, 0.1); lastTime = now;
+            try {
+                this.update(dt);
+                this.render();
+            } catch (err) {
+                console.error('Game Loop Error:', err);
+            }
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
+
+    update(dt) {
+        this.gameTimer = (this.gameTimer || 0) + dt;
+        if (this.globalKillTimer > 0) this.globalKillTimer -= dt;
+        if (this.state === 'PLAYING') {
+            this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
+            this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
+            if (this.gameTimer > 60 && this.sabotageSystem.update(dt) === 'ENGINE_MELTDOWN') {
+                this.endGame('DEFEAT!', 'Yarn Engine exploded!');
+            }
+            this.players.forEach(p => {
+                if (!p.isLocalPlayer) AIController.updateBot(p, dt, this.players, this.sabotageSystem, (b, bd) => {
+                    if (this.gameTimer > 30) this.triggerMeeting(b, bd);
+                });
+            });
+            this.uiManager.updateHUD(this.localPlayer, this.players, this.localPlayer.tasks, this.sabotageSystem);
+        } else if (this.state === 'MEETING') {
+            this.meetingManager.update(dt, this.players);
+        }
+    }
+
+    render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const activePlayer = this.localPlayer || { x: 1800, y: 280, role: 'Citizen', isDead: false };
+        this.mapRenderer.render(this.ctx, this.canvas.width, this.canvas.height, activePlayer, this.players || [], this.sabotageSystem);
+        const miniCanvas = document.getElementById('minimap-canvas');
+        if (miniCanvas) this.mapRenderer.renderMinimap(miniCanvas, activePlayer, this.players || []);
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => { new Game(); });

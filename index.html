@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Crew — Cat & Dog Social Deduction Spaceship Game</title>
+    <meta name="description" content="A cute, colorful multiplayer social deduction game set aboard a giant cat-shaped spaceship! Unmask the Dog impostor or complete your feline duties.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Main Game Canvas -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- UI Overlays Container -->
+        <div id="ui-layer">
+            <!-- Start Menu Screen -->
+            <div id="menu-screen" class="ui-screen active">
+                <div class="menu-content card-glass">
+                    <div class="logo-container">
+                        <div class="logo-icon">🚀🐱🐶</div>
+                        <h1 class="game-title">CAT CREW</h1>
+                        <p class="game-subtitle">Among the Stars & Whisker-Station</p>
+                    </div>
+
+                    <div class="menu-form">
+                        <div class="form-group">
+                            <label for="player-name-input">Your Cat Name:</label>
+                            <input type="text" id="player-name-input" maxlength="12" value="Whiskers" placeholder="Enter name...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Customize Look:</label>
+                            <div class="customize-selectors">
+                                <button id="prev-color-btn" class="btn-icon">◀</button>
+                                <span id="color-preview-name">Orange Tabby</span>
+                                <button id="next-color-btn" class="btn-icon">▶</button>
+                            </div>
+                            <div class="customize-selectors">
+                                <button id="prev-hat-btn" class="btn-icon">◀</button>
+                                <span id="hat-preview-name">Crown</span>
+                                <button id="next-hat-btn" class="btn-icon">▶</button>
+                            </div>
+                        </div>
+
+                        <button id="start-game-btn" class="btn-primary glow-button">PAW-TCH IN (START GAME)</button>
+                    </div>
+
+                    <div class="game-instructions">
+                        <h3>🐾 How to Play</h3>
+                        <ul>
+                            <li><strong>Cats (Citizens, Captain, Guard, Engineer, Medic):</strong> Complete all tasks or eject the Dog!</li>
+                            <li><strong>🐶 Dog Impostor:</strong> Eliminate cats, sabotage systems, and blend in!</li>
+                            <li><strong>⭐ Captain:</strong> Completes tasks 35% faster.</li>
+                            <li><strong>🛡️ Guard:</strong> Has 25% wider vision and sees better in dark sabotage.</li>
+                            <li><strong>🏥 Medic:</strong> Can revive fallen cats up to 2 times per match!</li>
+                            <li><strong>🔧 Engineer:</strong> Can sneak through ship ventilation shafts.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Reveal Screen -->
+            <div id="role-screen" class="ui-screen hidden">
+                <div class="role-reveal-card card-glass">
+                    <div id="role-icon" class="role-badge-icon">🐱</div>
+                    <h2 id="role-title">YOUR ROLE</h2>
+                    <p id="role-description">Perform tasks and watch out for suspicious paws!</p>
+                    <div id="role-team-list" class="team-preview"></div>
+                    <button id="role-continue-btn" class="btn-primary">UNDERSTOOD!</button>
+                </div>
+            </div>
+
+            <!-- In-Game HUD Overlay -->
+            <div id="hud-screen" class="ui-screen hidden pointer-events-none">
+                <!-- Top Bar: Task Progress -->
+                <div class="top-bar pointer-events-auto">
+                    <div class="task-progress-container card-glass">
+                        <span class="progress-label">TOTAL TASKS</span>
+                        <div class="progress-bar-bg">
+                            <div id="task-progress-fill" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div id="sabotage-banner" class="sabotage-warning hidden">
+                        🚨 <span id="sabotage-text">LIGHTS SABOTAGED! FIX IN WORKSHOP!</span> 🚨
+                    </div>
+                </div>
+
+                <!-- Left Side: Task List & Role Badge -->
+                <div class="left-panel pointer-events-auto card-glass">
+                    <div class="player-role-badge">
+                        <span id="hud-role-icon">🐱</span>
+                        <span id="hud-role-name">Citizen</span>
+                    </div>
+                    <div class="task-list-box">
+                        <h4>📋 TASKS</h4>
+                        <ul id="hud-task-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bottom Right Action Buttons -->
+                <div class="action-buttons-panel pointer-events-auto">
+                    <button id="action-vent-btn" class="btn-action btn-vent hidden">
+                        <span class="action-icon">🌀</span>
+                        <span class="action-text">VENT</span>
+                    </button>
+                    <button id="action-revive-btn" class="btn-action btn-revive hidden">
+                        <span class="action-icon">🏥</span>
+                        <span class="action-text">REVIVE</span>
+                    </button>
+                    <button id="action-sabotage-btn" class="btn-action btn-sabotage hidden">
+                        <span class="action-icon">💥</span>
+                        <span class="action-text">SABOTAGE</span>
+                    </button>
+                    <button id="action-kill-btn" class="btn-action btn-kill hidden">
+                        <span class="action-icon">🐾</span>
+                        <span class="action-text">ELIMINATE</span>
+                        <span id="kill-cooldown-timer" class="cooldown-overlay"></span>
+                    </button>
+                    <button id="action-report-btn" class="btn-action btn-report hidden">
+                        <span class="action-icon">📢</span>
+                        <span class="action-text">REPORT</span>
+                    </button>
+                    <button id="action-use-btn" class="btn-action btn-use">
+                        <span class="action-icon">🖐️</span>
+                        <span class="action-text">USE</span>
+                    </button>
+                </div>
+
+                <!-- Minimap Overlay -->
+                <div id="minimap-container" class="minimap-box pointer-events-auto card-glass">
+                    <canvas id="minimap-canvas" width="160" height="120"></canvas>
+                </div>
+            </div>
+
+            <!-- Task Mini-game Overlay -->
+            <div id="task-modal" class="ui-screen hidden">
+                <div class="task-modal-card card-glass">
+                    <div class="task-header">
+                        <h3 id="task-modal-title">Task Name</h3>
+                        <button id="close-task-btn" class="btn-close">✖</button>
+                    </div>
+                    <div id="task-canvas-container" class="task-body">
+                        <!-- Mini-game HTML/Canvas will render here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sabotage Menu Overlay (for Dog) -->
+            <div id="sabotage-modal" class="ui-screen hidden">
+                <div class="sabotage-modal-card card-glass">
+                    <div class="task-header">
+                        <h3>💥 SABOTAGE SHIP SYSTEMS</h3>
+                        <button id="close-sabotage-btn" class="btn-close">✖</button>
+                    </div>
+                    <div class="sabotage-grid">
+                        <button id="sab-lights-btn" class="btn-sabotage-option">
+                            <span class="sab-icon">💡</span>
+                            <strong>Lights Out</strong>
+                            <small>Cut vision across ship</small>
+                        </button>
+                        <button id="sab-engine-btn" class="btn-sabotage-option">
+                            <span class="sab-icon">🔥</span>
+                            <strong>Yarn Engine Overload</strong>
+                            <small>Critical meltdown countdown</small>
+                        </button>
+                        <button id="sab-doors-btn" class="btn-sabotage-option" style="display:none;">
+                            <span class="sab-icon">🚪</span>
+                            <strong>Lock Doors</strong>
+                            <small>Seal all room exits temporarily</small>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meeting & Voting Screen -->
+            <div id="meeting-screen" class="ui-screen hidden">
+                <div class="meeting-card card-glass">
+                    <div class="meeting-header">
+                        <h2 id="meeting-title">🚨 EMERGENCY MEETING 🚨</h2>
+                        <div class="meeting-timer-box">Voting Ends: <span id="meeting-timer">30</span>s</div>
+                    </div>
+                    
+                    <div class="meeting-body">
+                        <div class="players-grid" id="voting-players-grid">
+                            <!-- Populated with 8 player voting slots -->
+                        </div>
+                        <div class="discussion-chat-box">
+                            <h4>💬 Ship Chat & Suspicion Log</h4>
+                            <div id="chat-messages-container" class="chat-messages"></div>
+                            <div class="chat-input-row" style="display:flex; gap:8px; margin-top:8px;">
+                                <input type="text" id="meeting-chat-input" placeholder="Type a message..." maxlength="50" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid var(--border-glass); padding:8px 12px; border-radius:10px; color:white; font-family:var(--font-body); outline:none;">
+                                <button id="meeting-chat-send-btn" class="btn-primary" style="padding:8px 16px; font-size:0.9rem;">SEND</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meeting-footer">
+                        <button id="skip-vote-btn" class="btn-secondary">SKIP VOTE</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejection / Result Screen -->
+            <div id="eject-screen" class="ui-screen hidden">
+                <div class="eject-content">
+                    <div id="eject-animation-space" class="eject-space-canvas-container">
+                        <div id="ejected-cat-sprite" class="floating-cat-eject">🐱</div>
+                    </div>
+                    <h2 id="eject-result-text">Whiskers was not The Dog.</h2>
+                    <p id="eject-remaining-text">1 Dog remains.</p>
+                    <button id="eject-continue-btn" class="btn-primary glow-button">CONTINUE</button>
+                </div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="gameover-screen" class="ui-screen hidden">
+                <div class="gameover-card card-glass">
+                    <h1 id="gameover-title">VICTORY!</h1>
+                    <p id="gameover-reason">All tasks have been completed!</p>
+                    
+                    <div class="gameover-summary">
+                        <h3>Roles Summary</h3>
+                        <div id="gameover-roles-list" class="roles-summary-list"></div>
+                    </div>
+
+                    <button id="restart-game-btn" class="btn-primary glow-button">PLAY AGAIN 🐾</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standalone Game Script (Works on file:// and http://) -->
+    <script src="bundle.js?v=40"></script>
+</body>
+</html>
