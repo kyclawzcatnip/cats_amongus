@@ -2535,7 +2535,7 @@ class Game {
     constructor() {
         window.gameInstance = this;
         this.canvas = document.getElementById('game-canvas'); this.ctx = this.canvas.getContext('2d');
-        this.state = 'MENU'; this.menuColorIndex = 0; this.menuHatIndex = 1;
+        this.state = 'MENU'; this.menuColorIndex = 0; this.menuHatIndex = 1; this.selectedMap = 'whisker_station';
         this.mapRenderer = new MapRenderer(); this.sabotageSystem = new SabotageSystem();
         this.meetingManager = new MeetingManager(); this.uiManager = new UIManager(this);
         this.players = []; this.localPlayer = null; this.keysPressed = {}; this.activeTask = null; this.activeTaskCleanup = null; this.globalKillTimer = 0;
@@ -2588,28 +2588,43 @@ class Game {
 
     startNewGame(playerName) {
         soundManager.init();
-        this.gameTimer = 0;
+        loadMap(this.selectedMap);
+        
         const roles = ['evil Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
         const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
-        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'].sort(() => 0.5 - Math.random());
+
+        const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'];
+        const shuffledNames = [...botNames].sort(() => 0.5 - Math.random());
+
         this.players = [];
+        
+        // Create 10 players (1 human + 9 AI bots)
         for (let i = 0; i < 10; i++) {
             const isLocal = i === 0;
-            const p = new Player(i, isLocal ? playerName : botNames[i - 1], isLocal ? this.menuColorIndex : (i * 2 + 1) % 8, isLocal ? this.menuHatIndex : (i + 2) % 8, shuffledRoles[i], isLocal);
+            const name = isLocal ? playerName : shuffledNames[i - 1];
+            const colorIdx = isLocal ? this.menuColorIndex : (i * 2 + 1) % 8;
+            const hatIdx = isLocal ? this.menuHatIndex : (i + 2) % 8;
+            const role = shuffledRoles[i];
+
+            const p = new Player(i, name, colorIdx, hatIdx, role, isLocal);
             p.tasks = TaskManager.generateTaskList();
-            p.x = 1720 + (i % 5) * 40; p.y = 250 + Math.floor(i / 5) * 40;
-            if (!isLocal) p.killCooldown = 25;
-            this.players.push(p); if (isLocal) this.localPlayer = p;
+
+            // Spawn inside Bridge or central corridor
+            if (this.selectedMap === 'catnip_observatory') {
+                p.x = 1320 + (i % 5) * 40;
+            } else {
+                p.x = 1720 + (i % 5) * 40;
+            }
+            p.y = 250 + Math.floor(i / 5) * 40;
+
+            this.players.push(p);
+            if (isLocal) this.localPlayer = p;
         }
+
         this.sabotageSystem = new SabotageSystem();
         const sabBanner = document.getElementById('sabotage-banner');
         if (sabBanner) sabBanner.classList.add('hidden');
-        if (this.localPlayer) {
-            this.mapRenderer.cameraX = this.localPlayer.x;
-            this.mapRenderer.cameraY = this.localPlayer.y;
-        }
-        this.state = 'PLAYING';
-        this.uiManager.showScreen('hud-screen');
+        this.showRoleReveal();
     }
 
     showRoleReveal() {
