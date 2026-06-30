@@ -397,6 +397,10 @@ export class AIController {
                     if (bot.currentTaskToComplete.id === 'def_get_weapons') {
                         bot.hasKnife = true;
                     }
+                    if (bot.currentTaskToComplete.id === 'post_def_heal') {
+                        bot.health = 3;
+                        bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
+                    }
                     bot.currentTaskToComplete = null;
                 }
             }

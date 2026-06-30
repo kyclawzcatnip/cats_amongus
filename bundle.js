@@ -2491,6 +2491,10 @@ class AIController {
                     if (bot.currentTaskToComplete.id === 'def_get_weapons') {
                         bot.hasKnife = true;
                     }
+                    if (bot.currentTaskToComplete.id === 'post_def_heal') {
+                        bot.health = 3;
+                        bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
+                    }
                     soundManager.playVoteClick();
                     bot.currentTaskToComplete = null;
                 }
@@ -3795,6 +3799,12 @@ class Game {
                     if (t.id === 'def_get_weapons') {
                         this.localPlayer.hasKnife = true;
                     }
+                    if (t.id === 'post_def_heal') {
+                        this.localPlayer.health = 3;
+                        this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'post_def_heal');
+                        const medRoom = ROOMS.find(r => r.id === 'medical');
+                        if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id !== 'post_def_heal');
+                    }
                     if (t.id.startsWith('def_')) {
                         this.checkDefensiveProtocolStatus();
                     }
@@ -4250,6 +4260,35 @@ class Game {
             });
             ROOMS.forEach(room => {
                 room.tasks = room.tasks.filter(t => !t.id.startsWith('def_'));
+            });
+
+            if (this.localPlayer.health < 3 && !this.localPlayer.isDead && this.localPlayer.role !== 'evil Dog') {
+                if (!this.localPlayer.tasks.some(t => t.id === 'post_def_heal')) {
+                    this.localPlayer.tasks.push({
+                        id: 'post_def_heal',
+                        name: 'Heal Injuries',
+                        room: 'Medical',
+                        type: 'fill_meter',
+                        completed: false
+                    });
+                }
+                const medRoom = ROOMS.find(r => r.id === 'medical');
+                if (medRoom && !medRoom.tasks.some(t => t.id === 'post_def_heal')) {
+                    medRoom.tasks.push({ id: 'post_def_heal', name: 'Heal Injuries', x: medRoom.x + medRoom.width / 2, y: medRoom.y + medRoom.height / 2 });
+                }
+            }
+            this.players.forEach(p => {
+                if (p.health < 3 && !p.isDead && p.role !== 'evil Dog') {
+                    if (p.tasks && !p.tasks.some(t => t.id === 'post_def_heal')) {
+                        p.tasks.push({
+                            id: 'post_def_heal',
+                            name: 'Heal Injuries',
+                            room: 'Medical',
+                            type: 'fill_meter',
+                            completed: false
+                        });
+                    }
+                }
             });
             soundManager.playTaskComplete();
             const banner = document.createElement('div');
