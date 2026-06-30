@@ -127,6 +127,7 @@ class Game {
 
             const p = new Player(i, name, colorIdx, hatIdx, role, isLocal);
             p.tasks = TaskManager.generateTaskList();
+            p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
 
             // Spawn inside Bridge or central corridor
             if (this.selectedMap === 'catnip_observatory') {

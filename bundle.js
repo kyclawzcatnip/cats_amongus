@@ -306,19 +306,25 @@ class SpriteRenderer {
             ctx.fillText(player.name, 0, -radius - 12);
             ctx.shadowBlur = 0;
 
-            if (player.hasKnife) {
+            if (player.hasGun) {
                 ctx.save();
-                ctx.translate(player.scaleX === -1 ? -radius - 8 : radius + 8, radius * 0.2);
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(-2, 4, 4, 8);
-                ctx.fillStyle = '#dcdde1';
-                ctx.beginPath();
-                ctx.moveTo(-3, 4);
-                ctx.lineTo(3, 4);
-                ctx.lineTo(3, -12);
-                ctx.lineTo(-3, -6);
-                ctx.closePath();
-                ctx.fill();
+                ctx.translate(player.scaleX === -1 ? -radius - 6 : radius + 6, radius * 0.1);
+                
+                // Blaster Handle
+                ctx.fillStyle = '#2d3436';
+                ctx.fillRect(-6, 2, 4, 8);
+                
+                // Blaster Barrel
+                ctx.fillStyle = '#7f8c8d';
+                if (player.scaleX === -1) {
+                    ctx.fillRect(-12, -2, 10, 5);
+                    ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                    ctx.fillRect(-10, -1, 4, 3);
+                } else {
+                    ctx.fillRect(2, -2, 10, 5);
+                    ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                    ctx.fillRect(6, -1, 4, 3);
+                }
                 ctx.restore();
             }
 
@@ -3592,6 +3598,23 @@ class UIManager {
             listEl.appendChild(li);
         });
 
+        const gunEl = document.getElementById('hud-inventory-gun');
+        const torpEl = document.getElementById('hud-inventory-torpedo');
+        if (gunEl) {
+            if (player.hasGun) {
+                gunEl.innerText = `🔫 Gun: ${player.gunAmmo}/5 Ammo`;
+                gunEl.style.color = player.gunAmmo === 0 ? '#ff7675' : '#55efc4';
+            } else {
+                gunEl.innerText = `🔫 Gun: None`;
+                gunEl.style.color = '#ffeaa7';
+            }
+        }
+        if (torpEl) {
+            const torpedoes = player.loadedTorpedoes || 0;
+            torpEl.innerText = `🚀 Torpedoes Ready: ${torpedoes}`;
+            torpEl.style.color = torpedoes === 0 ? '#ff7675' : '#55efc4';
+        }
+
         // Global Task Progress Bar (Sum of ALL tasks across ALL crewmate cats)
         let totalCatTasks = 0;
         let completedCatTasks = 0;
@@ -3815,6 +3838,7 @@ class Game {
             const isLocal = i === 0;
             const p = new Player(i, isLocal ? 'Captain Whiskers' : botNames[i - 1], isLocal ? this.menuColorIndex : (i * 2 + 1) % 8, isLocal ? this.menuHatIndex : (i + 2) % 8, roles[i], isLocal);
             p.tasks = TaskManager.generateTaskList();
+            p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
             p.x = 1720 + (i % 5) * 40; p.y = 250 + Math.floor(i / 5) * 40;
             this.players.push(p); if (isLocal) this.localPlayer = p;
         }
@@ -3903,6 +3927,7 @@ class Game {
 
             const p = new Player(i, name, colorIdx, hatIdx, role, isLocal);
             p.tasks = TaskManager.generateTaskList();
+            p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
 
             // Spawn inside Bridge or central corridor
             if (this.selectedMap === 'catnip_observatory') {

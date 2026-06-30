@@ -147,19 +147,25 @@ export class SpriteRenderer {
         ctx.fillText(player.name, 0, -radius - 12);
         ctx.shadowBlur = 0;
 
-        if (player.hasKnife) {
+        if (player.hasGun) {
             ctx.save();
-            ctx.translate(player.scaleX === -1 ? -radius - 8 : radius + 8, radius * 0.2);
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(-2, 4, 4, 8);
-            ctx.fillStyle = '#dcdde1';
-            ctx.beginPath();
-            ctx.moveTo(-3, 4);
-            ctx.lineTo(3, 4);
-            ctx.lineTo(3, -12);
-            ctx.lineTo(-3, -6);
-            ctx.closePath();
-            ctx.fill();
+            ctx.translate(player.scaleX === -1 ? -radius - 6 : radius + 6, radius * 0.1);
+            
+            // Blaster Handle
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(-6, 2, 4, 8);
+            
+            // Blaster Barrel
+            ctx.fillStyle = '#7f8c8d';
+            if (player.scaleX === -1) {
+                ctx.fillRect(-12, -2, 10, 5);
+                ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                ctx.fillRect(-10, -1, 4, 3);
+            } else {
+                ctx.fillRect(2, -2, 10, 5);
+                ctx.fillStyle = '#00cec9'; // Glowing cyan cell
+                ctx.fillRect(6, -1, 4, 3);
+            }
             ctx.restore();
         }
 

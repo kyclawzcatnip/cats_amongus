@@ -172,6 +172,23 @@ export class UIManager {
             listEl.appendChild(li);
         });
 
+        const gunEl = document.getElementById('hud-inventory-gun');
+        const torpEl = document.getElementById('hud-inventory-torpedo');
+        if (gunEl) {
+            if (player.hasGun) {
+                gunEl.innerText = `🔫 Gun: ${player.gunAmmo}/5 Ammo`;
+                gunEl.style.color = player.gunAmmo === 0 ? '#ff7675' : '#55efc4';
+            } else {
+                gunEl.innerText = `🔫 Gun: None (Get in Kitchen)`;
+                gunEl.style.color = '#ffeaa7';
+            }
+        }
+        if (torpEl) {
+            const torpedoes = player.loadedTorpedoes || 0;
+            torpEl.innerText = `🚀 Torpedoes Ready: ${torpedoes}`;
+            torpEl.style.color = torpedoes === 0 ? '#ff7675' : '#55efc4';
+        }
+
         let totalCatTasks = 0;
         let completedCatTasks = 0;
         players.forEach(p => {
