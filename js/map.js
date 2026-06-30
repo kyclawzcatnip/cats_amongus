@@ -122,6 +122,9 @@ export class MapRenderer {
                     if (baseId === 'upload_data') {
                         const hasUncompletedDownload = localPlayer.tasks.some(d => (d.id.includes('download_data') || d.id.includes('download_comms')) && !d.completed);
                         isLocked = hasUncompletedDownload;
+                    } else if (baseId === 'load_torpedoes') {
+                        const hasUncompletedPickup = localPlayer.tasks.some(p => p.id.includes('pickup_torpedo') && !p.completed);
+                        isLocked = hasUncompletedPickup;
                     }
                     return baseId === t.id && !tk.completed && !isLocked;
                 });

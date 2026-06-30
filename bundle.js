@@ -565,7 +565,7 @@ const WHISKER_STATION_ROOMS = [
     {
         id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
         x: 2350, y: 1600, width: 450, height: 380, icon: '🛠️',
-        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 } ]
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2570, y: 1840 } ]
     },
     {
         id: 'thruster_a', name: '🚀 Thruster A', color: '#e84118', bgColor: '#331b1b',
@@ -707,7 +707,7 @@ const CATNIP_OBSERVATORY_ROOMS = [
     {
         id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
         x: 2150, y: 4450, width: 450, height: 400, icon: '🛠️',
-        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 } ]
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2370, y: 4720 } ]
     },
     {
         id: 'cat_garden', name: '🌿 Cat Garden', color: '#4cd137', bgColor: '#1b3320',
@@ -861,7 +861,8 @@ const TASK_DEFINITIONS = {
     med_scan: { name: 'Submit Med Scan', room: 'Medical', type: 'rapid_click' },
     treat_scratches: { name: 'Treat Paw Scratches', room: 'Medical', type: 'click_sequence' },
     clear_asteroids: { name: 'Clear Asteroids', room: 'Weapons', type: 'shoot_asteroids' },
-    load_torpedoes: { name: 'Load Catnip Torpedoes', room: 'Weapons', type: 'fill_meter' },
+    pickup_torpedo: { name: 'Retrieve Catnip Torpedo', room: 'Workshop', type: 'fill_meter' },
+    load_torpedoes: { name: 'Load Catnip Torpedo', room: 'Weapons', type: 'fill_meter' },
     monitor_cams: { name: 'Monitor Security Feeds', room: 'Security', type: 'cams' },
     rewind_tapes: { name: 'Rewind Security Tapes', room: 'Security', type: 'slider' },
     sort_fish: { name: 'Sort Fish Bins', room: 'Fish Storage', type: 'click_sequence' },
@@ -900,7 +901,7 @@ const TASK_DEFINITIONS = {
 
 class TaskManager {
     static generateTaskList() {
-        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data');
+        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data' && k !== 'load_torpedoes');
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         const list = shuffled.slice(0, 5).map(key => ({
             id: key, ...TASK_DEFINITIONS[key], completed: false, progress: 0
@@ -909,6 +910,12 @@ class TaskManager {
         if (hasDownload) {
             list.push({
                 id: 'upload_data', ...TASK_DEFINITIONS.upload_data, completed: false, progress: 0, locked: true
+            });
+        }
+        const hasPickup = list.some(t => t.id === 'pickup_torpedo');
+        if (hasPickup) {
+            list.push({
+                id: 'load_torpedoes', ...TASK_DEFINITIONS.load_torpedoes, completed: false, progress: 0, locked: true
             });
         }
         return list;
@@ -1782,6 +1789,9 @@ class MapRenderer {
                     if (baseId === 'upload_data') {
                         const hasUncompletedDownload = localPlayer.tasks.some(d => (d.id.includes('download_data') || d.id.includes('download_comms')) && !d.completed);
                         isLocked = hasUncompletedDownload;
+                    } else if (baseId === 'load_torpedoes') {
+                        const hasUncompletedPickup = localPlayer.tasks.some(p => p.id.includes('pickup_torpedo') && !p.completed);
+                        isLocked = hasUncompletedPickup;
                     }
                     return baseId === t.id && !tk.completed && !isLocked;
                 });
@@ -2456,7 +2466,19 @@ class AIController {
                 }
             }
 
-            const uncompletedTasks = (bot.tasks || []).filter(t => !t.completed);
+            const uncompletedTasks = (bot.tasks || []).filter(t => {
+                if (t.completed) return false;
+                const baseId = t.id.split('_reassigned_')[0];
+                if (baseId === 'upload_data') {
+                    const downloadUncompleted = bot.tasks.some(d => (d.id.includes('download_data') || d.id.includes('download_comms')) && !d.completed);
+                    if (downloadUncompleted) return false;
+                }
+                if (baseId === 'load_torpedoes') {
+                    const pickupUncompleted = bot.tasks.some(p => p.id.includes('pickup_torpedo') && !p.completed);
+                    if (pickupUncompleted) return false;
+                }
+                return true;
+            });
             
             let targetKey = 'bridge';
             let taskTarget = null;
@@ -3226,6 +3248,11 @@ class UIManager {
         if (uploadTask) {
             uploadTask.locked = downloadTask && !downloadTask.completed;
         }
+        const pickupTorpedoTask = tasks.find(tk => tk.id.includes('pickup_torpedo'));
+        const loadTorpedoTask = tasks.find(tk => tk.id.includes('load_torpedoes'));
+        if (loadTorpedoTask) {
+            loadTorpedoTask.locked = pickupTorpedoTask && !pickupTorpedoTask.completed;
+        }
 
         tasks.forEach(t => {
             const li = document.createElement('li');
@@ -3236,6 +3263,10 @@ class UIManager {
                 li.className = 'locked';
                 li.style.color = '#7f8c8d';
                 li.innerHTML = `🔒 ${t.room}: ${t.name} (Download first)`;
+            } else if (t.id.includes('load_torpedoes') && t.locked) {
+                li.className = 'locked';
+                li.style.color = '#7f8c8d';
+                li.innerHTML = `🔒 ${t.room}: ${t.name} (Retrieve from Workshop first)`;
             } else {
                 li.innerHTML = `📌 ${t.room}: ${t.name}`;
             }
@@ -3597,7 +3628,7 @@ class Game {
             const baseTaskId = t.id.split('_reassigned_')[0];
             const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
             if (taskLoc && Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y) <= 95) {
-                if (baseTaskId === 'upload_data' && t.locked) {
+                if ((baseTaskId === 'upload_data' || baseTaskId === 'load_torpedoes') && t.locked) {
                     continue;
                 }
                 this.activeTask = t; this.uiManager.showScreen('task-modal');

@@ -85,7 +85,7 @@ export const WHISKER_STATION_ROOMS = [
     {
         id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
         x: 2350, y: 1600, width: 450, height: 380, icon: '🛠️',
-        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 } ]
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2570, y: 1840 } ]
     },
     {
         id: 'thruster_a', name: '🚀 Thruster A', color: '#e84118', bgColor: '#331b1b',
@@ -227,7 +227,7 @@ export const CATNIP_OBSERVATORY_ROOMS = [
     {
         id: 'workshop', name: '🛠️ Workshop', color: '#487eb0', bgColor: '#1b2733',
         x: 2150, y: 4450, width: 450, height: 400, icon: '🛠️',
-        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 } ]
+        tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2270, y: 4620 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2470, y: 4620 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2370, y: 4720 } ]
     },
     {
         id: 'cat_garden', name: '🌿 Cat Garden', color: '#4cd137', bgColor: '#1b3320',

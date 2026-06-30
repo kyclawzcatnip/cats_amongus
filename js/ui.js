@@ -141,10 +141,34 @@ export class UIManager {
     updateHUD(player, players, tasks, sabotageSystem) {
         const listEl = document.getElementById('hud-task-list');
         listEl.innerHTML = '';
+        
+        const downloadTask = tasks.find(tk => (tk.id.includes('download_data') || tk.id.includes('download_comms')));
+        const uploadTask = tasks.find(tk => tk.id.includes('upload_data'));
+        if (uploadTask) {
+            uploadTask.locked = downloadTask && !downloadTask.completed;
+        }
+        const pickupTorpedoTask = tasks.find(tk => tk.id.includes('pickup_torpedo'));
+        const loadTorpedoTask = tasks.find(tk => tk.id.includes('load_torpedoes'));
+        if (loadTorpedoTask) {
+            loadTorpedoTask.locked = pickupTorpedoTask && !pickupTorpedoTask.completed;
+        }
+
         tasks.forEach(t => {
             const li = document.createElement('li');
-            li.className = t.completed ? 'completed' : '';
-            li.innerHTML = `${t.completed ? '✅' : '📌'} ${t.room}: ${t.name}`;
+            if (t.completed) {
+                li.className = 'completed';
+                li.innerHTML = `✅ ${t.room}: ${t.name}`;
+            } else if (t.id.includes('upload_data') && t.locked) {
+                li.className = 'locked';
+                li.style.color = '#7f8c8d';
+                li.innerHTML = `🔒 ${t.room}: ${t.name} (Download first)`;
+            } else if (t.id.includes('load_torpedoes') && t.locked) {
+                li.className = 'locked';
+                li.style.color = '#7f8c8d';
+                li.innerHTML = `🔒 ${t.room}: ${t.name} (Retrieve from Workshop first)`;
+            } else {
+                li.innerHTML = `📌 ${t.room}: ${t.name}`;
+            }
             listEl.appendChild(li);
         });
 

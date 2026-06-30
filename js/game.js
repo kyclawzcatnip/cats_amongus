@@ -236,6 +236,9 @@ class Game {
             if (taskLoc) {
                 const dist = Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y);
                 if (dist <= 60) {
+                    if ((baseTaskId === 'upload_data' || baseTaskId === 'load_torpedoes') && t.locked) {
+                        continue;
+                    }
                     this.activeTask = t;
                     this.uiManager.showScreen('task-modal');
                     TaskManager.renderTaskMinigame(t, this.localPlayer, () => {

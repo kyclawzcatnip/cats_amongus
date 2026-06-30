@@ -10,7 +10,8 @@ export const TASK_DEFINITIONS = {
     med_scan: { name: 'Submit Med Scan', room: 'Medical', type: 'rapid_click' },
     treat_scratches: { name: 'Treat Paw Scratches', room: 'Medical', type: 'click_sequence' },
     clear_asteroids: { name: 'Clear Asteroids', room: 'Weapons', type: 'shoot_asteroids' },
-    load_torpedoes: { name: 'Load Catnip Torpedoes', room: 'Weapons', type: 'fill_meter' },
+    pickup_torpedo: { name: 'Retrieve Catnip Torpedo', room: 'Workshop', type: 'fill_meter' },
+    load_torpedoes: { name: 'Load Catnip Torpedo', room: 'Weapons', type: 'fill_meter' },
     monitor_cams: { name: 'Monitor Security Feeds', room: 'Security', type: 'cams' },
     rewind_tapes: { name: 'Rewind Security Tapes', room: 'Security', type: 'slider' },
     sort_fish: { name: 'Sort Fish Bins', room: 'Fish Storage', type: 'click_sequence' },
@@ -49,7 +50,7 @@ export const TASK_DEFINITIONS = {
 
 export class TaskManager {
     static generateTaskList() {
-        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data');
+        const keys = Object.keys(TASK_DEFINITIONS).filter(k => k !== 'upload_data' && k !== 'load_torpedoes');
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         const list = shuffled.slice(0, 5).map(key => ({
             id: key, ...TASK_DEFINITIONS[key], completed: false, progress: 0
@@ -58,6 +59,12 @@ export class TaskManager {
         if (hasDownload) {
             list.push({
                 id: 'upload_data', ...TASK_DEFINITIONS.upload_data, completed: false, progress: 0, locked: true
+            });
+        }
+        const hasPickup = list.some(t => t.id === 'pickup_torpedo');
+        if (hasPickup) {
+            list.push({
+                id: 'load_torpedoes', ...TASK_DEFINITIONS.load_torpedoes, completed: false, progress: 0, locked: true
             });
         }
         return list;

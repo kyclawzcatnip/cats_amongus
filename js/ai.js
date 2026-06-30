@@ -440,7 +440,19 @@ export class AIController {
                 }
             }
 
-            const uncompletedTasks = (bot.tasks || []).filter(t => !t.completed);
+            const uncompletedTasks = (bot.tasks || []).filter(t => {
+                if (t.completed) return false;
+                const baseId = t.id.split('_reassigned_')[0];
+                if (baseId === 'upload_data') {
+                    const downloadUncompleted = bot.tasks.some(d => (d.id.includes('download_data') || d.id.includes('download_comms')) && !d.completed);
+                    if (downloadUncompleted) return false;
+                }
+                if (baseId === 'load_torpedoes') {
+                    const pickupUncompleted = bot.tasks.some(p => p.id.includes('pickup_torpedo') && !p.completed);
+                    if (pickupUncompleted) return false;
+                }
+                return true;
+            });
             
             let targetKey = 'bridge';
             let taskTarget = null;
