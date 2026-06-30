@@ -2280,6 +2280,48 @@ class AIController {
             return false;
         };
 
+        if (bot.role !== 'evil Dog' && window.gameInstance && window.gameInstance.defensiveProtocolActive) {
+            if (!bot.panicTimer) bot.panicTimer = 0;
+            bot.panicTimer -= dt;
+            bot.hasKnife = false;
+
+            if (bot.panicTimer <= 0 || !bot.currentPath || bot.currentPath.length === 0) {
+                let foundPoint = false;
+                for (let attempts = 0; attempts < 15; attempts++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * 200 + 100;
+                    const px = bot.x + Math.cos(angle) * dist;
+                    const py = bot.y + Math.sin(angle) * dist;
+                    if (isWalkable(px, py)) {
+                        bot.currentPath = [{ x: px, y: py }];
+                        bot.panicTimer = Math.random() * 2 + 1;
+                        foundPoint = true;
+                        break;
+                    }
+                }
+                if (!foundPoint) {
+                    bot.panicTimer = 0.5;
+                }
+            }
+
+            if (bot.currentPath && bot.currentPath.length > 0) {
+                const targetNode = bot.currentPath[0];
+                const dx = targetNode.x - bot.x;
+                const dy = targetNode.y - bot.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 20) {
+                    bot.currentPath.shift();
+                } else {
+                    if (dx < 0) bot.scaleX = -1;
+                    else if (dx > 0) bot.scaleX = 1;
+                    const moveDist = bot.speed * dt * 1.3;
+                    bot.x += (dx / dist) * moveDist;
+                    bot.y += (dy / dist) * moveDist;
+                }
+            }
+            return;
+        }
+
         const isLineOfSightClear = (x1, y1, x2, y2) => {
             if ((y1 >= 2800) !== (y2 >= 2800)) return false;
             const dist = Math.hypot(x2 - x1, y2 - y1);
@@ -4311,20 +4353,15 @@ class Game {
     triggerDefensiveProtocol() {
         this.defensiveProtocolActive = true;
         this.invaders = [];
-        const spawnPoints = [
-            { x: 1000, y: 1100 },
-            { x: 1800, y: 1100 },
-            { x: 2200, y: 1100 },
-            { x: 1800, y: 600 },
-            { x: 1800, y: 1800 }
-        ];
-        const shuffledPoints = [...spawnPoints].sort(() => 0.5 - Math.random());
+        const shuffledRooms = [...ROOMS].sort(() => 0.5 - Math.random());
         for (let i = 0; i < 3; i++) {
-            const pt = shuffledPoints[i % shuffledPoints.length];
+            const room = shuffledRooms[i % shuffledRooms.length];
+            const rx = room.x + room.width / 2;
+            const ry = room.y + room.height / 2;
             this.invaders.push({
                 id: i,
-                x: pt.x,
-                y: pt.y,
+                x: rx,
+                y: ry,
                 vx: (Math.random() - 0.5) * 80,
                 vy: (Math.random() - 0.5) * 80,
                 radius: 16
@@ -4334,7 +4371,7 @@ class Game {
         const emergencyTasks = [
             { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
             { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
-            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', room: 'Workshop', type: 'rapid_click', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', room: 'Kitchen', type: 'rapid_click', completed: false },
             { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
         ];
         emergencyTasks.forEach(task => {
@@ -4357,9 +4394,9 @@ class Game {
         if (bridgeRoom && !bridgeRoom.tasks.some(t => t.id === 'def_attack_ships')) {
             bridgeRoom.tasks.push({ id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', x: bridgeRoom.x + 100, y: bridgeRoom.y + 100 });
         }
-        const workshopRoom = ROOMS.find(r => r.id === 'workshop');
-        if (workshopRoom && !workshopRoom.tasks.some(t => t.id === 'def_get_weapons')) {
-            workshopRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', x: workshopRoom.x + 80, y: workshopRoom.y + 120 });
+        const kitchenRoom = ROOMS.find(r => r.id === 'kitchen');
+        if (kitchenRoom && !kitchenRoom.tasks.some(t => t.id === 'def_get_weapons')) {
+            kitchenRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', x: kitchenRoom.x + kitchenRoom.width / 2, y: kitchenRoom.y + kitchenRoom.height / 2 });
         }
         const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
         if (weaponsRoom && !weaponsRoom.tasks.some(t => t.id === 'def_reload_torpedoes')) {
