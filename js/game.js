@@ -537,6 +537,18 @@ class Game {
             }
         });
 
+        createBtn('😇 Revive All Dead Cats', '#10ac84', () => {
+            this.players.forEach(p => {
+                if (p.isDead) {
+                    p.isDead = false;
+                    p.isEjected = false;
+                    p.bodyCleaned = false;
+                    p.health = 3;
+                }
+            });
+            soundManager.playTaskComplete();
+        });
+
         document.body.appendChild(menu);
     }
 
