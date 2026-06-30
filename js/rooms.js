@@ -7,8 +7,13 @@ export const WHISKER_STATION_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1550, y: 150, width: 500, height: 320, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1680, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 1920, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1800, y: 200 } ],
-        hasEmergencyButton: true, buttonX: 1800, buttonY: 310
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1680, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 1920, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1800, y: 200 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1500, y: 650, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1700, y: 850 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 1900, y: 850 } ],
+        hasEmergencyButton: true, buttonX: 1800, buttonY: 950
     },
     {
         id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
@@ -32,8 +37,8 @@ export const WHISKER_STATION_ROOMS = [
     },
     {
         id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#a29bfe', bgColor: '#27203d',
-        x: 1550, y: 650, width: 500, height: 320, icon: '🛏️',
-        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1680, y: 780 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1920, y: 780 } ]
+        x: 1550, y: 1350, width: 500, height: 320, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1680, y: 1480 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1920, y: 1480 } ]
     },
     {
         id: 'electrical', name: '⚡ Electrical', color: '#fbc531', bgColor: '#332e1b',
@@ -58,19 +63,19 @@ export const WHISKER_STATION_ROOMS = [
     },
     {
         id: 'cargo_bay', name: '📦 Cargo Bay', color: '#e84118', bgColor: '#301c22',
-        x: 1550, y: 1150, width: 500, height: 350, icon: '📦',
-        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 1680, y: 1300 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 1920, y: 1300 } ]
+        x: 2300, y: 1150, width: 500, height: 350, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 2420, y: 1300 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2620, y: 1300 } ]
     },
     {
         id: 'kitchen', name: '🍽️ Kitchen', color: '#e1b12c', bgColor: '#332a1b',
-        x: 2300, y: 1150, width: 450, height: 350, icon: '🍽️',
-        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 2420, y: 1300 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 2620, y: 1300 } ]
+        x: 2950, y: 1150, width: 450, height: 350, icon: '🍽️',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 3070, y: 1300 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 3270, y: 1300 } ]
     },
     {
         id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
-        x: 2950, y: 1150, width: 400, height: 350, icon: '📡',
-        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ],
-        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1325
+        x: 2950, y: 1600, width: 400, height: 350, icon: '📡',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1750 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1750 } ],
+        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1775
     },
     {
         id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
@@ -88,25 +93,20 @@ export const WHISKER_STATION_ROOMS = [
         tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2570, y: 1840 } ]
     },
     {
+        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#fd79a8', bgColor: '#2d1b2b',
+        x: 1550, y: 1800, width: 500, height: 380, icon: '🧶',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1680, y: 1950 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1880, y: 1950 } ],
+        hasEngineFixPanel: true, engineFixX: 1780, engineFixY: 1950
+    },
+    {
         id: 'thruster_a', name: '🚀 Thruster A', color: '#e84118', bgColor: '#331b1b',
         x: 200, y: 2050, width: 450, height: 420, icon: '🚀',
         tasks: [ { id: 'prime_thruster_a', name: 'Prime Left Thruster', x: 320, y: 2240 }, { id: 'flush_fuel_a', name: 'Flush Engine Fuel A', x: 520, y: 2240 } ]
     },
     {
-        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#ff5252', bgColor: '#331b23',
-        x: 1550, y: 2050, width: 500, height: 420, icon: '🧶',
-        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1680, y: 2240 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1920, y: 2240 } ],
-        hasEngineFixPanel: true, engineFixX: 1800, engineFixY: 2350
-    },
-    {
         id: 'thruster_b', name: '🚀 Thruster B', color: '#e84118', bgColor: '#331b1b',
         x: 2950, y: 2050, width: 450, height: 420, icon: '🚀',
         tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 3070, y: 2240 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 3270, y: 2240 } ]
-    },
-    {
-        id: 'admin', name: '💼 Admin Room', color: '#ff7675', bgColor: '#2d1a24',
-        x: 2950, y: 1600, width: 400, height: 350, icon: '💼',
-        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 3080, y: 1770 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 3220, y: 1770 } ]
     }
 ];
 
@@ -136,8 +136,13 @@ export const CATNIP_OBSERVATORY_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1150, y: 150, width: 500, height: 350, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1300, y: 300 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1500, y: 300 } ],
-        hasEmergencyButton: true, buttonX: 1400, buttonY: 350
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1300, y: 300 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1500, y: 300 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1100, y: 650, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1300, y: 850 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 1500, y: 850 }, { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 1380, y: 950 } ],
+        hasEmergencyButton: true, buttonX: 1400, buttonY: 950
     },
     {
         id: 'greenhouse', name: '🌿 Catnip Greenhouse', color: '#4cd137', bgColor: '#1b3320',
@@ -153,11 +158,6 @@ export const CATNIP_OBSERVATORY_ROOMS = [
         id: 'medical', name: '🏥 Medical Bay', color: '#ff6b6b', bgColor: '#2d1b24',
         x: 200, y: 800, width: 450, height: 350, icon: '🏥',
         tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 320, y: 970 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 520, y: 970 } ]
-    },
-    {
-        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
-        x: 1150, y: 800, width: 500, height: 350, icon: '📹',
-        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 1380, y: 950 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 1450, y: 950 } ]
     },
     {
         id: 'electrical', name: '⚡ Electrical Room', color: '#fbc531', bgColor: '#332e1b',
@@ -260,8 +260,13 @@ export const CATHQ_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1750, y: 150, width: 500, height: 350, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ],
-        hasEmergencyButton: true, buttonX: 2000, buttonY: 320
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1700, y: 750, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1900, y: 950 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 2100, y: 950 }, { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 1050 } ],
+        hasEmergencyButton: true, buttonX: 2000, buttonY: 1050
     },
     {
         id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
@@ -284,11 +289,6 @@ export const CATHQ_ROOMS = [
         tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1200, y: 910 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1400, y: 910 } ]
     },
     {
-        id: 'cat_garden', name: '🌸 Cat Garden', color: '#10ac84', bgColor: '#1b332b',
-        x: 1750, y: 750, width: 500, height: 350, icon: '🌸',
-        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 920 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 2150, y: 920 } ]
-    },
-    {
         id: 'nap_quarters', name: '😴 Nap Quarters', color: '#fd79a8', bgColor: '#3d252f',
         x: 2500, y: 750, width: 400, height: 320, icon: '😴',
         tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 2600, y: 910 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 2800, y: 910 } ]
@@ -308,11 +308,6 @@ export const CATHQ_ROOMS = [
         id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
         x: 1050, y: 1300, width: 450, height: 320, icon: '🐟',
         tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 1150, y: 1460 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 1350, y: 1460 } ]
-    },
-    {
-        id: 'admin', name: '📁 Admin Room', color: '#ffeaa7', bgColor: '#2c3e50',
-        x: 1800, y: 1300, width: 400, height: 300, icon: '📁',
-        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 1900, y: 1450 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 2100, y: 1450 } ]
     },
     {
         id: 'kitchen', name: '🍳 Kitchen', color: '#e67e22', bgColor: '#3d2c1e',

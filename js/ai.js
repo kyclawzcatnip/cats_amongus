@@ -11,8 +11,15 @@ export class AIController {
         const isWalkable = (px, py) => {
             const margin = 12;
             for (const r of ROOMS) {
-                if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                if (r.isRound) {
+                    const radius = Math.min(r.width, r.height) / 2;
+                    const cx = r.x + r.width / 2;
+                    const cy = r.y + r.height / 2;
+                    if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                } else {
+                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                }
             }
             for (const c of CORRIDORS) {
                 let minX, maxX, minY, maxY;
@@ -320,10 +327,10 @@ export class AIController {
                     const baseId = bot.currentTaskToComplete.id.split('_reassigned_')[0];
                     if (baseId === 'def_get_weapons') {
                         bot.hasGun = true;
-                        bot.gunAmmo = 5;
+                        bot.gunAmmo = 8;
                     }
                     if (bot.currentTaskToComplete.id === 'post_def_heal') {
-                        bot.health = 3;
+                        bot.health = 5;
                         bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
                     }
                     if (bot.currentTaskToComplete.id === 'pickup_torpedo') {
@@ -517,7 +524,8 @@ export class AIController {
             } else {
                 if (dx < 0) bot.scaleX = -1;
                 else if (dx > 0) bot.scaleX = 1;
-                const moveDist = bot.speed * dt * (bot.isFleeing ? 1.25 : 0.8);
+                const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+                const moveDist = bot.speed * dt * speedMultiplier * (bot.isFleeing ? 1.25 : 0.8);
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
 

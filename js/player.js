@@ -61,15 +61,23 @@ export class Player {
             if (dx < 0) this.scaleX = -1;
             else if (dx > 0) this.scaleX = 1;
             const length = Math.hypot(dx, dy);
-            const moveDist = this.speed * dt;
+            const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            const moveDist = this.speed * speedMultiplier * dt;
             const nextX = this.x + (dx / length) * moveDist;
             const nextY = this.y + (dy / length) * moveDist;
 
             const isWalkable = (px, py) => {
                 const margin = 12;
                 for (const r of ROOMS) {
-                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                    if (r.isRound) {
+                        const radius = Math.min(r.width, r.height) / 2;
+                        const cx = r.x + r.width / 2;
+                        const cy = r.y + r.height / 2;
+                        if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                    } else {
+                        if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                            py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                    }
                 }
                 for (const c of CORRIDORS) {
                     let minX, maxX, minY, maxY;

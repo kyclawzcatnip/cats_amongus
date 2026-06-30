@@ -270,16 +270,19 @@ class SpriteRenderer {
             // Always draw normal cute Cat sprite
             this.drawCat(ctx, radius, colorObj, player);
 
-            if (player.health < 3 && player.health > 0) {
+            if (player.health < 5 && player.health > 0) {
                 ctx.save();
                 ctx.strokeStyle = '#d63031';
                 ctx.lineWidth = 2.5;
                 ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
-                ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
-                ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
-                ctx.stroke();
+
+                if (player.health <= 3) {
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
+                    ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
+                    ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
+                    ctx.stroke();
+                }
 
                 if (player.health === 1) {
                     ctx.beginPath();
@@ -632,8 +635,13 @@ const WHISKER_STATION_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1550, y: 150, width: 500, height: 320, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1680, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 1920, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1800, y: 200 } ],
-        hasEmergencyButton: true, buttonX: 1800, buttonY: 310
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1680, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 1920, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1800, y: 200 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1500, y: 650, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1700, y: 850 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 1900, y: 850 } ],
+        hasEmergencyButton: true, buttonX: 1800, buttonY: 950
     },
     {
         id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
@@ -657,8 +665,8 @@ const WHISKER_STATION_ROOMS = [
     },
     {
         id: 'ship_quarters', name: '🛏️ Ship Quarters', color: '#a29bfe', bgColor: '#27203d',
-        x: 1550, y: 650, width: 500, height: 320, icon: '🛏️',
-        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1680, y: 780 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1920, y: 780 } ]
+        x: 1550, y: 1350, width: 500, height: 320, icon: '🛏️',
+        tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1680, y: 1480 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1920, y: 1480 } ]
     },
     {
         id: 'electrical', name: '⚡ Electrical', color: '#fbc531', bgColor: '#332e1b',
@@ -683,19 +691,19 @@ const WHISKER_STATION_ROOMS = [
     },
     {
         id: 'cargo_bay', name: '📦 Cargo Bay', color: '#e84118', bgColor: '#301c22',
-        x: 1550, y: 1150, width: 500, height: 350, icon: '📦',
-        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 1680, y: 1300 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 1920, y: 1300 } ]
+        x: 2300, y: 1150, width: 500, height: 350, icon: '📦',
+        tasks: [ { id: 'sort_boxes', name: 'Sort Supply Crates', x: 2420, y: 1300 }, { id: 'check_manifest', name: 'Check Cargo Manifest', x: 2620, y: 1300 } ]
     },
     {
         id: 'kitchen', name: '🍽️ Kitchen', color: '#e1b12c', bgColor: '#332a1b',
-        x: 2300, y: 1150, width: 450, height: 350, icon: '🍽️',
-        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 2420, y: 1300 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 2620, y: 1300 } ]
+        x: 2950, y: 1150, width: 450, height: 350, icon: '🍽️',
+        tasks: [ { id: 'cook_fish', name: 'Prepare Fish Feast', x: 3070, y: 1300 }, { id: 'wash_bowls', name: 'Wash Food Bowls', x: 3270, y: 1300 } ]
     },
     {
         id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
-        x: 2950, y: 1150, width: 400, height: 350, icon: '📡',
-        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1300 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1300 } ],
-        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1325
+        x: 2950, y: 1600, width: 400, height: 350, icon: '📡',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 3080, y: 1750 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 3220, y: 1750 } ],
+        hasCommsFixPanel: true, commsFixX: 3150, commsFixY: 1775
     },
     {
         id: 'records', name: '🗃️ Catnip Records', color: '#10ac84', bgColor: '#162b25',
@@ -713,25 +721,20 @@ const WHISKER_STATION_ROOMS = [
         tasks: [ { id: 'fix_wiring', name: 'Fix Electrical Wires', x: 2470, y: 1770 }, { id: 'tighten_bolts', name: 'Tighten Hull Bolts', x: 2670, y: 1770 }, { id: 'pickup_torpedo', name: 'Retrieve Catnip Torpedo', x: 2570, y: 1840 } ]
     },
     {
+        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#fd79a8', bgColor: '#2d1b2b',
+        x: 1550, y: 1800, width: 500, height: 380, icon: '🧶',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1680, y: 1950 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1880, y: 1950 } ],
+        hasEngineFixPanel: true, engineFixX: 1780, engineFixY: 1950
+    },
+    {
         id: 'thruster_a', name: '🚀 Thruster A', color: '#e84118', bgColor: '#331b1b',
         x: 200, y: 2050, width: 450, height: 420, icon: '🚀',
         tasks: [ { id: 'prime_thruster_a', name: 'Prime Left Thruster', x: 320, y: 2240 }, { id: 'flush_fuel_a', name: 'Flush Engine Fuel A', x: 520, y: 2240 } ]
     },
     {
-        id: 'yarn_engine', name: '🧶 Yarn Engine', color: '#ff5252', bgColor: '#331b23',
-        x: 1550, y: 2050, width: 500, height: 420, icon: '🧶',
-        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 1680, y: 2240 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 1920, y: 2240 } ],
-        hasEngineFixPanel: true, engineFixX: 1800, engineFixY: 2350
-    },
-    {
         id: 'thruster_b', name: '🚀 Thruster B', color: '#e84118', bgColor: '#331b1b',
         x: 2950, y: 2050, width: 450, height: 420, icon: '🚀',
         tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 3070, y: 2240 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 3270, y: 2240 } ]
-    },
-    {
-        id: 'admin', name: '💼 Admin Room', color: '#ff7675', bgColor: '#2d1a24',
-        x: 2950, y: 1600, width: 400, height: 350, icon: '💼',
-        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 3080, y: 1770 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 3220, y: 1770 } ]
     }
 ];
 
@@ -761,8 +764,13 @@ const CATNIP_OBSERVATORY_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1150, y: 150, width: 500, height: 350, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1300, y: 300 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1500, y: 300 } ],
-        hasEmergencyButton: true, buttonX: 1400, buttonY: 350
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1300, y: 300 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1500, y: 300 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1100, y: 650, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1300, y: 850 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 1500, y: 850 }, { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 1380, y: 950 } ],
+        hasEmergencyButton: true, buttonX: 1400, buttonY: 950
     },
     {
         id: 'greenhouse', name: '🌿 Catnip Greenhouse', color: '#4cd137', bgColor: '#1b3320',
@@ -778,11 +786,6 @@ const CATNIP_OBSERVATORY_ROOMS = [
         id: 'medical', name: '🏥 Medical Bay', color: '#ff6b6b', bgColor: '#2d1b24',
         x: 200, y: 800, width: 450, height: 350, icon: '🏥',
         tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 320, y: 970 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 520, y: 970 } ]
-    },
-    {
-        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
-        x: 1150, y: 800, width: 500, height: 350, icon: '📹',
-        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 1380, y: 950 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 1450, y: 950 } ]
     },
     {
         id: 'electrical', name: '⚡ Electrical Room', color: '#fbc531', bgColor: '#332e1b',
@@ -885,8 +888,13 @@ const CATHQ_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1750, y: 150, width: 500, height: 350, icon: '🚀',
-        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ],
-        hasEmergencyButton: true, buttonX: 2000, buttonY: 320
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1850, y: 250 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 2000, y: 250 }, { id: 'scan_asteroids', name: 'Scan Space Sector', x: 2150, y: 250 } ]
+    },
+    {
+        id: 'cafeteria', name: '🍕 Cafeteria', color: '#ff7675', bgColor: '#2c1e21',
+        x: 1700, y: 750, width: 600, height: 600, icon: '🍕', isRound: true,
+        tasks: [ { id: 'swipe_card', name: 'Swipe Cafeteria ID', x: 1900, y: 950 }, { id: 'upload_admin', name: 'Upload Cafeteria Logs', x: 2100, y: 950 }, { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 1050 } ],
+        hasEmergencyButton: true, buttonX: 2000, buttonY: 1050
     },
     {
         id: 'medical', name: '🏥 Medical', color: '#ff6b6b', bgColor: '#2d1b24',
@@ -909,11 +917,6 @@ const CATHQ_ROOMS = [
         tasks: [ { id: 'make_beds', name: 'Make Scratching Beds', x: 1200, y: 910 }, { id: 'clean_litter', name: 'Clean Space Litter', x: 1400, y: 910 } ]
     },
     {
-        id: 'cat_garden', name: '🌸 Cat Garden', color: '#10ac84', bgColor: '#1b332b',
-        x: 1750, y: 750, width: 500, height: 350, icon: '🌸',
-        tasks: [ { id: 'water_plants', name: 'Water Catnip', x: 1850, y: 920 }, { id: 'trim_catnip', name: 'Trim Garden Hedges', x: 2150, y: 920 } ]
-    },
-    {
         id: 'nap_quarters', name: '😴 Nap Quarters', color: '#fd79a8', bgColor: '#3d252f',
         x: 2500, y: 750, width: 400, height: 320, icon: '😴',
         tasks: [ { id: 'fluff_pillows', name: 'Fluff Nap Pillows', x: 2600, y: 910 }, { id: 'fix_clock', name: 'Set Alarm Clock', x: 2800, y: 910 } ]
@@ -933,11 +936,6 @@ const CATHQ_ROOMS = [
         id: 'fish_storage', name: '🐟 Fish Storage', color: '#00cec9', bgColor: '#1b2d33',
         x: 1050, y: 1300, width: 450, height: 320, icon: '🐟',
         tasks: [ { id: 'sort_fish', name: 'Sort Fish Bins', x: 1150, y: 1460 }, { id: 'check_freezer', name: 'Check Freezer Temp', x: 1350, y: 1460 } ]
-    },
-    {
-        id: 'admin', name: '📁 Admin Room', color: '#ffeaa7', bgColor: '#2c3e50',
-        x: 1800, y: 1300, width: 400, height: 300, icon: '📁',
-        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 1900, y: 1450 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 2100, y: 1450 } ]
     },
     {
         id: 'kitchen', name: '🍳 Kitchen', color: '#e67e22', bgColor: '#3d2c1e',
@@ -1172,8 +1170,8 @@ const TASK_DEFINITIONS = {
     calibrate_engine: { name: 'Calibrate Engine Dials', room: 'Yarn Engine', type: 'slider' },
     prime_thruster_b: { name: 'Prime Right Thruster', room: 'Thruster B', type: 'slider' },
     flush_fuel_b: { name: 'Flush Engine Fuel B', room: 'Thruster B', type: 'fill_meter' },
-    swipe_card: { name: 'Swipe Admin Card', room: 'Admin Room', type: 'slider' },
-    upload_admin: { name: 'Upload Admin Logs', room: 'Admin Room', type: 'fill_meter' }
+    swipe_card: { name: 'Swipe Cafeteria ID', room: 'Cafeteria', type: 'slider' },
+    upload_admin: { name: 'Upload Cafeteria Logs', room: 'Cafeteria', type: 'fill_meter' }
 };
 
 class TaskManager {
@@ -2017,15 +2015,23 @@ class Player {
             if (dx < 0) this.scaleX = -1;
             else if (dx > 0) this.scaleX = 1;
             const length = Math.hypot(dx, dy);
-            const moveDist = this.speed * dt;
+            const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            const moveDist = this.speed * speedMultiplier * dt;
             const nextX = this.x + (dx / length) * moveDist;
             const nextY = this.y + (dy / length) * moveDist;
 
             const isWalkable = (px, py) => {
                 const margin = 12;
                 for (const r of ROOMS) {
-                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                    if (r.isRound) {
+                        const radius = Math.min(r.width, r.height) / 2;
+                        const cx = r.x + r.width / 2;
+                        const cy = r.y + r.height / 2;
+                        if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                    } else {
+                        if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                            py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                    }
                 }
                 for (const c of CORRIDORS) {
                     let minX, maxX, minY, maxY;
@@ -2197,16 +2203,45 @@ class MapRenderer {
 
         // Render Rooms with Furniture & Detailed Scenery
         for (const room of ROOMS) {
-            ctx.fillStyle = room.bgColor; ctx.fillRect(room.x, room.y, room.width, room.height);
-            ctx.strokeStyle = room.color; ctx.lineWidth = 6; ctx.strokeRect(room.x, room.y, room.width, room.height);
-            
-            // Room Metallic Tile Grid Lines
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
-            for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
-                ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
-            }
-            for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
-                ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+            if (room.isRound) {
+                const cx = room.x + room.width / 2;
+                const cy = room.y + room.height / 2;
+                const radius = Math.min(room.width, room.height) / 2;
+                
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = room.bgColor;
+                ctx.fill();
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.clip();
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
+                for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
+                    ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
+                }
+                for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
+                    ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+                }
+                ctx.restore();
+                
+                ctx.strokeStyle = room.color; ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = room.bgColor; ctx.fillRect(room.x, room.y, room.width, room.height);
+                ctx.strokeStyle = room.color; ctx.lineWidth = 6; ctx.strokeRect(room.x, room.y, room.width, room.height);
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
+                for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
+                    ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
+                }
+                for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
+                    ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+                }
             }
 
             // Room Name Header & Icon
@@ -2522,8 +2557,15 @@ class AIController {
         const isWalkable = (px, py) => {
             const margin = 12;
             for (const r of ROOMS) {
-                if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                if (r.isRound) {
+                    const radius = Math.min(r.width, r.height) / 2;
+                    const cx = r.x + r.width / 2;
+                    const cy = r.y + r.height / 2;
+                    if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                } else {
+                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                }
             }
             for (const c of CORRIDORS) {
                 let minX, maxX, minY, maxY;
@@ -2832,10 +2874,10 @@ class AIController {
                     const baseId = bot.currentTaskToComplete.id.split('_reassigned_')[0];
                     if (baseId === 'def_get_weapons') {
                         bot.hasGun = true;
-                        bot.gunAmmo = 5;
+                        bot.gunAmmo = 8;
                     }
                     if (bot.currentTaskToComplete.id === 'post_def_heal') {
-                        bot.health = 3;
+                        bot.health = 5;
                         bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
                     }
                     if (bot.currentTaskToComplete.id === 'pickup_torpedo') {
@@ -3032,7 +3074,8 @@ class AIController {
             } else {
                 if (dx < 0) bot.scaleX = -1;
                 else if (dx > 0) bot.scaleX = 1;
-                const moveDist = bot.speed * dt * (bot.isFleeing ? 1.25 : 0.8);
+                const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+                const moveDist = bot.speed * dt * speedMultiplier * (bot.isFleeing ? 1.25 : 0.8);
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
 
@@ -3980,8 +4023,8 @@ class UIManager {
             }
         }
 
-        const bridge = ROOMS.find(r => r.id === 'bridge');
-        if (Math.hypot(player.x - bridge.buttonX, player.y - bridge.buttonY) <= 45) {
+        const buttonRoom = ROOMS.find(r => r.hasEmergencyButton);
+        if (buttonRoom && Math.hypot(player.x - buttonRoom.buttonX, player.y - buttonRoom.buttonY) <= 45) {
             if (this.game.defensiveProtocolActive) {
                 canUse = true; useText = "LOCKED"; useIcon = "🔒";
             } else {
@@ -4214,13 +4257,15 @@ class Game {
             p.tasks = TaskManager.generateTaskList();
             p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
 
-            // Spawn inside Bridge or central corridor
-            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
-                p.x = 1320 + (i % 5) * 40;
-            } else {
-                p.x = 1720 + (i % 5) * 40;
+            // Spawn inside Cafeteria
+            let sx = 1720, sy = 900;
+            if (this.selectedMap === 'catnip_observatory') {
+                sx = 1320; sy = 900;
+            } else if (this.selectedMap === 'cat_hq') {
+                sx = 1920; sy = 1000;
             }
-            p.y = 250 + Math.floor(i / 5) * 40;
+            p.x = sx + (i % 5) * 40;
+            p.y = sy + Math.floor(i / 5) * 40;
 
             this.players.push(p);
             if (isLocal) this.localPlayer = p;
@@ -4277,12 +4322,12 @@ class Game {
             wsX = 3325; wsY = 2010;
         }
         const nearWorkshop = Math.hypot(this.localPlayer.x - wsX, this.localPlayer.y - wsY) <= 95;
-        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 5 && nearWorkshop) {
-            this.localPlayer.gunAmmo = 5;
+        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 8 && nearWorkshop) {
+            this.localPlayer.gunAmmo = 8;
             soundManager.playTaskComplete();
             const banner = document.createElement('div');
             banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2ed573; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #55efc4;';
-            banner.innerText = '🔋 GUN FULLY RELOADED! (5/5 Ammo)';
+            banner.innerText = '🔋 GUN FULLY RELOADED! (8/8 Ammo)';
             document.body.appendChild(banner);
             setTimeout(() => banner.remove(), 2500);
             return;
@@ -4353,8 +4398,8 @@ class Game {
                 return;
             }
         }
-        const bridge = ROOMS.find(r => r.id === 'bridge');
-        if (Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY) <= 45) {
+        const buttonRoom = ROOMS.find(r => r.hasEmergencyButton);
+        if (buttonRoom && Math.hypot(this.localPlayer.x - buttonRoom.buttonX, this.localPlayer.y - buttonRoom.buttonY) <= 45) {
             if (this.defensiveProtocolActive) {
                 const banner = document.createElement('div');
                 banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#d63031; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #ff7675;';
@@ -4363,7 +4408,8 @@ class Game {
                 setTimeout(() => banner.remove(), 2500);
                 return;
             }
-            this.triggerMeeting(this.localPlayer, null); return;
+            this.triggerMeeting(this.localPlayer, null);
+            return;
         }
         const security = ROOMS.find(r => r.id === 'security');
         let camX = 380, camY = 750;
@@ -4428,10 +4474,10 @@ class Game {
                     this.activeTask = null;
                     if (baseTaskId === 'def_get_weapons') {
                         this.localPlayer.hasGun = true;
-                        this.localPlayer.gunAmmo = 5;
+                        this.localPlayer.gunAmmo = 8;
                     }
                     if (baseTaskId === 'post_def_heal') {
-                        this.localPlayer.health = 3;
+                        this.localPlayer.health = 5;
                         this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
                         const medRoom = ROOMS.find(r => r.id === 'medical');
                         if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
@@ -4487,7 +4533,7 @@ class Game {
         for (const p of this.players) {
             if (this.localPlayer.canRevive(p)) {
                 p.isDead = false;
-                p.health = 3;
+                p.health = 5;
                 p.tasks = TaskManager.generateTaskList();
                 this.localPlayer.reviveUses -= 1;
                 soundManager.playTaskComplete();
@@ -4576,9 +4622,9 @@ class Game {
             this.sabotageSystem.triggerSabotage('comms');
         });
 
-        createBtn('❤️ Heal All Cats (3 HP)', '#2ed573', () => {
-            this.localPlayer.health = 3;
-            this.players.forEach(p => p.health = 3);
+        createBtn('❤️ Heal All Cats (5 HP)', '#2ed573', () => {
+            this.localPlayer.health = 5;
+            this.players.forEach(p => p.health = 5);
             soundManager.playTaskComplete();
             
             // Auto remove healing task if present
@@ -4604,7 +4650,7 @@ class Game {
                     p.isDead = false;
                     p.isEjected = false;
                     p.bodyCleaned = false;
-                    p.health = 3;
+                    p.health = 5;
                     p.tasks = TaskManager.generateTaskList();
                 }
             });
@@ -4623,14 +4669,16 @@ class Game {
         if (sabBanner) sabBanner.classList.add('hidden');
 
         this.state = 'MEETING'; this.uiManager.showScreen('meeting-screen');
-        // Teleport all players to the Bridge meeting table area
+        // Teleport all players to the Cafeteria meeting table area
         this.players.forEach((p, idx) => {
-            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
-                p.x = 1320 + (idx % 5) * 40;
-            } else {
-                p.x = 1720 + (idx % 5) * 40;
+            let sx = 1720, sy = 900;
+            if (this.selectedMap === 'catnip_observatory') {
+                sx = 1320; sy = 900;
+            } else if (this.selectedMap === 'cat_hq') {
+                sx = 1920; sy = 1000;
             }
-            p.y = 250 + Math.floor(idx / 5) * 40;
+            p.x = sx + (idx % 5) * 40;
+            p.y = sy + Math.floor(idx / 5) * 40;
             p.inVent = false;
             p.currentVentId = null;
         });
@@ -4990,10 +5038,10 @@ class Game {
             if (p.shootCooldown > 0) {
                 p.shootCooldown -= dt;
             } else {
-                const targetInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 250);
+                const targetInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 350);
                 if (targetInv) {
                     p.gunAmmo--;
-                    p.shootCooldown = 1.0; // 1s shoot cooldown
+                    p.shootCooldown = 0.5; // 0.5s shoot cooldown
                     soundManager.playVoteClick();
                     this.activeLaserLines = this.activeLaserLines || [];
                     this.activeLaserLines.push({
@@ -5019,7 +5067,7 @@ class Game {
             }
             const nearWorkshop = Math.hypot(p.x - wsX, p.y - wsY) <= 95;
             if (nearWorkshop) {
-                p.gunAmmo = 5;
+                p.gunAmmo = 8;
                 soundManager.playTaskComplete();
             }
         });
@@ -5027,8 +5075,15 @@ class Game {
         const isWalkable = (px, py) => {
             const margin = 12;
             for (const r of ROOMS) {
-                if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                if (r.isRound) {
+                    const radius = Math.min(r.width, r.height) / 2;
+                    const cx = r.x + r.width / 2;
+                    const cy = r.y + r.height / 2;
+                    if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                } else {
+                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                }
             }
             for (const c of CORRIDORS) {
                 let minX, maxX, minY, maxY;
@@ -5108,7 +5163,7 @@ class Game {
                         return; // Invaders do not attack the evil dog
                     }
                     if (!p.invulnTimer || p.invulnTimer <= 0) {
-                        p.health = (p.health || 3) - 1;
+                        p.health = (p.health || 5) - 1;
                         p.invulnTimer = 1.5;
                         
                         if (p.isLocalPlayer) {

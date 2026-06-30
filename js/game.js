@@ -129,13 +129,15 @@ class Game {
             p.tasks = TaskManager.generateTaskList();
             p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
 
-            // Spawn inside Bridge or central corridor
-            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
-                p.x = 1320 + (i % 5) * 40;
-            } else {
-                p.x = 1720 + (i % 5) * 40;
+            // Spawn inside Cafeteria
+            let sx = 1720, sy = 900;
+            if (this.selectedMap === 'catnip_observatory') {
+                sx = 1320; sy = 900;
+            } else if (this.selectedMap === 'cat_hq') {
+                sx = 1920; sy = 1000;
             }
-            p.y = 250 + Math.floor(i / 5) * 40;
+            p.x = sx + (i % 5) * 40;
+            p.y = sy + Math.floor(i / 5) * 40;
 
             this.players.push(p);
             if (isLocal) this.localPlayer = p;
@@ -202,12 +204,12 @@ class Game {
             wsX = 3325; wsY = 2010;
         }
         const nearWorkshop = Math.hypot(this.localPlayer.x - wsX, this.localPlayer.y - wsY) <= 95;
-        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 5 && nearWorkshop) {
-            this.localPlayer.gunAmmo = 5;
+        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 8 && nearWorkshop) {
+            this.localPlayer.gunAmmo = 8;
             soundManager.playTaskComplete();
             const banner = document.createElement('div');
             banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2ed573; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #55efc4;';
-            banner.innerText = '🔋 GUN FULLY RELOADED! (5/5 Ammo)';
+            banner.innerText = '🔋 GUN FULLY RELOADED! (8/8 Ammo)';
             document.body.appendChild(banner);
             setTimeout(() => banner.remove(), 2500);
             return;
@@ -283,10 +285,11 @@ class Game {
             }
         }
 
-        // 1. Check Emergency Meeting Button in Bridge
-        const bridge = ROOMS.find(r => r.id === 'bridge');
-        const distToButton = Math.hypot(this.localPlayer.x - bridge.buttonX, this.localPlayer.y - bridge.buttonY);
-        if (distToButton <= 45) {
+        // 1. Check Emergency Meeting Button
+        const buttonRoom = ROOMS.find(r => r.hasEmergencyButton);
+        if (buttonRoom) {
+            const distToButton = Math.hypot(this.localPlayer.x - buttonRoom.buttonX, this.localPlayer.y - buttonRoom.buttonY);
+            if (distToButton <= 45) {
             if (this.defensiveProtocolActive) {
                 // Show floating warning notification
                 const banner = document.createElement('div');
@@ -298,6 +301,7 @@ class Game {
             }
             this.triggerMeeting(this.localPlayer, null);
             return;
+            }
         }
 
         // 2. Check Sabotage Fix Panels
@@ -375,10 +379,10 @@ class Game {
                         
                         if (baseTaskId === 'def_get_weapons') {
                             this.localPlayer.hasGun = true;
-                            this.localPlayer.gunAmmo = 5;
+                            this.localPlayer.gunAmmo = 8;
                         }
                         if (baseTaskId === 'post_def_heal') {
-                            this.localPlayer.health = 3;
+                            this.localPlayer.health = 5;
                             this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
                             const medRoom = ROOMS.find(r => r.id === 'medical');
                             if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
@@ -525,7 +529,7 @@ class Game {
         for (const p of this.players) {
             if (this.localPlayer.canRevive(p)) {
                 p.isDead = false;
-                p.health = 3;
+                p.health = 5;
                 p.tasks = TaskManager.generateTaskList();
                 this.localPlayer.reviveUses -= 1;
                 soundManager.playTaskComplete();
@@ -617,9 +621,9 @@ class Game {
             this.sabotageSystem.triggerSabotage('comms');
         });
 
-        createBtn('❤️ Heal All Cats (3 HP)', '#2ed573', () => {
-            this.localPlayer.health = 3;
-            this.players.forEach(p => p.health = 3);
+        createBtn('❤️ Heal All Cats (5 HP)', '#2ed573', () => {
+            this.localPlayer.health = 5;
+            this.players.forEach(p => p.health = 5);
             soundManager.playTaskComplete();
             
             // Auto remove healing task if present
@@ -645,7 +649,7 @@ class Game {
                     p.isDead = false;
                     p.isEjected = false;
                     p.bodyCleaned = false;
-                    p.health = 3;
+                    p.health = 5;
                     p.tasks = TaskManager.generateTaskList();
                 }
             });
@@ -665,14 +669,16 @@ class Game {
 
         this.state = 'MEETING';
         this.uiManager.showScreen('meeting-screen');
-        // Teleport all players to the Bridge meeting table area
+        // Teleport all players to the Cafeteria meeting table area
         this.players.forEach((p, idx) => {
-            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
-                p.x = 1320 + (idx % 5) * 40;
-            } else {
-                p.x = 1720 + (idx % 5) * 40;
+            let sx = 1720, sy = 900;
+            if (this.selectedMap === 'catnip_observatory') {
+                sx = 1320; sy = 900;
+            } else if (this.selectedMap === 'cat_hq') {
+                sx = 1920; sy = 1000;
             }
-            p.y = 250 + Math.floor(idx / 5) * 40;
+            p.x = sx + (idx % 5) * 40;
+            p.y = sy + Math.floor(idx / 5) * 40;
             p.inVent = false;
             p.currentVentId = null;
         });
@@ -982,10 +988,10 @@ class Game {
             if (p.shootCooldown > 0) {
                 p.shootCooldown -= dt;
             } else {
-                const targetInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 250);
+                const targetInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 350);
                 if (targetInv) {
                     p.gunAmmo--;
-                    p.shootCooldown = 1.0; // 1s shoot cooldown
+                    p.shootCooldown = 0.5; // 0.5s shoot cooldown
                     soundManager.playVoteClick();
                     this.activeLaserLines = this.activeLaserLines || [];
                     this.activeLaserLines.push({
@@ -1011,7 +1017,7 @@ class Game {
             }
             const nearWorkshop = Math.hypot(p.x - wsX, p.y - wsY) <= 95;
             if (nearWorkshop) {
-                p.gunAmmo = 5;
+                p.gunAmmo = 8;
                 soundManager.playTaskComplete();
             }
         });
@@ -1019,8 +1025,15 @@ class Game {
         const isWalkable = (px, py) => {
             const margin = 12;
             for (const r of ROOMS) {
-                if (px >= r.x + margin && px <= r.x + r.width - margin &&
-                    py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                if (r.isRound) {
+                    const radius = Math.min(r.width, r.height) / 2;
+                    const cx = r.x + r.width / 2;
+                    const cy = r.y + r.height / 2;
+                    if (Math.hypot(px - cx, py - cy) <= radius - margin) return true;
+                } else {
+                    if (px >= r.x + margin && px <= r.x + r.width - margin &&
+                        py >= r.y + margin && py <= r.y + r.height - margin) return true;
+                }
             }
             for (const c of CORRIDORS) {
                 let minX, maxX, minY, maxY;
@@ -1100,7 +1113,7 @@ class Game {
                         return; // Invaders do not attack the evil dog
                     }
                     if (!p.invulnTimer || p.invulnTimer <= 0) {
-                        p.health = (p.health || 3) - 1;
+                        p.health = (p.health || 5) - 1;
                         p.invulnTimer = 1.5;
                         
                         if (p.isLocalPlayer) {

@@ -45,8 +45,8 @@ export const TASK_DEFINITIONS = {
     calibrate_engine: { name: 'Calibrate Engine Dials', room: 'Yarn Engine', type: 'slider' },
     prime_thruster_b: { name: 'Prime Right Thruster', room: 'Thruster B', type: 'slider' },
     flush_fuel_b: { name: 'Flush Engine Fuel B', room: 'Thruster B', type: 'fill_meter' },
-    swipe_card: { name: 'Swipe Admin Card', room: 'Admin Room', type: 'slider' },
-    upload_admin: { name: 'Upload Admin Logs', room: 'Admin Room', type: 'fill_meter' }
+    swipe_card: { name: 'Swipe Cafeteria ID', room: 'Cafeteria', type: 'slider' },
+    upload_admin: { name: 'Upload Cafeteria Logs', room: 'Cafeteria', type: 'fill_meter' }
 };
 
 export class TaskManager {

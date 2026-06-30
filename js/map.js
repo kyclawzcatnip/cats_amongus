@@ -101,15 +101,45 @@ export class MapRenderer {
         }
 
         for (const room of ROOMS) {
-            ctx.fillStyle = room.bgColor; ctx.fillRect(room.x, room.y, room.width, room.height);
-            ctx.strokeStyle = room.color; ctx.lineWidth = 6; ctx.strokeRect(room.x, room.y, room.width, room.height);
-            
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
-            for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
-                ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
-            }
-            for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
-                ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+            if (room.isRound) {
+                const cx = room.x + room.width / 2;
+                const cy = room.y + room.height / 2;
+                const radius = Math.min(room.width, room.height) / 2;
+                
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = room.bgColor;
+                ctx.fill();
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.clip();
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
+                for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
+                    ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
+                }
+                for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
+                    ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+                }
+                ctx.restore();
+                
+                ctx.strokeStyle = room.color; ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = room.bgColor; ctx.fillRect(room.x, room.y, room.width, room.height);
+                ctx.strokeStyle = room.color; ctx.lineWidth = 6; ctx.strokeRect(room.x, room.y, room.width, room.height);
+                
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)'; ctx.lineWidth = 2;
+                for (let gx = room.x + 50; gx < room.x + room.width; gx += 50) {
+                    ctx.beginPath(); ctx.moveTo(gx, room.y); ctx.lineTo(gx, room.y + room.height); ctx.stroke();
+                }
+                for (let gy = room.y + 50; gy < room.y + room.height; gy += 50) {
+                    ctx.beginPath(); ctx.moveTo(room.x, gy); ctx.lineTo(room.x + room.width, gy); ctx.stroke();
+                }
             }
 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.font = '700 20px "Fredoka", cursive'; ctx.textAlign = 'center';
