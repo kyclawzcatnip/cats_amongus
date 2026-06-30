@@ -3731,7 +3731,7 @@ class Game {
         if (this.localPlayer.hasKnife && this.invaders) {
             const nearbyInvader = this.invaders.find(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 80);
             if (nearbyInvader) {
-                this.killInvader(nearbyInvader.id);
+                this.killInvader(nearbyInvader.id, this.localPlayer);
                 return;
             }
         }
@@ -4315,7 +4315,7 @@ class Game {
                     }
                     if (p.hasKnife) {
                         if (!p.isLocalPlayer) {
-                            this.killInvader(inv.id);
+                            this.killInvader(inv.id, p);
                         }
                     } else {
                         if (!p.invulnTimer || p.invulnTimer <= 0) {
@@ -4353,9 +4353,16 @@ class Game {
         });
     }
 
-    killInvader(id) {
+    killInvader(id, killer) {
         this.invaders = this.invaders.filter(inv => inv.id !== id);
         soundManager.playTaskComplete();
+        if (killer) {
+            this.players.forEach(p => {
+                if (p.suspicionLevels) {
+                    p.suspicionLevels[killer.id] = 0;
+                }
+            });
+        }
         this.checkDefensiveProtocolStatus();
     }
 
