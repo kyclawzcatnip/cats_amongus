@@ -4207,7 +4207,12 @@ class Game {
         if (this.localPlayer.role !== 'Medic' || this.localPlayer.isDead || this.localPlayer.reviveUses <= 0) return;
         for (const p of this.players) {
             if (this.localPlayer.canRevive(p)) {
-                p.isDead = false; this.localPlayer.reviveUses -= 1; soundManager.playTaskComplete(); break;
+                p.isDead = false;
+                p.health = 3;
+                p.tasks = TaskManager.generateTaskList();
+                this.localPlayer.reviveUses -= 1;
+                soundManager.playTaskComplete();
+                break;
             }
         }
     }
@@ -4321,6 +4326,7 @@ class Game {
                     p.isEjected = false;
                     p.bodyCleaned = false;
                     p.health = 3;
+                    p.tasks = TaskManager.generateTaskList();
                 }
             });
             soundManager.playTaskComplete();
