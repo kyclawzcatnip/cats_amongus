@@ -1,6 +1,7 @@
 // AI Controller for Bots in Cat Crew
 import { ROOMS, CORRIDORS } from './rooms.js';
 import { soundManager } from './sounds.js';
+import { VENTS } from './vents.js';
 
 export class AIController {
     static updateBot(bot, dt, players, sabotageSystem, onReportBody) {
@@ -24,6 +25,19 @@ export class AIController {
                 if (px >= minX && px <= maxX && py >= minY && py <= maxY) return true;
             }
             return false;
+        };
+
+        const isLineOfSightClear = (x1, y1, x2, y2) => {
+            if ((y1 >= 2800) !== (y2 >= 2800)) return false;
+            const dist = Math.hypot(x2 - x1, y2 - y1);
+            const steps = Math.ceil(dist / 25);
+            for (let i = 1; i < steps; i++) {
+                const t = i / steps;
+                const px = x1 + (x2 - x1) * t;
+                const py = y1 + (y2 - y1) * t;
+                if (!isWalkable(px, py)) return false;
+            }
+            return true;
         };
 
         for (const p of players) {
@@ -274,38 +288,84 @@ export class AIController {
         }
 
         if (bot.role === 'evil Dog') {
-            if (bot.killCooldown > 0) {
-                bot.killCooldown -= dt;
+            if (bot.killCooldown > 0) bot.killCooldown -= dt;
+            if (bot.escapeTimer > 0) bot.escapeTimer -= dt;
+            if (bot.justKilled && bot.escapeTimer <= 0) bot.justKilled = false;
+
+            const maxWitnessDist = sabotageSystem.activeSabotage === 'lights' ? 200 : 280;
+
+            const checkIsolation = (catPlayer) => {
+                for (const witness of players) {
+                    if (witness.id === bot.id || witness.id === catPlayer.id || witness.isDead || witness.role === 'evil Dog') continue;
+                    const d = Math.hypot(catPlayer.x - witness.x, catPlayer.y - witness.y);
+                    if (d <= maxWitnessDist && isLineOfSightClear(catPlayer.x, catPlayer.y, witness.x, witness.y)) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            // 1. ESCAPE VENTING Behavior: If the dog just killed someone, run to a vent and escape!
+            if (bot.justKilled && !bot.isLocalPlayer) {
+                const nearestVent = VENTS.find(v => Math.hypot(bot.x - v.x, bot.y - v.y) <= 400);
+                if (nearestVent) {
+                    const distToVent = Math.hypot(bot.x - nearestVent.x, bot.y - nearestVent.y);
+                    if (distToVent <= 80) {
+                        const connectedVent = VENTS.find(v => v.id === nearestVent.connectId);
+                        if (connectedVent) {
+                            bot.x = connectedVent.x;
+                            bot.y = connectedVent.y;
+                            soundManager.playVentWhoosh();
+                        }
+                        bot.justKilled = false;
+                        bot.currentPath = null;
+                    } else {
+                        bot.currentPath = [{ x: nearestVent.x, y: nearestVent.y }];
+                    }
+                } else {
+                    bot.justKilled = false;
+                }
             }
 
-            if (bot.killCooldown <= 0 && !bot.isLocalPlayer) {
-                let nearestCat = null;
-                let minDist = 300;
+            // 2. Target Selection (only chase isolated cats)
+            if (!bot.justKilled && bot.killCooldown <= 0 && !bot.isLocalPlayer) {
+                let targetCat = null;
+                let minDist = 350;
                 for (const p of players) {
                     if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
-                        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
-                        if (d < minDist) {
-                            minDist = d;
-                            nearestCat = p;
+                        if (checkIsolation(p)) {
+                            const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                            if (d < minDist) { minDist = d; targetCat = p; }
                         }
                     }
                 }
-                if (nearestCat) {
-                    bot.currentPath = [{ x: nearestCat.x, y: nearestCat.y }];
+                if (targetCat) {
+                    bot.currentPath = [{ x: targetCat.x, y: targetCat.y }];
                 }
             }
 
+            // 3. Smart Killing (only kill if isolated and close)
             if (bot.killCooldown <= 0) {
                 for (const target of players) {
                     if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
-                        target.isDead = true;
-                        bot.killCooldown = 25;
-                        break;
+                        if (checkIsolation(target)) {
+                            target.isDead = true;
+                            bot.killCooldown = 30;
+                            bot.justKilled = true;
+                            bot.escapeTimer = 5.0;
+                            soundManager.playElimination();
+                            if (window.gameInstance) {
+                                window.gameInstance.globalKillTimer = 15;
+                                window.gameInstance.recordKillWitnesses(bot, target);
+                                window.gameInstance.reassignDeadCatTasks(target);
+                            }
+                            break;
+                        }
                     }
                 }
             }
 
-            if (!bot.isLocalPlayer && sabotageSystem.cooldown <= 0 && !sabotageSystem.activeSabotage) {
+            if (!bot.isLocalPlayer && !bot.justKilled && sabotageSystem.cooldown <= 0 && !sabotageSystem.activeSabotage) {
                 const sabTypes = ['lights', 'engine'];
                 const picked = sabTypes[Math.floor(Math.random() * sabTypes.length)];
                 sabotageSystem.triggerSabotage(picked);
