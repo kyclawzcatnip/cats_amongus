@@ -200,7 +200,7 @@ export class MapRenderer {
             // Check vision / fog of war line of sight
             if (localPlayer) {
                 const dist = Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y);
-                const visionRadius = localPlayer.getVisionRadius(sabotageSystem.activeSabotage);
+                const visionRadius = (localPlayer && typeof localPlayer.getVisionRadius === 'function') ? localPlayer.getVisionRadius(sabotageSystem.activeSabotage) : 750;
                 
                 const isVisible = localPlayer.isDead || p.isLocalPlayer || (sameFloor && dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
                 

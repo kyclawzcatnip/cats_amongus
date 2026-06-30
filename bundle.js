@@ -1613,7 +1613,7 @@ class MapRenderer {
             const sameFloor = (p.y >= 2800) === (localPlayer.y >= 2800);
             if (localPlayer) {
                 const dist = Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y);
-                const visionRadius = localPlayer.getVisionRadius(sabotageSystem.activeSabotage);
+                const visionRadius = (localPlayer && typeof localPlayer.getVisionRadius === 'function') ? localPlayer.getVisionRadius(sabotageSystem.activeSabotage) : 750;
                 isVisible = localPlayer.isDead || p.isLocalPlayer || (sameFloor && dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, p.x, p.y));
             }
             if (isVisible) {
