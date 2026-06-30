@@ -4215,7 +4215,7 @@ class Game {
             p.loadedTorpedoes = 1; // Start with 1 loaded torpedo (10 shots) initially!
 
             // Spawn inside Bridge or central corridor
-            if (this.selectedMap === 'catnip_observatory') {
+            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
                 p.x = 1320 + (i % 5) * 40;
             } else {
                 p.x = 1720 + (i % 5) * 40;
@@ -4625,7 +4625,7 @@ class Game {
         this.state = 'MEETING'; this.uiManager.showScreen('meeting-screen');
         // Teleport all players to the Bridge meeting table area
         this.players.forEach((p, idx) => {
-            if (this.selectedMap === 'catnip_observatory') {
+            if (this.selectedMap === 'catnip_observatory' || this.selectedMap === 'cat_hq') {
                 p.x = 1320 + (idx % 5) * 40;
             } else {
                 p.x = 1720 + (idx % 5) * 40;
