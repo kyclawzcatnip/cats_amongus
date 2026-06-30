@@ -983,23 +983,61 @@ class Game {
         };
 
         this.invaders.forEach(inv => {
+            // Find target cat to hunt (sight range = 300px)
+            let targetCat = null;
+            if (inv.targetId !== undefined) {
+                targetCat = this.players.find(p => p.id === inv.targetId && !p.isDead && p.role !== 'evil Dog');
+                // If cat goes out of sight range (300px), lose sight and stop chasing
+                if (targetCat && Math.hypot(targetCat.x - inv.x, targetCat.y - inv.y) > 300) {
+                    targetCat = null;
+                    inv.targetId = undefined;
+                }
+            }
+
+            if (!targetCat) {
+                // Look for closest cat within 300px sight range
+                const nearbyCats = this.players.filter(p => !p.isDead && p.role !== 'evil Dog' && Math.hypot(p.x - inv.x, p.y - inv.y) <= 300);
+                if (nearbyCats.length > 0) {
+                    nearbyCats.sort((a, b) => Math.hypot(a.x - inv.x, a.y - inv.y) - Math.hypot(b.x - inv.x, b.y - inv.y));
+                    targetCat = nearbyCats[0];
+                    inv.targetId = targetCat.id;
+                }
+            }
+
+            // Move invader towards target or wander randomly
+            if (targetCat) {
+                const angle = Math.atan2(targetCat.y - inv.y, targetCat.x - inv.x);
+                inv.vx = Math.cos(angle) * speed;
+                inv.vy = Math.sin(angle) * speed;
+            } else {
+                if (Math.random() < 0.02 || (inv.vx === 0 && inv.vy === 0)) {
+                    const angle = Math.random() * Math.PI * 2;
+                    inv.vx = Math.cos(angle) * speed;
+                    inv.vy = Math.sin(angle) * speed;
+                }
+            }
+
+            // Execute movement with collision sliding
             const nextX = inv.x + inv.vx * dt;
             const nextY = inv.y + inv.vy * dt;
             if (isWalkable(nextX, nextY)) {
                 inv.x = nextX;
                 inv.y = nextY;
             } else {
-                const angle = Math.random() * Math.PI * 2;
-                inv.vx = Math.cos(angle) * speed;
-                inv.vy = Math.sin(angle) * speed;
+                if (isWalkable(nextX, inv.y)) {
+                    inv.x = nextX;
+                } else if (isWalkable(inv.x, nextY)) {
+                    inv.y = nextY;
+                } else {
+                    const angle = Math.random() * Math.PI * 2;
+                    inv.vx = Math.cos(angle) * speed;
+                    inv.vy = Math.sin(angle) * speed;
+                    inv.targetId = undefined; // Reset target on collision corner lock
+                }
             }
-            if (Math.random() < 0.02) {
-                const angle = Math.random() * Math.PI * 2;
-                inv.vx = Math.cos(angle) * speed;
-                inv.vy = Math.sin(angle) * speed;
-            }
-            if (inv.x < 100 || inv.x > 3200) inv.vx *= -1;
-            if (inv.y < 100 || inv.y > 2500) inv.vy *= -1;
+
+            if (inv.x < 100 || inv.x > 3200) { inv.vx *= -1; inv.targetId = undefined; }
+            if (inv.y < 100 || inv.y > 2500) { inv.vy *= -1; inv.targetId = undefined; }
             this.players.forEach(p => {
                 if (p.isDead) return;
                 const dist = Math.hypot(p.x - inv.x, p.y - inv.y);
