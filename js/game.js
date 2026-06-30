@@ -970,7 +970,7 @@ class Game {
     }
 
     updateSpaceInvaders(dt) {
-        const speed = 80;
+        const speed = 55;
         
         // Continuous Spawning: every 5.0 seconds, keep spawning invaders (max 5 active)
         this.invaderSpawnTimer = (this.invaderSpawnTimer || 0) + dt;

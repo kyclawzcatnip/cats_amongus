@@ -2015,7 +2015,8 @@ class Player {
             if (dx < 0) this.scaleX = -1;
             else if (dx > 0) this.scaleX = 1;
             const length = Math.hypot(dx, dy);
-            const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            let speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            if (this.role === 'evil Dog') speedMultiplier *= 0.75;
             const moveDist = this.speed * speedMultiplier * dt;
             const nextX = this.x + (dx / length) * moveDist;
             const nextY = this.y + (dy / length) * moveDist;
@@ -3075,7 +3076,8 @@ class AIController {
             } else {
                 if (dx < 0) bot.scaleX = -1;
                 else if (dx > 0) bot.scaleX = 1;
-                const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+                let speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+                if (bot.role === 'evil Dog') speedMultiplier *= 0.75;
                 const moveDist = bot.speed * dt * speedMultiplier * (bot.isFleeing ? 1.25 : 0.8);
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
@@ -5049,7 +5051,7 @@ class Game {
     }
 
     updateSpaceInvaders(dt) {
-        const speed = 80;
+        const speed = 55;
         
         // Continuous Spawning: every 5.0 seconds, keep spawning invaders (max 5 active)
         this.invaderSpawnTimer = (this.invaderSpawnTimer || 0) + dt;

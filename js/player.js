@@ -61,7 +61,8 @@ export class Player {
             if (dx < 0) this.scaleX = -1;
             else if (dx > 0) this.scaleX = 1;
             const length = Math.hypot(dx, dy);
-            const speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            let speedMultiplier = (window.gameInstance && window.gameInstance.defensiveProtocolActive) ? 1.25 : 1.0;
+            if (this.role === 'evil Dog') speedMultiplier *= 0.75;
             const moveDist = this.speed * speedMultiplier * dt;
             const nextX = this.x + (dx / length) * moveDist;
             const nextY = this.y + (dy / length) * moveDist;
