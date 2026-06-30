@@ -195,9 +195,59 @@ class SpriteRenderer {
             const colorObj = (player.colorIndex !== undefined && CAT_COLORS[Math.abs(player.colorIndex) % CAT_COLORS.length]) ? CAT_COLORS[Math.abs(player.colorIndex) % CAT_COLORS.length] : CAT_COLORS[0];
 
             if (player.isDead && !player.bodyCleaned) {
-                this.drawDeadBody(ctx, radius, colorObj);
-                ctx.restore();
-                return;
+                if (player.killedByInvader) {
+                    ctx.save();
+                    ctx.rotate(Math.PI / 2);
+                    ctx.translate(0, -5);
+                    this.drawCat(ctx, radius, colorObj, player);
+                    ctx.save();
+                    ctx.strokeStyle = '#d63031';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    
+                    // Scratch 1
+                    ctx.beginPath();
+                    ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
+                    ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
+                    ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
+                    ctx.stroke();
+
+                    // Scratch 2
+                    ctx.beginPath();
+                    ctx.moveTo(4, -8); ctx.lineTo(10, 2);
+                    ctx.moveTo(8, -10); ctx.lineTo(14, 0);
+                    ctx.moveTo(0, -6); ctx.lineTo(6, 4);
+                    ctx.stroke();
+
+                    // Scratch 3
+                    ctx.beginPath();
+                    ctx.moveTo(-2, -15); ctx.lineTo(4, -5);
+                    ctx.moveTo(-5, -13); ctx.lineTo(1, -3);
+                    ctx.moveTo(1, -17); ctx.lineTo(7, -7);
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                    ctx.restore();
+
+                    // Name tag
+                    ctx.save();
+                    ctx.globalAlpha = 1.0;
+                    ctx.font = '700 13px "Quicksand", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = 'gray';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 4;
+                    ctx.fillText(player.name, 0, -radius - 12);
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+
+                    ctx.restore();
+                    return;
+                } else {
+                    this.drawDeadBody(ctx, radius, colorObj);
+                    ctx.restore();
+                    return;
+                }
             }
 
             // Standard Body Shadow
@@ -317,10 +367,25 @@ class SpriteRenderer {
         px(17, -3, 2, 4, earColor);
 
         // 5. Eyes
-        px(9, 4, 3, 3, '#FFFFFF');
-        px(14, 4, 3, 3, '#FFFFFF');
-        px(10, 5, 2, 2, '#1a1a2e');
-        px(15, 5, 2, 2, '#1a1a2e');
+        // 5. Eyes
+        if (player.isDead && player.killedByInvader) {
+            px(9, 3, 1, 1, '#1a1a2e');
+            px(10, 4, 1, 1, '#1a1a2e');
+            px(11, 5, 1, 1, '#1a1a2e');
+            px(11, 3, 1, 1, '#1a1a2e');
+            px(9, 5, 1, 1, '#1a1a2e');
+            
+            px(14, 3, 1, 1, '#1a1a2e');
+            px(15, 4, 1, 1, '#1a1a2e');
+            px(16, 5, 1, 1, '#1a1a2e');
+            px(16, 3, 1, 1, '#1a1a2e');
+            px(14, 5, 1, 1, '#1a1a2e');
+        } else {
+            px(9, 4, 3, 3, '#FFFFFF');
+            px(14, 4, 3, 3, '#FFFFFF');
+            px(10, 5, 2, 2, '#1a1a2e');
+            px(15, 5, 2, 2, '#1a1a2e');
+        }
 
         // 6. Nose
         px(12, 8, 2, 2, noseColor);
@@ -4241,12 +4306,14 @@ class Game {
                                 soundManager.playDefeat();
                                 if (p.health <= 0) {
                                     p.isDead = true;
+                                    p.killedByInvader = true;
                                     this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
                                 }
                             } else {
                                 soundManager.playDefeat();
                                 if (p.health <= 0) {
                                     p.isDead = true;
+                                    p.killedByInvader = true;
                                 } else {
                                     p.isFleeing = true;
                                     p.fleeTimer = 3.0;

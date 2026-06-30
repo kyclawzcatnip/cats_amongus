@@ -767,12 +767,14 @@ class Game {
                                 
                                 if (p.health <= 0) {
                                     p.isDead = true;
+                                    p.killedByInvader = true;
                                     this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
                                 }
                             } else {
                                 soundManager.playDefeat();
                                 if (p.health <= 0) {
                                     p.isDead = true;
+                                    p.killedByInvader = true;
                                 } else {
                                     p.isFleeing = true;
                                     p.fleeTimer = 3.0;
