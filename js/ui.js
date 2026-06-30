@@ -143,6 +143,7 @@ export class UIManager {
         const ventBtn = document.getElementById('action-vent-btn');
         const sabBtn = document.getElementById('action-sabotage-btn');
         const cooldownOverlay = document.getElementById('kill-cooldown-timer');
+        const sabCooldownOverlay = document.getElementById('sabotage-cooldown-timer');
 
         if (player.role === 'Dog' && !player.isDead) {
             killBtn.classList.remove('hidden');
@@ -153,6 +154,16 @@ export class UIManager {
                 cooldownOverlay.innerText = Math.ceil(player.killCooldown);
             } else {
                 cooldownOverlay.style.display = 'none';
+            }
+
+            if (sabotageSystem.activeSabotage) {
+                sabCooldownOverlay.style.display = 'flex';
+                sabCooldownOverlay.innerText = 'ACT';
+            } else if (sabotageSystem.cooldown > 0) {
+                sabCooldownOverlay.style.display = 'flex';
+                sabCooldownOverlay.innerText = Math.ceil(sabotageSystem.cooldown);
+            } else {
+                sabCooldownOverlay.style.display = 'none';
             }
         } else {
             killBtn.classList.add('hidden');

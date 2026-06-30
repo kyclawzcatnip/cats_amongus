@@ -5,7 +5,7 @@ export class SabotageSystem {
         this.activeSabotage = null; // null | 'lights' | 'engine' | 'doors'
         this.engineTimer = 45;
         this.doorTimer = 0;
-        this.cooldown = 60; // 60s initial grace period for Dog
+        this.cooldown = 10; // 10s initial grace period for Dog
         this.engineProgress = 0;
     }
 

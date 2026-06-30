@@ -634,7 +634,7 @@ class SabotageSystem {
         this.activeSabotage = null;
         this.engineTimer = 45;
         this.doorTimer = 0;
-        this.cooldown = 60; // 60-second initial grace period before sabotages can be triggered!
+        this.cooldown = 10; // 10-second initial grace period before sabotages can be triggered!
     }
     update(dt) {
         if (this.cooldown > 0) this.cooldown -= dt;
@@ -1168,6 +1168,24 @@ class MapRenderer {
             if (p.inVent) continue;
             SpriteRenderer.drawPlayer(ctx, p.x, p.y, p.radius, p, p.isDead);
         }
+        ctx.restore();
+
+        if (localPlayer && !localPlayer.isDead) {
+            this.drawFogOfWar(ctx, width, height, localPlayer, sabotageSystem);
+        }
+    }
+
+    drawFogOfWar(ctx, width, height, localPlayer, sabotageSystem) {
+        ctx.save();
+        const visionRadius = localPlayer.getVisionRadius ? localPlayer.getVisionRadius(sabotageSystem.activeSabotage) : (sabotageSystem.activeSabotage === 'lights' ? 250 : 750);
+        const grad = ctx.createRadialGradient(
+            width / 2, height / 2, visionRadius * 0.7,
+            width / 2, height / 2, visionRadius
+        );
+        grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
         ctx.restore();
     }
 
@@ -1962,11 +1980,14 @@ class UIManager {
             }
         }
 
-        const killBtn = document.getElementById('action-kill-btn'), reviveBtn = document.getElementById('action-revive-btn'), sabBtn = document.getElementById('action-sabotage-btn'), cooldownOverlay = document.getElementById('kill-cooldown-timer');
+        const killBtn = document.getElementById('action-kill-btn'), reviveBtn = document.getElementById('action-revive-btn'), sabBtn = document.getElementById('action-sabotage-btn'), cooldownOverlay = document.getElementById('kill-cooldown-timer'), sabCooldownOverlay = document.getElementById('sabotage-cooldown-timer');
         if (player.role === 'Dog' && !player.isDead) {
             killBtn.classList.remove('hidden'); sabBtn.classList.remove('hidden');
             if (player.killCooldown > 0) { cooldownOverlay.style.display = 'flex'; cooldownOverlay.innerText = Math.ceil(player.killCooldown); }
             else cooldownOverlay.style.display = 'none';
+            if (sabotageSystem.activeSabotage) { sabCooldownOverlay.style.display = 'flex'; sabCooldownOverlay.innerText = 'ACT'; }
+            else if (sabotageSystem.cooldown > 0) { sabCooldownOverlay.style.display = 'flex'; sabCooldownOverlay.innerText = Math.ceil(sabotageSystem.cooldown); }
+            else sabCooldownOverlay.style.display = 'none';
         } else { killBtn.classList.add('hidden'); sabBtn.classList.add('hidden'); }
 
         if (player.role === 'Medic' && !player.isDead && player.reviveUses > 0) reviveBtn.classList.remove('hidden'); else reviveBtn.classList.add('hidden');
@@ -2301,7 +2322,7 @@ class Game {
         if (this.state === 'PLAYING') {
             this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
             this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
-            if (this.gameTimer > 60 && this.sabotageSystem.update(dt) === 'ENGINE_MELTDOWN') {
+            if (this.sabotageSystem.update(dt) === 'ENGINE_MELTDOWN') {
                 this.endGame('DEFEAT!', 'Yarn Engine exploded!');
             }
             this.players.forEach(p => {
