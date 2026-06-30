@@ -405,18 +405,27 @@ export class AIController {
 
             if (window.gameInstance && window.gameInstance.defensiveProtocolActive && bot.role !== 'evil Dog') {
                 if (!bot.hasGun) {
-                    // Go to Kitchen to get the gun
+                    // Go to Weapons or Security to get the gun
                     const hasWeaponTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
                     if (hasWeaponTask) {
-                        const roomObj = ROOMS.find(r => r.id === 'kitchen');
-                        if (roomObj) {
-                            targetKey = 'kitchen';
+                        const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
+                        const securityRoom = ROOMS.find(r => r.id === 'security');
+                        let chosenRoom = weaponsRoom;
+                        if (weaponsRoom && securityRoom) {
+                            const dWeapons = Math.hypot(bot.x - (weaponsRoom.x + weaponsRoom.width / 2), bot.y - (weaponsRoom.y + weaponsRoom.height / 2));
+                            const dSecurity = Math.hypot(bot.x - (securityRoom.x + securityRoom.width / 2), bot.y - (securityRoom.y + securityRoom.height / 2));
+                            if (dSecurity < dWeapons) {
+                                chosenRoom = securityRoom;
+                            }
+                        }
+                        if (chosenRoom) {
+                            targetKey = chosenRoom.id;
                             const baseTaskId = hasWeaponTask.id.split('_reassigned_')[0];
-                            const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                            const tkLoc = chosenRoom.tasks.find(tk => tk.id === baseTaskId);
                             if (tkLoc) taskTarget = { ...tkLoc, taskObj: hasWeaponTask };
                         }
                     } else {
-                        targetKey = 'kitchen';
+                        targetKey = 'weapons';
                     }
                 } else if (bot.gunAmmo === 0) {
                     // Go to Workshop to reload

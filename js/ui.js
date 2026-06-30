@@ -303,9 +303,9 @@ export class UIManager {
             const shipsDestroyed = this.game.enemyShipsDestroyed || 0;
             let ammoStr = '';
             if (this.game.localPlayer.hasGun) {
-                ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/5`;
+                ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/8`;
             } else {
-                ammoStr = `⚠️ GET GUN IN KITCHEN!`;
+                ammoStr = `⚠️ GET GUN IN WEAPONS/SECURITY!`;
             }
             document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ${ammoStr} | SHIPS DESTROYED: ${shipsDestroyed}/20 🚨`;
         } else {
@@ -411,11 +411,21 @@ export class UIManager {
         if (!canUse) {
             for (const t of player.tasks) {
                 if (t.completed) continue;
-                const roomObj = ROOMS.find(r => r.name.includes(t.room));
-                if (!roomObj) continue;
                 const baseTaskId = t.id.split('_reassigned_')[0];
-                const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
-                if (taskLoc && Math.hypot(player.x - taskLoc.x, player.y - taskLoc.y) <= 95) {
+                let taskLoc = null;
+                for (const r of ROOMS) {
+                    if (t.room.includes(r.name) || r.name.includes(t.room)) {
+                        const found = r.tasks.find(tk => tk.id === baseTaskId);
+                        if (found) {
+                            const dist = Math.hypot(player.x - found.x, player.y - found.y);
+                            if (dist <= 95) {
+                                taskLoc = found;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (taskLoc) {
                     if (baseTaskId === 'upload_data' && t.locked) continue;
                     canUse = true; useText = "TASK"; useIcon = "📋";
                     break;

@@ -4122,11 +4122,21 @@ class UIManager {
         if (!canUse) {
             for (const t of player.tasks) {
                 if (t.completed) continue;
-                const roomObj = ROOMS.find(r => r.name.includes(t.room));
-                if (!roomObj) continue;
                 const baseTaskId = t.id.split('_reassigned_')[0];
-                const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
-                if (taskLoc && Math.hypot(player.x - taskLoc.x, player.y - taskLoc.y) <= 95) {
+                let taskLoc = null;
+                for (const r of ROOMS) {
+                    if (t.room.includes(r.name) || r.name.includes(t.room)) {
+                        const found = r.tasks.find(tk => tk.id === baseTaskId);
+                        if (found) {
+                            const dist = Math.hypot(player.x - found.x, player.y - found.y);
+                            if (dist <= 95) {
+                                taskLoc = found;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (taskLoc) {
                     if (baseTaskId === 'upload_data' && t.locked) continue;
                     canUse = true; useText = "TASK"; useIcon = "📋";
                     break;
@@ -4476,11 +4486,21 @@ class Game {
         }
         for (const t of this.localPlayer.tasks) {
             if (t.completed && !(this.defensiveProtocolActive && (t.id === 'def_attack_ships' || t.id === 'clear_asteroids'))) continue;
-            const roomObj = ROOMS.find(r => r.name.includes(t.room));
-            if (!roomObj) continue;
             const baseTaskId = t.id.split('_reassigned_')[0];
-            const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
-            if (taskLoc && Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y) <= 95) {
+            let taskLoc = null;
+            for (const r of ROOMS) {
+                if (t.room.includes(r.name) || r.name.includes(t.room)) {
+                    const found = r.tasks.find(tk => tk.id === baseTaskId);
+                    if (found) {
+                        const dist = Math.hypot(this.localPlayer.x - found.x, this.localPlayer.y - found.y);
+                        if (dist <= 95) {
+                            taskLoc = found;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (taskLoc) {
                 if ((baseTaskId === 'upload_data' || baseTaskId === 'load_torpedoes') && t.locked) {
                     continue;
                 }
@@ -4990,7 +5010,7 @@ class Game {
         const emergencyTasks = [
             { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
             { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
-            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: 'Kitchen', type: 'rapid_click', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: 'Weapons/Security', type: 'rapid_click', completed: false },
             { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
         ];
         emergencyTasks.forEach(task => {
@@ -5013,13 +5033,18 @@ class Game {
         if (bridgeRoom && !bridgeRoom.tasks.some(t => t.id === 'def_attack_ships')) {
             bridgeRoom.tasks.push({ id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', x: bridgeRoom.x + 100, y: bridgeRoom.y + 100 });
         }
-        const kitchenRoom = ROOMS.find(r => r.id === 'kitchen');
-        if (kitchenRoom && !kitchenRoom.tasks.some(t => t.id === 'def_get_weapons')) {
-            kitchenRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: kitchenRoom.x + kitchenRoom.width / 2, y: kitchenRoom.y + kitchenRoom.height / 2 });
-        }
         const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
-        if (weaponsRoom && !weaponsRoom.tasks.some(t => t.id === 'def_reload_torpedoes')) {
-            weaponsRoom.tasks.push({ id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', x: weaponsRoom.x + 120, y: weaponsRoom.y + 80 });
+        if (weaponsRoom) {
+            if (!weaponsRoom.tasks.some(t => t.id === 'def_get_weapons')) {
+                weaponsRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: weaponsRoom.x + 80, y: weaponsRoom.y + 80 });
+            }
+            if (!weaponsRoom.tasks.some(t => t.id === 'def_reload_torpedoes')) {
+                weaponsRoom.tasks.push({ id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', x: weaponsRoom.x + 120, y: weaponsRoom.y + 80 });
+            }
+        }
+        const securityRoom = ROOMS.find(r => r.id === 'security');
+        if (securityRoom && !securityRoom.tasks.some(t => t.id === 'def_get_weapons')) {
+            securityRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: securityRoom.x + securityRoom.width / 2, y: securityRoom.y + securityRoom.height / 2 });
         }
     }
 
