@@ -226,6 +226,7 @@ export class UIManager {
         const reviveBtn = document.getElementById('action-revive-btn');
         const ventBtn = document.getElementById('action-vent-btn');
         const sabBtn = document.getElementById('action-sabotage-btn');
+        const reportBtn = document.getElementById('action-report-btn');
         const cooldownOverlay = document.getElementById('kill-cooldown-timer');
         const sabCooldownOverlay = document.getElementById('sabotage-cooldown-timer');
 
@@ -264,6 +265,21 @@ export class UIManager {
             ventBtn.classList.remove('hidden');
         } else {
             ventBtn.classList.add('hidden');
+        }
+
+        let canReport = false;
+        if (player.role !== 'evil Dog' && !player.isDead) {
+            for (const p of this.game.players) {
+                if (p.isDead && !p.bodyCleaned && Math.hypot(player.x - p.x, player.y - p.y) <= 80) {
+                    canReport = true;
+                    break;
+                }
+            }
+        }
+        if (canReport) {
+            reportBtn.classList.remove('hidden');
+        } else {
+            reportBtn.classList.add('hidden');
         }
 
         // Sabotage Warning Banner

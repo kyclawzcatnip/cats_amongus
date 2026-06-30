@@ -417,7 +417,7 @@ class Game {
     }
 
     handleReportAction() {
-        if (this.localPlayer.isDead) return;
+        if (this.localPlayer.isDead || this.localPlayer.role === 'evil Dog') return;
 
         // Find nearby body
         for (const p of this.players) {

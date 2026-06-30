@@ -2595,9 +2595,11 @@ class AIController {
             return true;
         };
 
-        for (const p of players) {
-            if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
-                onReportBody(bot, p); return;
+        if (bot.role !== 'evil Dog') {
+            for (const p of players) {
+                if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
+                    onReportBody(bot, p); return;
+                }
             }
         }
 
@@ -3988,6 +3990,17 @@ class UIManager {
         if (ventBtn) {
             if ((player.role === 'evil Dog' || player.role === 'Engineer') && !player.isDead) ventBtn.classList.remove('hidden'); else ventBtn.classList.add('hidden');
         }
+        const reportBtn = document.getElementById('action-report-btn');
+        let canReport = false;
+        if (player.role !== 'evil Dog' && !player.isDead) {
+            for (const p of this.game.players) {
+                if (p.isDead && !p.bodyCleaned && Math.hypot(player.x - p.x, player.y - p.y) <= 80) {
+                    canReport = true;
+                    break;
+                }
+            }
+        }
+        if (canReport) reportBtn.classList.remove('hidden'); else reportBtn.classList.add('hidden');
 
         const sabBanner = document.getElementById('sabotage-banner');
         if (sabotageSystem.activeSabotage === 'lights') { sabBanner.classList.remove('hidden'); document.getElementById('sabotage-text').innerText = 'LIGHTS SABOTAGED! FIX IN ELECTRICAL!'; }
@@ -4506,7 +4519,7 @@ class Game {
     }
 
     handleReportAction() {
-        if (this.localPlayer.isDead) return;
+        if (this.localPlayer.isDead || this.localPlayer.role === 'evil Dog') return;
         for (const p of this.players) {
             if (p.isDead && !p.bodyCleaned && Math.hypot(this.localPlayer.x - p.x, this.localPlayer.y - p.y) <= 80) {
                 this.triggerMeeting(this.localPlayer, p); return;

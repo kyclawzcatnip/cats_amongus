@@ -49,9 +49,11 @@ export class AIController {
             return true;
         };
 
-        for (const p of players) {
-            if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
-                onReportBody(bot, p); return;
+        if (bot.role !== 'evil Dog') {
+            for (const p of players) {
+                if (p.isDead && !p.bodyCleaned && Math.hypot(bot.x - p.x, bot.y - p.y) <= 100) {
+                    onReportBody(bot, p); return;
+                }
             }
         }
 
