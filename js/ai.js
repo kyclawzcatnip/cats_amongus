@@ -408,8 +408,8 @@ export class AIController {
                     // Go to Weapons or Security to get the gun
                     const hasWeaponTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
                     if (hasWeaponTask) {
-                        const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
-                        const securityRoom = ROOMS.find(r => r.id === 'security');
+                        const weaponsRoom = ROOMS.find(r => r.id === 'weapons' || r.id === 'laser_weapons');
+                        const securityRoom = ROOMS.find(r => r.id === 'security') || ROOMS.find(r => r.id === 'cafeteria');
                         let chosenRoom = weaponsRoom;
                         if (weaponsRoom && securityRoom) {
                             const dWeapons = Math.hypot(bot.x - (weaponsRoom.x + weaponsRoom.width / 2), bot.y - (weaponsRoom.y + weaponsRoom.height / 2));

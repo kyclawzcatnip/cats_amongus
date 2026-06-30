@@ -2959,18 +2959,27 @@ class AIController {
 
             if (window.gameInstance && window.gameInstance.defensiveProtocolActive && bot.role !== 'evil Dog') {
                 if (!bot.hasGun) {
-                    // Go to Kitchen to get the gun
+                    // Go to Weapons or Security to get the gun
                     const hasWeaponTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
                     if (hasWeaponTask) {
-                        const roomObj = ROOMS.find(r => r.id === 'kitchen');
-                        if (roomObj) {
-                            targetKey = 'kitchen';
+                        const weaponsRoom = ROOMS.find(r => r.id === 'weapons' || r.id === 'laser_weapons');
+                        const securityRoom = ROOMS.find(r => r.id === 'security') || ROOMS.find(r => r.id === 'cafeteria');
+                        let chosenRoom = weaponsRoom;
+                        if (weaponsRoom && securityRoom) {
+                            const dWeapons = Math.hypot(bot.x - (weaponsRoom.x + weaponsRoom.width / 2), bot.y - (weaponsRoom.y + weaponsRoom.height / 2));
+                            const dSecurity = Math.hypot(bot.x - (securityRoom.x + securityRoom.width / 2), bot.y - (securityRoom.y + securityRoom.height / 2));
+                            if (dSecurity < dWeapons) {
+                                chosenRoom = securityRoom;
+                            }
+                        }
+                        if (chosenRoom) {
+                            targetKey = chosenRoom.id;
                             const baseTaskId = hasWeaponTask.id.split('_reassigned_')[0];
-                            const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                            const tkLoc = chosenRoom.tasks.find(tk => tk.id === baseTaskId);
                             if (tkLoc) taskTarget = { ...tkLoc, taskObj: hasWeaponTask };
                         }
                     } else {
-                        targetKey = 'kitchen';
+                        targetKey = 'weapons';
                     }
                 } else if (bot.gunAmmo === 0) {
                     // Go to Workshop to reload
@@ -4021,9 +4030,10 @@ class UIManager {
             const shipsDestroyed = this.game.enemyShipsDestroyed || 0;
             let ammoStr = '';
             if (this.game.localPlayer.hasGun) {
-                ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/5`;
+                ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/8`;
             } else {
-                ammoStr = `⚠️ GET GUN IN KITCHEN!`;
+                const locName = (this.game.selectedMap === 'catnip_observatory') ? 'WEAPONS/CAFETERIA' : 'WEAPONS/SECURITY';
+                ammoStr = `⚠️ GET GUN IN ${locName}!`;
             }
             document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ${ammoStr} | SHIPS DESTROYED: ${shipsDestroyed}/20 🚨`;
         }
@@ -5013,10 +5023,14 @@ class Game {
             });
         }
         soundManager.playVictory();
+        let weaponsSecurityRoomName = 'Weapons/Security';
+        if (this.selectedMap === 'catnip_observatory') {
+            weaponsSecurityRoomName = 'Weapons/Cafeteria';
+        }
         const emergencyTasks = [
             { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
             { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
-            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: 'Weapons/Security', type: 'rapid_click', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: weaponsSecurityRoomName, type: 'rapid_click', completed: false },
             { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
         ];
         emergencyTasks.forEach(task => {
@@ -5039,7 +5053,7 @@ class Game {
         if (bridgeRoom && !bridgeRoom.tasks.some(t => t.id === 'def_attack_ships')) {
             bridgeRoom.tasks.push({ id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', x: bridgeRoom.x + 100, y: bridgeRoom.y + 100 });
         }
-        const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
+        const weaponsRoom = ROOMS.find(r => r.id === 'weapons' || r.id === 'laser_weapons');
         if (weaponsRoom) {
             if (!weaponsRoom.tasks.some(t => t.id === 'def_get_weapons')) {
                 weaponsRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: weaponsRoom.x + 80, y: weaponsRoom.y + 80 });
@@ -5048,7 +5062,7 @@ class Game {
                 weaponsRoom.tasks.push({ id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', x: weaponsRoom.x + 120, y: weaponsRoom.y + 80 });
             }
         }
-        const securityRoom = ROOMS.find(r => r.id === 'security');
+        const securityRoom = ROOMS.find(r => r.id === 'security') || ROOMS.find(r => r.id === 'cafeteria');
         if (securityRoom && !securityRoom.tasks.some(t => t.id === 'def_get_weapons')) {
             securityRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: securityRoom.x + securityRoom.width / 2, y: securityRoom.y + securityRoom.height / 2 });
         }

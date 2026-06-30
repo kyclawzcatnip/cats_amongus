@@ -305,7 +305,8 @@ export class UIManager {
             if (this.game.localPlayer.hasGun) {
                 ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/8`;
             } else {
-                ammoStr = `⚠️ GET GUN IN WEAPONS/SECURITY!`;
+                const locName = (this.game.selectedMap === 'catnip_observatory') ? 'WEAPONS/CAFETERIA' : 'WEAPONS/SECURITY';
+                ammoStr = `⚠️ GET GUN IN ${locName}!`;
             }
             document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ${ammoStr} | SHIPS DESTROYED: ${shipsDestroyed}/20 🚨`;
         } else {

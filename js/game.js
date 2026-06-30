@@ -928,10 +928,14 @@ class Game {
             });
         }
         soundManager.playVictory();
+        let weaponsSecurityRoomName = 'Weapons/Security';
+        if (this.selectedMap === 'catnip_observatory') {
+            weaponsSecurityRoomName = 'Weapons/Cafeteria';
+        }
         const emergencyTasks = [
             { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
             { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
-            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: 'Weapons/Security', type: 'rapid_click', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: weaponsSecurityRoomName, type: 'rapid_click', completed: false },
             { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
         ];
         emergencyTasks.forEach(task => {
@@ -954,7 +958,7 @@ class Game {
         if (bridgeRoom && !bridgeRoom.tasks.some(t => t.id === 'def_attack_ships')) {
             bridgeRoom.tasks.push({ id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', x: bridgeRoom.x + 100, y: bridgeRoom.y + 100 });
         }
-        const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
+        const weaponsRoom = ROOMS.find(r => r.id === 'weapons' || r.id === 'laser_weapons');
         if (weaponsRoom) {
             if (!weaponsRoom.tasks.some(t => t.id === 'def_get_weapons')) {
                 weaponsRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: weaponsRoom.x + 80, y: weaponsRoom.y + 80 });
@@ -963,7 +967,7 @@ class Game {
                 weaponsRoom.tasks.push({ id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', x: weaponsRoom.x + 120, y: weaponsRoom.y + 80 });
             }
         }
-        const securityRoom = ROOMS.find(r => r.id === 'security');
+        const securityRoom = ROOMS.find(r => r.id === 'security') || ROOMS.find(r => r.id === 'cafeteria');
         if (securityRoom && !securityRoom.tasks.some(t => t.id === 'def_get_weapons')) {
             securityRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: securityRoom.x + securityRoom.width / 2, y: securityRoom.y + securityRoom.height / 2 });
         }
