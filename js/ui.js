@@ -25,6 +25,10 @@ export class UIManager {
         document.getElementById('prev-hat-btn').onclick = () => this.changeHat(-1);
         document.getElementById('next-hat-btn').onclick = () => this.changeHat(1);
 
+        // Map Selectors
+        document.getElementById('prev-map-btn').onclick = () => this.changeMap(-1);
+        document.getElementById('next-map-btn').onclick = () => this.changeMap(1);
+
         // Role Continue Button
         document.getElementById('role-continue-btn').onclick = () => {
             this.showScreen('hud-screen');
@@ -99,6 +103,18 @@ export class UIManager {
         document.getElementById('hat-preview-name').innerText = HATS[this.game.menuHatIndex].name;
     }
 
+    changeMap(dir) {
+        const maps = [
+            { id: 'whisker_station', name: 'Whisker-Station' },
+            { id: 'catnip_observatory', name: 'Catnip Observatory' }
+        ];
+        let curIdx = maps.findIndex(m => m.id === this.game.selectedMap);
+        if (curIdx === -1) curIdx = 0;
+        const nextIdx = (curIdx + dir + maps.length) % maps.length;
+        this.game.selectedMap = maps[nextIdx].id;
+        document.getElementById('map-preview-name').innerText = maps[nextIdx].name;
+    }
+
     showScreen(id) {
         document.querySelectorAll('.ui-screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -123,7 +139,7 @@ export class UIManager {
         let totalCatTasks = 0;
         let completedCatTasks = 0;
         players.forEach(p => {
-            if (p.role !== 'Dog' && p.tasks) {
+            if (p.role !== 'evil Dog' && p.tasks) {
                 p.tasks.forEach(t => {
                     totalCatTasks++;
                     if (t.completed) completedCatTasks++;
@@ -135,9 +151,9 @@ export class UIManager {
         document.getElementById('task-progress-fill').style.width = `${fillPct}%`;
 
         // Role Icon/Name
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Dog: '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
         document.getElementById('hud-role-icon').innerText = roleIcons[player.role] || '🐱';
-        document.getElementById('hud-role-name').innerText = player.role;
+        document.getElementById('hud-role-name').innerText = player.role === 'evil Dog' ? 'Evil Dog' : player.role;
 
         // Action Buttons Visibility
         const killBtn = document.getElementById('action-kill-btn');
@@ -147,7 +163,7 @@ export class UIManager {
         const cooldownOverlay = document.getElementById('kill-cooldown-timer');
         const sabCooldownOverlay = document.getElementById('sabotage-cooldown-timer');
 
-        if (player.role === 'Dog' && !player.isDead) {
+        if (player.role === 'evil Dog' && !player.isDead) {
             killBtn.classList.remove('hidden');
             sabBtn.classList.remove('hidden');
             
@@ -178,7 +194,7 @@ export class UIManager {
             reviveBtn.classList.add('hidden');
         }
 
-        if ((player.role === 'Dog' || player.role === 'Engineer') && !player.isDead) {
+        if ((player.role === 'evil Dog' || player.role === 'Engineer') && !player.isDead) {
             ventBtn.classList.remove('hidden');
         } else {
             ventBtn.classList.add('hidden');
@@ -209,7 +225,9 @@ export class UIManager {
         }
         
         const security = ROOMS.find(r => r.id === 'security');
-        if (security && Math.hypot(player.x - 380, player.y - 750) <= 75) {
+        const camX = this.game.selectedMap === 'catnip_observatory' ? 1380 : 380;
+        const camY = this.game.selectedMap === 'catnip_observatory' ? 950 : 750;
+        if (security && Math.hypot(player.x - camX, player.y - camY) <= 75) {
             canUse = true; useText = "CAMERAS"; useIcon = "📹";
         }
 
@@ -249,7 +267,7 @@ export class UIManager {
             }
         }
 
-        if (!canUse && (player.role === 'Dog' || player.role === 'Engineer')) {
+        if (!canUse && (player.role === 'evil Dog' || player.role === 'Engineer')) {
             const nearbyVent = VENTS.find(v => Math.hypot(player.x - v.x, player.y - v.y) <= 80);
             if (nearbyVent) {
                 canUse = true; useText = player.inVent ? "EXIT" : "VENT"; useIcon = "🌀";

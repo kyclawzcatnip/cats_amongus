@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cat Crew — Cat & Dog Social Deduction Spaceship Game</title>
-    <meta name="description" content="A cute, colorful multiplayer social deduction game set aboard a giant cat-shaped spaceship! Unmask the Dog impostor or complete your feline duties.">
+    <title>Cat Crew — Cat & evil Dog Social Deduction Spaceship Game</title>
+    <meta name="description" content="A cute, colorful multiplayer social deduction game set aboard a giant cat-shaped spaceship! Unmask the evil Dog impostor or complete your feline duties.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
@@ -46,14 +46,23 @@
                             </div>
                         </div>
 
+                        <div class="form-group">
+                            <label>Select Map:</label>
+                            <div class="customize-selectors">
+                                <button id="prev-map-btn" class="btn-icon">◀</button>
+                                <span id="map-preview-name">Whisker-Station</span>
+                                <button id="next-map-btn" class="btn-icon">▶</button>
+                            </div>
+                        </div>
+
                         <button id="start-game-btn" class="btn-primary glow-button">PAW-TCH IN (START GAME)</button>
                     </div>
 
                     <div class="game-instructions">
                         <h3>🐾 How to Play</h3>
                         <ul>
-                            <li><strong>Cats (Citizens, Captain, Guard, Engineer, Medic):</strong> Complete all tasks or eject the Dog!</li>
-                            <li><strong>🐶 Dog Impostor:</strong> Eliminate cats, sabotage systems, and blend in!</li>
+                            <li><strong>Cats (Citizens, Captain, Guard, Engineer, Medic):</strong> Complete all tasks or eject the evil Dog!</li>
+                            <li><strong>🐶 evil Dog Impostor:</strong> Eliminate cats, sabotage systems, and blend in!</li>
                             <li><strong>⭐ Captain:</strong> Completes tasks 35% faster.</li>
                             <li><strong>🛡️ Guard:</strong> Has 25% wider vision and sees better in dark sabotage.</li>
                             <li><strong>🏥 Medic:</strong> Can revive fallen cats up to 2 times per match!</li>
@@ -213,8 +222,8 @@
                     <div id="eject-animation-space" class="eject-space-canvas-container">
                         <div id="ejected-cat-sprite" class="floating-cat-eject">🐱</div>
                     </div>
-                    <h2 id="eject-result-text">Whiskers was not The Dog.</h2>
-                    <p id="eject-remaining-text">1 Dog remains.</p>
+                    <h2 id="eject-result-text">Whiskers was not the evil Dog.</h2>
+                    <p id="eject-remaining-text">1 evil Dog remains.</p>
                     <button id="eject-continue-btn" class="btn-primary glow-button">CONTINUE</button>
                 </div>
             </div>

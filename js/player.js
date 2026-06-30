@@ -7,7 +7,7 @@ export class Player {
         this.name = name;
         this.colorIndex = colorIndex;
         this.hatIndex = hatIndex;
-        this.role = role; // 'Citizen' | 'Captain' | 'Guard' | 'Engineer' | 'Medic' | 'Dog'
+        this.role = role; // 'Citizen' | 'Captain' | 'Guard' | 'Engineer' | 'Medic' | 'evil Dog'
         this.isLocalPlayer = isLocalPlayer;
 
         this.x = 1800;
@@ -31,10 +31,10 @@ export class Player {
     getVisionRadius(sabotageActive) {
         let baseVision = 750;
         if (this.role === 'Guard') baseVision = 950;
-        if (this.role === 'Dog') baseVision = 1000;
+        if (this.role === 'evil Dog') baseVision = 1000;
         if (sabotageActive === 'lights') {
             if (this.role === 'Guard') return 350;
-            else if (this.role === 'Dog') return baseVision;
+            else if (this.role === 'evil Dog') return baseVision;
             else return 250;
         }
         return baseVision;
@@ -94,16 +94,16 @@ export class Player {
             }
         }
 
-        // Update Kill Cooldown for Dog
-        if (this.role === 'Dog' && this.killCooldown > 0) {
+        // Update Kill Cooldown for evil Dog
+        if (this.role === 'evil Dog' && this.killCooldown > 0) {
             this.killCooldown -= dt;
             if (this.killCooldown < 0) this.killCooldown = 0;
         }
     }
 
     canKill(targetPlayer) {
-        if (this.role !== 'Dog' || this.isDead || this.killCooldown > 0) return false;
-        if (!targetPlayer || targetPlayer.isDead || targetPlayer.id === this.id || targetPlayer.role === 'Dog') return false;
+        if (this.role !== 'evil Dog' || this.isDead || this.killCooldown > 0) return false;
+        if (!targetPlayer || targetPlayer.isDead || targetPlayer.id === this.id || targetPlayer.role === 'evil Dog') return false;
         
         const dist = Math.hypot(this.x - targetPlayer.x, this.y - targetPlayer.y);
         return dist <= 80; // Kill range

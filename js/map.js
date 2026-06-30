@@ -42,7 +42,31 @@ export class MapRenderer {
         this.cameraY = 260;
     }
 
-    renderRoomProps(ctx, room) {}
+    renderRoomProps(ctx, room) {
+        if (room.id === 'security') {
+            const camTask = room.tasks.find(t => t.id === 'monitor_cams');
+            const deskX = camTask ? camTask.x : room.x + 130;
+            const deskY = camTask ? camTask.y : room.y + 50;
+
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(deskX - 40, deskY - 30, 80, 40); // desk
+            
+            ctx.fillStyle = '#1e272e';
+            ctx.fillRect(deskX - 30, deskY - 25, 25, 18);
+            ctx.fillRect(deskX + 5, deskY - 25, 25, 18);
+
+            ctx.fillStyle = '#00d2d3';
+            ctx.fillRect(deskX - 28, deskY - 23, 21, 14);
+            ctx.fillRect(deskX + 7, deskY - 23, 21, 14);
+
+            ctx.strokeStyle = '#57606f'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(deskX - 18, deskY - 7); ctx.lineTo(deskX - 18, deskY - 4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(deskX + 17, deskY - 7); ctx.lineTo(deskX + 17, deskY - 4); ctx.stroke();
+            
+            ctx.fillStyle = '#00cec9'; ctx.font = '700 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('CAMS', deskX, deskY + 5);
+        }
+    }
 
     updateCamera(targetX, targetY, viewportWidth, viewportHeight) {
         if (!targetX || !targetY) return;
@@ -141,7 +165,7 @@ export class MapRenderer {
         }
 
         // 5. Draw Vents (visible to Dog & Engineer)
-        const canSeeVents = localPlayer ? (localPlayer.role === 'Dog' || localPlayer.role === 'Engineer' || localPlayer.isDead) : true;
+        const canSeeVents = localPlayer ? (localPlayer.role === 'evil Dog' || localPlayer.role === 'Engineer' || localPlayer.isDead) : true;
         for (const v of VENTS) {
             ctx.fillStyle = canSeeVents ? '#a29bfe' : '#636e72'; ctx.fillRect(v.x - 16, v.y - 16, 32, 32);
             ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(v.x - 16, v.y - 16, 32, 32);

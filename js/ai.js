@@ -54,7 +54,7 @@ export class AIController {
             yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
         };
 
-        if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'Dog') {
+        if (sabotageSystem.activeSabotage === 'engine' && bot.role !== 'evil Dog') {
             const finalNode = bot.currentPath ? bot.currentPath[bot.currentPath.length - 1] : null;
             if (!finalNode || !finalNode.isEngineFix) {
                 let closestRoomKey = 'bridge';
@@ -91,8 +91,8 @@ export class AIController {
 
         if (!bot.currentPath || bot.currentPath.length === 0) {
             // 55% chance to travel in a group with another crewmate
-            if (bot.role !== 'Dog' && Math.random() < 0.55) {
-                const potentialLeaders = players.filter(p => !p.isLocalPlayer && !p.isDead && p.id !== bot.id && p.role !== 'Dog' && p.currentPath && p.currentPath.length > 0);
+            if (bot.role !== 'evil Dog' && Math.random() < 0.55) {
+                const potentialLeaders = players.filter(p => !p.isLocalPlayer && !p.isDead && p.id !== bot.id && p.role !== 'evil Dog' && p.currentPath && p.currentPath.length > 0);
                 if (potentialLeaders.length > 0) {
                     const leader = potentialLeaders[Math.floor(Math.random() * potentialLeaders.length)];
                     const finalNode = leader.currentPath[leader.currentPath.length - 1];
@@ -226,7 +226,7 @@ export class AIController {
             }
         }
 
-        if (bot.role === 'Dog') {
+        if (bot.role === 'evil Dog') {
             if (bot.killCooldown > 0) {
                 bot.killCooldown -= dt;
             }
@@ -235,7 +235,7 @@ export class AIController {
                 let nearestCat = null;
                 let minDist = 300;
                 for (const p of players) {
-                    if (!p.isDead && p.id !== bot.id && p.role !== 'Dog') {
+                    if (!p.isDead && p.id !== bot.id && p.role !== 'evil Dog') {
                         const d = Math.hypot(bot.x - p.x, bot.y - p.y);
                         if (d < minDist) {
                             minDist = d;
@@ -250,7 +250,7 @@ export class AIController {
 
             if (bot.killCooldown <= 0) {
                 for (const target of players) {
-                    if (!target.isDead && target.id !== bot.id && target.role !== 'Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
+                    if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
                         target.isDead = true;
                         bot.killCooldown = 25;
                         break;

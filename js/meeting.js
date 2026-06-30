@@ -44,8 +44,8 @@ export class MeetingManager {
         });
 
         // Establish initial AI voting consensus direction
-        const dogPlayer = players.find(p => !p.isDead && p.role === 'Dog');
-        const innocentPlayers = players.filter(p => !p.isDead && p.role !== 'Dog');
+        const dogPlayer = players.find(p => !p.isDead && p.role === 'evil Dog');
+        const innocentPlayers = players.filter(p => !p.isDead && p.role !== 'evil Dog');
         const rand = Math.random();
 
         if (witnessedKillerId !== null) {

@@ -1,8 +1,9 @@
 // Spaceship & Room Layout Definitions for Cat Crew
+import { VENTS } from './vents.js';
 
 export const MAP_BOUNDS = { width: 3600, height: 2600 };
 
-export const ROOMS = [
+export const WHISKER_STATION_ROOMS = [
     {
         id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
         x: 1550, y: 150, width: 500, height: 320, icon: '🚀',
@@ -104,24 +105,132 @@ export const ROOMS = [
     }
 ];
 
-export const CORRIDORS = [
-    { x1: 1800, y1: 300, x2: 1800, y2: 2260, width: 120 }, // Central vertical spine hallway
-    { x1: 1300, y1: 410, x2: 2300, y2: 410, width: 100 },  // Medical to Weapons
-    { x1: 1250, y1: 875, x2: 2350, y2: 875, width: 100 },  // Fish Storage / Quarters / Electrical
-    { x1: 1300, y1: 1325, x2: 2300, y2: 1325, width: 100 },// Nap Quarters / Cargo / Kitchen
-    { x1: 1250, y1: 1790, x2: 2350, y2: 1790, width: 100 },// Cat Garden / Workshop
-    { x1: 650, y1: 2260, x2: 2950, y2: 2260, width: 100 }, // Thruster A to Yarn Engine to Thruster B
-
-    // Corridors connecting new outer rooms
-    { x1: 650, y1: 875, x2: 800, y2: 875, width: 100 },    // Security to Fish Storage
-    { x1: 2800, y1: 875, x2: 2950, y2: 875, width: 100 },   // Electrical to Shields
-    { x1: 650, y1: 1325, x2: 850, y2: 1325, width: 100 },   // O2 to Nap Quarters
-    { x1: 2750, y1: 1325, x2: 2950, y2: 1325, width: 100 }, // Kitchen to Communications
-    { x1: 650, y1: 1790, x2: 800, y2: 1790, width: 100 },   // Records to Cat Garden
-    { x1: 1025, y1: 570, x2: 1025, y2: 700, width: 100 },   // Medical to Fish Storage
-    { x1: 1025, y1: 1050, x2: 1025, y2: 1150, width: 100 }, // Fish Storage to Nap Quarters
-    { x1: 1025, y1: 1500, x2: 1025, y2: 1600, width: 100 }, // Nap Quarters to Cat Garden
-    { x1: 2575, y1: 570, x2: 2575, y2: 700, width: 100 },   // Weapons to Electrical
-    { x1: 2575, y1: 1050, x2: 2575, y2: 1150, width: 100 }, // Electrical to Kitchen
-    { x1: 2575, y1: 1500, x2: 2575, y2: 1600, width: 100 }  // Kitchen to Workshop
+export const WHISKER_STATION_CORRIDORS = [
+    { x1: 1800, y1: 300, x2: 1800, y2: 2260, width: 120 },
+    { x1: 1300, y1: 410, x2: 2300, y2: 410, width: 100 },
+    { x1: 1250, y1: 875, x2: 2350, y2: 875, width: 100 },
+    { x1: 1300, y1: 1325, x2: 2300, y2: 1325, width: 100 },
+    { x1: 1250, y1: 1790, x2: 2350, y2: 1790, width: 100 },
+    { x1: 650, y1: 2260, x2: 2950, y2: 2260, width: 100 },
+    { x1: 650, y1: 875, x2: 800, y2: 875, width: 100 },
+    { x1: 2800, y1: 875, x2: 2950, y2: 875, width: 100 },
+    { x1: 650, y1: 1325, x2: 850, y2: 1325, width: 100 },
+    { x1: 2750, y1: 1325, x2: 2950, y2: 1325, width: 100 },
+    { x1: 650, y1: 1790, x2: 800, y2: 1790, width: 100 },
+    { x1: 1025, y1: 570, x2: 1025, y2: 700, width: 100 },
+    { x1: 1025, y1: 1050, x2: 1025, y2: 1150, width: 100 },
+    { x1: 1025, y1: 1500, x2: 1025, y2: 1600, width: 100 },
+    { x1: 2575, y1: 570, x2: 2575, y2: 700, width: 100 },
+    { x1: 2575, y1: 1050, x2: 2575, y2: 1150, width: 100 },
+    { x1: 2575, y1: 1500, x2: 2575, y2: 1600, width: 100 }
 ];
+
+export const CATNIP_OBSERVATORY_ROOMS = [
+    {
+        id: 'bridge', name: '🚀 Bridge', color: '#48dbfb', bgColor: '#1b2a47',
+        x: 1150, y: 150, width: 500, height: 350, icon: '🚀',
+        tasks: [ { id: 'nav_ship', name: 'Navigate Ship Path', x: 1300, y: 300 }, { id: 'upload_data', name: 'Upload Data to HQ', x: 1500, y: 300 } ],
+        hasEmergencyButton: true, buttonX: 1400, buttonY: 350
+    },
+    {
+        id: 'greenhouse', name: '🌿 Catnip Greenhouse', color: '#4cd137', bgColor: '#1b3320',
+        x: 200, y: 150, width: 450, height: 350, icon: '🌿',
+        tasks: [ { id: 'trim_catnip', name: 'Trim Catnip Hedges', x: 320, y: 320 }, { id: 'water_plants', name: 'Water Catnip Plants', x: 520, y: 320 } ]
+    },
+    {
+        id: 'laser_weapons', name: '⚔️ Laser Weapons', color: '#ff793f', bgColor: '#331e1b',
+        x: 2150, y: 150, width: 450, height: 350, icon: '⚔️',
+        tasks: [ { id: 'clear_asteroids', name: 'Clear Asteroids', x: 2250, y: 300 }, { id: 'load_torpedoes', name: 'Load Catnip Torpedoes', x: 2450, y: 300 } ]
+    },
+    {
+        id: 'medical', name: '🏥 Medical Bay', color: '#ff6b6b', bgColor: '#2d1b24',
+        x: 200, y: 800, width: 450, height: 350, icon: '🏥',
+        tasks: [ { id: 'med_scan', name: 'Submit Med Scan', x: 320, y: 970 }, { id: 'treat_scratches', name: 'Treat Paw Scratches', x: 520, y: 970 } ]
+    },
+    {
+        id: 'security', name: '📹 Security', color: '#a29bfe', bgColor: '#201b3a',
+        x: 1150, y: 800, width: 500, height: 350, icon: '📹',
+        tasks: [ { id: 'monitor_cams', name: 'Monitor Security Feeds', x: 1380, y: 950 }, { id: 'rewind_tapes', name: 'Rewind Security Tapes', x: 1450, y: 950 } ]
+    },
+    {
+        id: 'electrical', name: '⚡ Electrical Room', color: '#fbc531', bgColor: '#332e1b',
+        x: 2150, y: 800, width: 450, height: 350, icon: '⚡',
+        tasks: [ { id: 'calibrate_distributor', name: 'Calibrate Power', x: 2270, y: 975 }, { id: 'download_data', name: 'Download Power Logs', x: 2470, y: 975 } ],
+        hasLightsFixPanel: true, lightsFixX: 2375, lightsFixY: 975
+    },
+    {
+        id: 'reactor', name: '🌀 Reactor Core', color: '#74b9ff', bgColor: '#1e3799',
+        x: 200, y: 1450, width: 450, height: 400, icon: '🌀',
+        tasks: [ { id: 'untangle_yarn', name: 'Untangle Yarn Spool', x: 320, y: 1650 }, { id: 'calibrate_engine', name: 'Calibrate Engine Dials', x: 520, y: 1650 } ]
+    },
+    {
+        id: 'comms', name: '📡 Communications', color: '#0984e3', bgColor: '#1c2833',
+        x: 1150, y: 1450, width: 500, height: 400, icon: '📡',
+        tasks: [ { id: 'reboot_wifi', name: 'Reboot Space Comm Router', x: 1300, y: 1650 }, { id: 'download_comms', name: 'Download Signal Decryption', x: 1500, y: 1650 } ],
+        hasCommsFixPanel: true, commsFixX: 1400, commsFixY: 1650
+    },
+    {
+        id: 'thrusters', name: '🚀 Thruster Engines', color: '#e84118', bgColor: '#331b1b',
+        x: 2150, y: 1450, width: 450, height: 400, icon: '🚀',
+        tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 2270, y: 1650 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 2470, y: 1650 } ],
+        hasEngineFixPanel: true, engineFixX: 2375, engineFixY: 1650
+    }
+];
+
+export const CATNIP_OBSERVATORY_CORRIDORS = [
+    { x1: 1400, y1: 300, x2: 1400, y2: 1800, width: 120 },
+    { x1: 650, y1: 975, x2: 2150, y2: 975, width: 100 },
+    { x1: 650, y1: 325, x2: 650, y2: 1650, width: 100 },
+    { x1: 2150, y1: 325, x2: 2150, y2: 1650, width: 100 },
+    { x1: 650, y1: 325, x2: 1150, y2: 325, width: 100 },
+    { x1: 1650, y1: 325, x2: 2150, y2: 325, width: 100 },
+    { x1: 650, y1: 1650, x2: 1150, y2: 1650, width: 100 },
+    { x1: 1650, y1: 1650, x2: 2150, y2: 1650, width: 100 }
+];
+
+export const ROOMS = [...WHISKER_STATION_ROOMS];
+export const CORRIDORS = [...WHISKER_STATION_CORRIDORS];
+
+export function loadMap(mapId) {
+    if (mapId === 'catnip_observatory') {
+        MAP_BOUNDS.width = 2800;
+        MAP_BOUNDS.height = 2200;
+        
+        ROOMS.length = 0;
+        ROOMS.push(...CATNIP_OBSERVATORY_ROOMS);
+        
+        CORRIDORS.length = 0;
+        CORRIDORS.push(...CATNIP_OBSERVATORY_CORRIDORS);
+        
+        VENTS.length = 0;
+        VENTS.push(
+            { id: 'cv1', roomId: 'greenhouse', x: 350, y: 350, connectId: 'cv2', targetRoom: 'Reactor Core' },
+            { id: 'cv2', roomId: 'reactor', x: 350, y: 1650, connectId: 'cv1', targetRoom: 'Catnip Greenhouse' },
+            { id: 'cv3', roomId: 'laser_weapons', x: 2350, y: 350, connectId: 'cv4', targetRoom: 'Thrusters' },
+            { id: 'cv4', roomId: 'thrusters', x: 2350, y: 1650, connectId: 'cv3', targetRoom: 'Laser Weapons' },
+            { id: 'cv5', roomId: 'security', x: 1350, y: 950, connectId: 'cv6', targetRoom: 'Communications' },
+            { id: 'cv6', roomId: 'comms', x: 1350, y: 1650, connectId: 'cv5', targetRoom: 'Security' }
+        );
+    } else {
+        MAP_BOUNDS.width = 3600;
+        MAP_BOUNDS.height = 2600;
+        
+        ROOMS.length = 0;
+        ROOMS.push(...WHISKER_STATION_ROOMS);
+        
+        CORRIDORS.length = 0;
+        CORRIDORS.push(...WHISKER_STATION_CORRIDORS);
+        
+        VENTS.length = 0;
+        VENTS.push(
+            { id: 'v1', roomId: 'fish_storage', x: 450, y: 580, connectId: 'v2', targetRoom: 'Kitchen' },
+            { id: 'v2', roomId: 'kitchen', x: 1850, y: 580, connectId: 'v1', targetRoom: 'Fish Storage' },
+            { id: 'v3', roomId: 'yarn_engine', x: 1720, y: 1520, connectId: 'v4', targetRoom: 'Bridge' },
+            { id: 'v4', roomId: 'bridge', x: 1060, y: 380, connectId: 'v3', targetRoom: 'Yarn Engine' },
+            { id: 'v5', roomId: 'workshop', x: 1950, y: 1080, connectId: 'v6', targetRoom: 'Cat Garden' },
+            { id: 'v6', roomId: 'cat_garden', x: 450, y: 1080, connectId: 'v5', targetRoom: 'Workshop' },
+            { id: 'v7', roomId: 'nap_quarters', x: 1320, y: 880, connectId: 'v8', targetRoom: 'Cargo Bay' },
+            { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' }
+        );
+    }
+}

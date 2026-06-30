@@ -46,7 +46,7 @@ export class SpriteRenderer {
         ctx.fill();
 
         // Subtle Red Impostor Aura for Local Dog Player only
-        if (player.role === 'Dog' && player.isLocalPlayer && !isGhost) {
+        if (player.role === 'evil Dog' && player.isLocalPlayer && !isGhost) {
             ctx.beginPath();
             ctx.arc(0, 0, radius + 5, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(214, 48, 49, 0.6)';
@@ -66,7 +66,7 @@ export class SpriteRenderer {
         ctx.globalAlpha = 1.0;
         ctx.font = '700 12px "Quicksand", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillStyle = (player.role === 'Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
+        ctx.fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 4;
         ctx.fillText(player.name, 0, -radius - 12);

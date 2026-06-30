@@ -3,7 +3,7 @@
 import { soundManager } from './sounds.js';
 import { Player } from './player.js';
 import { MapRenderer } from './map.js';
-import { MAP_BOUNDS, ROOMS } from './rooms.js';
+import { MAP_BOUNDS, ROOMS, loadMap } from './rooms.js';
 import { VentSystem } from './vents.js';
 import { SabotageSystem } from './sabotage.js';
 import { TaskManager } from './tasks.js';
@@ -19,6 +19,7 @@ class Game {
         this.state = 'MENU'; // MENU | ROLE_REVEAL | PLAYING | MEETING | EJECT | GAME_OVER
         this.menuColorIndex = 0;
         this.menuHatIndex = 1;
+        this.selectedMap = 'whisker_station';
 
         this.mapRenderer = new MapRenderer();
         this.sabotageSystem = new SabotageSystem();
@@ -54,7 +55,7 @@ class Game {
                     this.handleUseAction();
                 } else if (e.code === 'KeyR') {
                     this.handleReportAction();
-                } else if (e.code === 'KeyQ' && this.localPlayer?.role === 'Dog') {
+                } else if (e.code === 'KeyQ' && this.localPlayer?.role === 'evil Dog') {
                     this.handleKillAction();
                 }
             }
@@ -67,8 +68,9 @@ class Game {
 
     startNewGame(playerName) {
         soundManager.init();
+        loadMap(this.selectedMap);
         
-        const roles = ['Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
+        const roles = ['evil Dog', 'Captain', 'Guard', 'Engineer', 'Medic', 'Citizen', 'Citizen', 'Citizen', 'Citizen', 'Citizen'];
         const shuffledRoles = [...roles].sort(() => 0.5 - Math.random());
 
         const botNames = ['Barnaby', 'Cleo', 'Felix', 'Mitten', 'Oliver', 'Shadow', 'Smokey', 'Luna', 'Garfield'];
@@ -88,7 +90,11 @@ class Game {
             p.tasks = TaskManager.generateTaskList();
 
             // Spawn inside Bridge or central corridor
-            p.x = 1720 + (i % 5) * 40;
+            if (this.selectedMap === 'catnip_observatory') {
+                p.x = 1320 + (i % 5) * 40;
+            } else {
+                p.x = 1720 + (i % 5) * 40;
+            }
             p.y = 250 + Math.floor(i / 5) * 40;
 
             this.players.push(p);
@@ -105,14 +111,14 @@ class Game {
         this.state = 'ROLE_REVEAL';
         this.uiManager.showScreen('role-screen');
 
-        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', Dog: '🐶' };
+        const roleIcons = { Citizen: '🐱', Captain: '⭐', Guard: '🛡️', Engineer: '🔧', Medic: '🏥', 'evil Dog': '🐶' };
         const roleDescs = {
-            Citizen: 'Perform tasks across rooms and unmask the sneaky Dog!',
+            Citizen: 'Perform tasks across rooms and unmask the sneaky evil Dog!',
             Captain: 'Command the ship! You complete tasks 35% faster than standard cats.',
             Guard: 'Stay vigilant! You have 25% larger vision and see much better when lights go out.',
             Engineer: 'Use ship ventilation shafts to traverse rooms instantly.',
             Medic: 'Heal the crew! You can revive fallen cats up to 2 times per match.',
-            Dog: 'Eliminate cats, sabotage systems, and do not get caught!'
+            'evil Dog': 'Eliminate cats, sabotage systems, and do not get caught!'
         };
 
         document.getElementById('role-icon').innerText = roleIcons[this.localPlayer.role];
@@ -121,8 +127,8 @@ class Game {
 
         const teamList = document.getElementById('role-team-list');
         teamList.innerHTML = '';
-        if (this.localPlayer.role === 'Dog') {
-            teamList.innerText = '⚠️ You are the solitary Dog impostor!';
+        if (this.localPlayer.role === 'evil Dog') {
+            teamList.innerText = '⚠️ You are the solitary evil Dog impostor!';
         } else {
             teamList.innerText = '🐾 Work with your fellow crew cats to finish all tasks!';
         }
@@ -198,7 +204,7 @@ class Game {
         }
 
         // 4. Check Vent
-        if (this.localPlayer.role === 'Dog' || this.localPlayer.role === 'Engineer') {
+        if (this.localPlayer.role === 'evil Dog' || this.localPlayer.role === 'Engineer') {
             this.handleVentAction();
         }
     }
@@ -219,7 +225,7 @@ class Game {
     }
 
     handleKillAction() {
-        if (this.localPlayer.role !== 'Dog' || this.localPlayer.isDead || this.localPlayer.killCooldown > 0 || this.globalKillTimer > 0) return;
+        if (this.localPlayer.role !== 'evil Dog' || this.localPlayer.isDead || this.localPlayer.killCooldown > 0 || this.globalKillTimer > 0) return;
         for (const target of this.players) {
             if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
                 target.isDead = true;
@@ -237,13 +243,26 @@ class Game {
     recordKillWitnesses(killer, victim) {
         if (!killer || !victim) return;
         
-        // Check if kill happened on cameras
-        const feeds = [
-            { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
-            { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
-            { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
-            { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
-        ];
+        let feeds = [];
+        let camX = 380, camY = 750;
+        
+        if (this.selectedMap === 'catnip_observatory') {
+            feeds = [
+                { bounds: { xMin: 200, xMax: 650, yMin: 150, yMax: 500 } }, // GREENHOUSE
+                { bounds: { xMin: 2150, xMax: 2600, yMin: 150, yMax: 500 } }, // LASER WEAPONS
+                { bounds: { xMin: 1150, xMax: 1650, yMin: 800, yMax: 1150 } }, // SECURITY
+                { bounds: { xMin: 2150, xMax: 2600, yMin: 800, yMax: 1150 } }  // ELECTRICAL
+            ];
+            camX = 1380; camY = 950;
+        } else {
+            feeds = [
+                { bounds: { xMin: 1550, xMax: 2050, yMin: 150, yMax: 470 } }, // BRIDGE
+                { bounds: { xMin: 2350, xMax: 2800, yMin: 700, yMax: 1050 } }, // ELECTRICAL
+                { bounds: { xMin: 2300, xMax: 2750, yMin: 250, yMax: 570 } }, // WEAPONS
+                { bounds: { xMin: 1740, xMax: 1860, yMin: 1150, yMax: 1500 } }  // HALLWAY
+            ];
+        }
+
         const isJammed = this.sabotageSystem && this.sabotageSystem.activeSabotage === 'comms';
         const onCamera = !isJammed && feeds.some(f => 
             victim.x >= f.bounds.xMin && victim.x <= f.bounds.xMax && 
@@ -251,9 +270,9 @@ class Game {
         );
 
         this.players.forEach(p => {
-            if (!p.isDead && p.role !== 'Dog') {
+            if (!p.isDead && p.role !== 'evil Dog') {
                 const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
-                const isWatchingCams = Math.hypot(p.x - 380, p.y - 750) <= 90;
+                const isWatchingCams = Math.hypot(p.x - camX, p.y - camY) <= 90;
                 
                 if (distToKill <= 280) {
                     p.witnessedKillerId = killer.id;
@@ -269,12 +288,19 @@ class Game {
                     if (!p.isLocalPlayer) {
                         p.taskTimer = 0;
                         p.currentTaskToComplete = null;
-                        p.currentPath = [
-                            { x: 650, y: 875 },
-                            { x: 1800, y: 875 },
-                            { x: 1800, y: 470 },
-                            { x: 1800, y: 280, isEmergencyButtonTrigger: true }
-                        ];
+                        if (this.selectedMap === 'catnip_observatory') {
+                            p.currentPath = [
+                                { x: 1400, y: 975 },
+                                { x: 1400, y: 350, isEmergencyButtonTrigger: true }
+                            ];
+                        } else {
+                            p.currentPath = [
+                                { x: 650, y: 875 },
+                                { x: 1800, y: 875 },
+                                { x: 1800, y: 470 },
+                                { x: 1800, y: 280, isEmergencyButtonTrigger: true }
+                            ];
+                        }
                     }
                 }
             }
@@ -295,7 +321,7 @@ class Game {
     }
 
     handleVentAction() {
-        if (this.localPlayer.role !== 'Dog' && this.localPlayer.role !== 'Engineer') return;
+        if (this.localPlayer.role !== 'evil Dog' && this.localPlayer.role !== 'Engineer') return;
         if (this.localPlayer.isDead) return;
         const vent = VentSystem.getNearbyVent(this.localPlayer.x, this.localPlayer.y);
         if (vent) {
@@ -309,7 +335,7 @@ class Game {
     }
 
     handleSabotageAction() {
-        if (this.localPlayer.role === 'Dog' && !this.localPlayer.isDead && this.sabotageSystem.cooldown <= 0) {
+        if (this.localPlayer.role === 'evil Dog' && !this.localPlayer.isDead && this.sabotageSystem.cooldown <= 0) {
             this.uiManager.showScreen('sabotage-modal');
         }
     }
@@ -355,19 +381,19 @@ class Game {
         } else if (isSkipped || !ejectedPlayer) {
             textEl.innerText = 'No one was ejected. (Skipped vote)';
         } else {
-            textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'Dog' ? 'The Dog!' : 'not The Dog.'}`;
+            textEl.innerText = `${ejectedPlayer.name} was ${ejectedPlayer.role === 'evil Dog' ? 'The evil Dog!' : 'not The evil Dog.'}`;
         }
 
-        const remainingDogs = this.players.filter(p => !p.isDead && p.role === 'Dog').length;
-        remEl.innerText = `${remainingDogs} Dog impostor remains.`;
+        const remainingDogs = this.players.filter(p => !p.isDead && p.role === 'evil Dog').length;
+        remEl.innerText = `${remainingDogs} evil Dog impostor remains.`;
     }
 
     reassignDeadCatTasks(deadPlayer) {
-        if (!deadPlayer || deadPlayer.role === 'Dog') return;
+        if (!deadPlayer || deadPlayer.role === 'evil Dog') return;
         const uncompleted = (deadPlayer.tasks || []).filter(t => !t.completed);
         if (uncompleted.length === 0) return;
 
-        const livingCats = this.players.filter(p => !p.isDead && p.role !== 'Dog');
+        const livingCats = this.players.filter(p => !p.isDead && p.role !== 'evil Dog');
         if (livingCats.length > 0) {
             uncompleted.forEach((t, i) => {
                 const assignee = livingCats[i % livingCats.length];
@@ -379,15 +405,15 @@ class Game {
 
     checkWinConditions() {
         if (this.state === 'GAME_OVER' || this.state === 'MENU' || (this.gameTimer || 0) < 5) return;
-        const aliveCats = this.players.filter(p => !p.isDead && p.role !== 'Dog').length;
-        const aliveDogs = this.players.filter(p => !p.isDead && p.role === 'Dog').length;
+        const aliveCats = this.players.filter(p => !p.isDead && p.role !== 'evil Dog').length;
+        const aliveDogs = this.players.filter(p => !p.isDead && p.role === 'evil Dog').length;
         
         const allCatTasks = [];
-        this.players.forEach(p => { if (p.role !== 'Dog' && p.tasks) allCatTasks.push(...p.tasks); });
+        this.players.forEach(p => { if (p.role !== 'evil Dog' && p.tasks) allCatTasks.push(...p.tasks); });
         const allTasksDone = allCatTasks.length > 0 && allCatTasks.every(t => t.completed);
 
-        if (aliveDogs === 0) this.endGame('VICTORY!', 'The Dog impostor was ejected!');
-        else if (aliveDogs >= aliveCats && aliveCats > 0) this.endGame('DEFEAT!', 'The Dog overran the spaceship!');
+        if (aliveDogs === 0) this.endGame('VICTORY!', 'The evil Dog impostor was ejected!');
+        else if (aliveDogs >= aliveCats && aliveCats > 0) this.endGame('DEFEAT!', 'The evil Dog overran the spaceship!');
         else if (allTasksDone) this.endGame('VICTORY!', 'All ship tasks have been completed!');
     }
 
