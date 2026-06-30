@@ -11,7 +11,11 @@ export const VENTS = [
     { id: 'v6', roomId: 'cat_garden', x: 450, y: 1080, connectId: 'v5', targetRoom: 'Workshop' },
     
     { id: 'v7', roomId: 'nap_quarters', x: 1320, y: 880, connectId: 'v8', targetRoom: 'Cargo Bay' },
-    { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' }
+    { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' },
+    { id: 'v9', roomId: 'thruster_a', x: 425, y: 2260, connectId: 'v10', targetRoom: 'Catnip Records' },
+    { id: 'v10', roomId: 'records', x: 450, y: 1770, connectId: 'v9', targetRoom: 'Thruster A' },
+    { id: 'v11', roomId: 'thruster_b', x: 3175, y: 2260, connectId: 'v12', targetRoom: 'Admin Room' },
+    { id: 'v12', roomId: 'admin', x: 3150, y: 1790, connectId: 'v11', targetRoom: 'Thruster B' }
 ];
 
 export class VentSystem {

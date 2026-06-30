@@ -102,6 +102,11 @@ export const WHISKER_STATION_ROOMS = [
         id: 'thruster_b', name: '🚀 Thruster B', color: '#e84118', bgColor: '#331b1b',
         x: 2950, y: 2050, width: 450, height: 420, icon: '🚀',
         tasks: [ { id: 'prime_thruster_b', name: 'Prime Right Thruster', x: 3070, y: 2240 }, { id: 'flush_fuel_b', name: 'Flush Engine Fuel B', x: 3270, y: 2240 } ]
+    },
+    {
+        id: 'admin', name: '💼 Admin Room', color: '#ff7675', bgColor: '#2d1a24',
+        x: 2950, y: 1600, width: 400, height: 350, icon: '💼',
+        tasks: [ { id: 'swipe_card', name: 'Swipe Admin Card', x: 3080, y: 1770 }, { id: 'upload_admin', name: 'Upload Admin Logs', x: 3220, y: 1770 } ]
     }
 ];
 
@@ -122,7 +127,8 @@ export const WHISKER_STATION_CORRIDORS = [
     { x1: 1025, y1: 1500, x2: 1025, y2: 1600, width: 100 },
     { x1: 2575, y1: 570, x2: 2575, y2: 700, width: 100 },
     { x1: 2575, y1: 1050, x2: 2575, y2: 1150, width: 100 },
-    { x1: 2575, y1: 1500, x2: 2575, y2: 1600, width: 100 }
+    { x1: 2575, y1: 1500, x2: 2575, y2: 1600, width: 100 },
+    { x1: 2950, y1: 1325, x2: 2950, y2: 2260, width: 100 }
 ];
 
 export const CATNIP_OBSERVATORY_ROOMS = [
@@ -292,7 +298,11 @@ export function loadMap(mapId) {
             { id: 'v5', roomId: 'workshop', x: 1950, y: 1080, connectId: 'v6', targetRoom: 'Cat Garden' },
             { id: 'v6', roomId: 'cat_garden', x: 450, y: 1080, connectId: 'v5', targetRoom: 'Workshop' },
             { id: 'v7', roomId: 'nap_quarters', x: 1320, y: 880, connectId: 'v8', targetRoom: 'Cargo Bay' },
-            { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' }
+            { id: 'v8', roomId: 'cargo_bay', x: 680, y: 1520, connectId: 'v7', targetRoom: 'Nap Quarters' },
+            { id: 'v9', roomId: 'thruster_a', x: 425, y: 2260, connectId: 'v10', targetRoom: 'Catnip Records' },
+            { id: 'v10', roomId: 'records', x: 450, y: 1770, connectId: 'v9', targetRoom: 'Thruster A' },
+            { id: 'v11', roomId: 'thruster_b', x: 3175, y: 2260, connectId: 'v12', targetRoom: 'Admin Room' },
+            { id: 'v12', roomId: 'admin', x: 3150, y: 1790, connectId: 'v11', targetRoom: 'Thruster B' }
         );
     }
 }

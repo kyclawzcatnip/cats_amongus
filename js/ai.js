@@ -159,7 +159,8 @@ export class AIController {
                 workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
                 thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
                 thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
-                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } }
+                yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } },
+                admin: { center: { x: 3150, y: 1790 }, door: { x: 2950, y: 1790 } }
             };
         }
 
