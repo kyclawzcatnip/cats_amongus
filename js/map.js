@@ -220,24 +220,33 @@ export class MapRenderer {
                         ctx.stroke();
                         ctx.restore();
                     } else {
-                        let isSus = false;
+                        let highestSus = 0;
                         for (const bot of players) {
-                            if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels && bot.suspicionLevels[p.id] >= 50) {
-                                isSus = true;
-                                break;
+                            if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels) {
+                                const score = bot.suspicionLevels[p.id] || 0;
+                                if (score > highestSus) highestSus = score;
                             }
                         }
-                        if (isSus) {
+                        if (highestSus >= 50) {
                             ctx.save();
                             ctx.translate(p.x, p.y);
                             ctx.beginPath();
                             ctx.arc(0, 0, p.radius + 6, 0, Math.PI * 2);
-                            ctx.strokeStyle = '#fdcb6e';
+                            ctx.strokeStyle = highestSus >= 100 ? '#ff7675' : '#fdcb6e';
                             ctx.lineWidth = 3;
-                            ctx.shadowColor = '#ffeaa7';
-                            ctx.shadowBlur = 8;
+                            ctx.shadowColor = highestSus >= 100 ? '#d63031' : '#ffeaa7';
+                            ctx.shadowBlur = highestSus >= 100 ? 12 : 8;
                             ctx.stroke();
                             ctx.restore();
+                            
+                            if (highestSus >= 100) {
+                                ctx.save();
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = '16px sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('🚨', p.x, p.y - p.radius - 12);
+                                ctx.restore();
+                            }
                         }
                     }
                 }

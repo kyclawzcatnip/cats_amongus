@@ -1342,7 +1342,7 @@ class Player {
         this.x = 1800; this.y = 280; this.radius = 32; this.speed = 220;
         this.isDead = false; this.bodyCleaned = false; this.inVent = false; this.currentVentId = null;
         this.killCooldown = 10; this.reviveUses = 2; this.tasks = []; this.stepTimer = 0;
-        this.suspicionLevels = {};
+        this.suspicionLevels = {}; this.completedTasksCount = 0;
     }
 
     getVisionRadius(sabotageActive) {
@@ -1409,6 +1409,32 @@ class Player {
         }
         if (this.role === 'evil Dog' && this.killCooldown > 0) {
             this.killCooldown -= dt; if (this.killCooldown < 0) this.killCooldown = 0;
+        }
+        if (this.suspicionLevels) {
+            for (const key in this.suspicionLevels) {
+                if (this.suspicionLevels[key] > 0) {
+                    this.suspicionLevels[key] = Math.max(0, this.suspicionLevels[key] - 0.25 * dt);
+                }
+            }
+        }
+        const currentCompletedCount = (this.tasks || []).filter(t => t.completed).length;
+        if (currentCompletedCount > (this.completedTasksCount || 0)) {
+            const delta = currentCompletedCount - (this.completedTasksCount || 0);
+            this.completedTasksCount = currentCompletedCount;
+            const allTasksCompleted = this.tasks.length > 0 && currentCompletedCount === this.tasks.length;
+            
+            const game = window.gameInstance;
+            if (game && game.players) {
+                game.players.forEach(other => {
+                    if (other.suspicionLevels) {
+                        if (allTasksCompleted) {
+                            other.suspicionLevels[this.id] = 0;
+                        } else {
+                            other.suspicionLevels[this.id] = Math.max(0, (other.suspicionLevels[this.id] || 0) - 25 * delta);
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -1645,24 +1671,33 @@ class MapRenderer {
                     ctx.stroke();
                     ctx.restore();
                 } else {
-                    let isSus = false;
+                    let highestSus = 0;
                     for (const bot of players) {
-                        if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels && bot.suspicionLevels[p.id] >= 50) {
-                            isSus = true;
-                            break;
+                        if (!bot.isDead && !bot.isLocalPlayer && bot.suspicionLevels) {
+                            const score = bot.suspicionLevels[p.id] || 0;
+                            if (score > highestSus) highestSus = score;
                         }
                     }
-                    if (isSus) {
+                    if (highestSus >= 50) {
                         ctx.save();
                         ctx.translate(p.x, p.y);
                         ctx.beginPath();
                         ctx.arc(0, 0, p.radius + 6, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#fdcb6e';
+                        ctx.strokeStyle = highestSus >= 100 ? '#ff7675' : '#fdcb6e';
                         ctx.lineWidth = 3;
-                        ctx.shadowColor = '#ffeaa7';
-                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = highestSus >= 100 ? '#d63031' : '#ffeaa7';
+                        ctx.shadowBlur = highestSus >= 100 ? 12 : 8;
                         ctx.stroke();
                         ctx.restore();
+                        
+                        if (highestSus >= 100) {
+                            ctx.save();
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = '16px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('🚨', p.x, p.y - p.radius - 12);
+                            ctx.restore();
+                        }
                     }
                 }
             }
@@ -1842,44 +1877,141 @@ class AIController {
         // 2. Fleeing Behavior
         if (bot.role !== 'evil Dog') {
             if (!bot.suspicionLevels) bot.suspicionLevels = {};
-            let nearestSusPlayer = null;
-            let minDist = 220;
+            
+            // Check if there is a 100% sus player visible
+            let absoluteSusPlayer = null;
             for (const p of players) {
-                if (p.id !== bot.id && !p.isDead) {
+                if (p.id !== bot.id && !p.isDead && p.role !== 'evil Dog') {
                     const susScore = bot.suspicionLevels[p.id] || 0;
-                    if (susScore >= 50) {
+                    if (susScore >= 100) {
                         const d = Math.hypot(bot.x - p.x, bot.y - p.y);
                         const sameFloor = (bot.y >= 2800) === (p.y >= 2800);
-                        if (sameFloor && d < minDist && isLineOfSightClear(bot.x, bot.y, p.x, p.y)) {
-                            minDist = d;
-                            nearestSusPlayer = p;
+                        const isLOSClear = window.isLineOfSightClear ? window.isLineOfSightClear(bot.x, bot.y, p.x, p.y) : true;
+                        if (sameFloor && d < 280 && isLOSClear) {
+                            absoluteSusPlayer = p;
+                            break;
                         }
                     }
                 }
             }
 
-            if (nearestSusPlayer) {
-                const angle = Math.atan2(bot.y - nearestSusPlayer.y, bot.x - nearestSusPlayer.x);
-                let escapeX = bot.x + Math.cos(angle) * 150;
-                let escapeY = bot.y + Math.sin(angle) * 150;
-                if (!isWalkable(escapeX, escapeY)) {
-                    for (let offset = 45; offset <= 180; offset += 45) {
-                        const altAngle1 = angle + (offset * Math.PI / 180);
-                        const altAngle2 = angle - (offset * Math.PI / 180);
-                        let ax = bot.x + Math.cos(altAngle1) * 150;
-                        let ay = bot.y + Math.sin(altAngle1) * 150;
-                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
-                        ax = bot.x + Math.cos(altAngle2) * 150;
-                        ay = bot.y + Math.sin(altAngle2) * 150;
-                        if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+            if (absoluteSusPlayer) {
+                const selectedMap = window.gameInstance ? window.gameInstance.selectedMap : 'whisker_station';
+                const btnX = selectedMap === 'catnip_observatory' ? 1400 : 1800;
+                const btnY = selectedMap === 'catnip_observatory' ? 325 : 280;
+                
+                if (!bot.isFleeing || !bot.currentPath || bot.currentPath.length === 0 || !bot.currentPath[bot.currentPath.length - 1].isEmergencyButtonTrigger) {
+                    bot.isFleeing = true;
+                    bot.taskTimer = 0;
+                    bot.currentTaskToComplete = null;
+                    
+                    let closestRoomKey = 'bridge';
+                    let minD = Infinity;
+                    const ROOM_NODES_LOCAL = selectedMap === 'catnip_observatory' ? {
+                        bridge: { center: { x: 1400, y: 325 }, door: { x: 1400, y: 500 } },
+                        greenhouse: { center: { x: 425, y: 325 }, door: { x: 650, y: 325 } },
+                        laser_weapons: { center: { x: 2375, y: 325 }, door: { x: 2150, y: 325 } },
+                        medical: { center: { x: 425, y: 975 }, door: { x: 650, y: 975 } },
+                        security: { center: { x: 1400, y: 975 }, door: { x: 1400, y: 975 } },
+                        electrical: { center: { x: 2375, y: 975 }, door: { x: 2150, y: 975 } },
+                        reactor: { center: { x: 425, y: 1650 }, door: { x: 650, y: 1650 } },
+                        comms: { center: { x: 1400, y: 1650 }, door: { x: 1400, y: 1650 } },
+                        thrusters: { center: { x: 2375, y: 1650 }, door: { x: 2150, y: 1650 } },
+                        fish_storage: { center: { x: 425, y: 3325 }, door: { x: 650, y: 3325 } },
+                        ship_quarters: { center: { x: 1400, y: 3325 }, door: { x: 1400, y: 3325 } },
+                        shields: { center: { x: 2375, y: 3325 }, door: { x: 2150, y: 3325 } },
+                        o2: { center: { x: 425, y: 3975 }, door: { x: 650, y: 3975 } },
+                        nap_quarters: { center: { x: 1400, y: 3975 }, door: { x: 1400, y: 3975 } },
+                        cargo_bay: { center: { x: 2375, y: 3975 }, door: { x: 2150, y: 3975 } },
+                        kitchen: { center: { x: 425, y: 4650 }, door: { x: 650, y: 4650 } },
+                        records: { center: { x: 1400, y: 4650 }, door: { x: 1400, y: 4650 } },
+                        workshop: { center: { x: 2375, y: 4650 }, door: { x: 2150, y: 4650 } },
+                        cat_garden: { center: { x: 1400, y: 5300 }, door: { x: 1400, y: 5300 } }
+                    } : {
+                        bridge: { center: { x: 1800, y: 310 }, door: { x: 1800, y: 470 } },
+                        medical: { center: { x: 1075, y: 410 }, door: { x: 1300, y: 410 } },
+                        weapons: { center: { x: 2525, y: 410 }, door: { x: 2300, y: 410 } },
+                        security: { center: { x: 450, y: 875 }, door: { x: 650, y: 875 } },
+                        fish_storage: { center: { x: 1025, y: 875 }, door: { x: 1250, y: 875 } },
+                        electrical: { center: { x: 2575, y: 875 }, door: { x: 2350, y: 875 } },
+                        shields: { center: { x: 3150, y: 875 }, door: { x: 2950, y: 875 } },
+                        ship_quarters: { center: { x: 1800, y: 810 }, door: { x: 1800, y: 810 } },
+                        o2: { center: { x: 450, y: 1325 }, door: { x: 650, y: 1325 } },
+                        nap_quarters: { center: { x: 1075, y: 1325 }, door: { x: 1300, y: 1325 } },
+                        kitchen: { center: { x: 2525, y: 1325 }, door: { x: 2300, y: 1325 } },
+                        cargo_bay: { center: { x: 1800, y: 1325 }, door: { x: 1800, y: 1325 } },
+                        comms: { center: { x: 3150, y: 1325 }, door: { x: 2950, y: 1325 } },
+                        records: { center: { x: 450, y: 1770 }, door: { x: 650, y: 1770 } },
+                        cat_garden: { center: { x: 1025, y: 1790 }, door: { x: 1250, y: 1790 } },
+                        workshop: { center: { x: 2575, y: 1790 }, door: { x: 2350, y: 1790 } },
+                        thruster_a: { center: { x: 425, y: 2260 }, door: { x: 650, y: 2260 } },
+                        thruster_b: { center: { x: 3175, y: 2260 }, door: { x: 2950, y: 2260 } },
+                        yarn_engine: { center: { x: 1800, y: 2260 }, door: { x: 1800, y: 2050 } },
+                        admin: { center: { x: 3150, y: 1790 }, door: { x: 2950, y: 1790 } }
+                    };
+                    for (const key of Object.keys(ROOM_NODES_LOCAL)) {
+                        const d = Math.hypot(bot.x - ROOM_NODES_LOCAL[key].center.x, bot.y - ROOM_NODES_LOCAL[key].center.y);
+                        if (d < minD) { minD = d; closestRoomKey = key; }
+                    }
+                    
+                    const buildPathLocal = (startNode, targetNode, finalTarget) => {
+                        const path = [];
+                        path.push({ x: startNode.door.x, y: startNode.door.y });
+                        const startFloor = startNode.center.y >= 2800 ? 2 : 1;
+                        const targetFloor = targetNode.center.y >= 2800 ? 2 : 1;
+                        if (selectedMap === 'catnip_observatory' && startFloor !== targetFloor) {
+                            path.push({ x: 1400, y: startFloor === 1 ? 650 : 3650, isLadderTransit: true });
+                        }
+                        path.push({ x: targetNode.door.x, y: targetNode.door.y });
+                        path.push(finalTarget);
+                        return path;
+                    };
+                    
+                    const startNode = ROOM_NODES_LOCAL[closestRoomKey];
+                    const targetNode = ROOM_NODES_LOCAL['bridge'];
+                    bot.currentPath = buildPathLocal(startNode, targetNode, { x: btnX, y: btnY, isEmergencyButtonTrigger: true });
+                }
+            } else {
+                let nearestSusPlayer = null;
+                let minDist = 220;
+                for (const p of players) {
+                    if (p.id !== bot.id && !p.isDead) {
+                        const susScore = bot.suspicionLevels[p.id] || 0;
+                        if (susScore >= 50) {
+                            const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                            const sameFloor = (bot.y >= 2800) === (p.y >= 2800);
+                            const isLOSClear = window.isLineOfSightClear ? window.isLineOfSightClear(bot.x, bot.y, p.x, p.y) : true;
+                            if (sameFloor && d < minDist && isLOSClear) {
+                                minDist = d;
+                                nearestSusPlayer = p;
+                            }
+                        }
                     }
                 }
-                bot.currentPath = [{ x: escapeX, y: escapeY }];
-                bot.taskTimer = 0;
-                bot.currentTaskToComplete = null;
-                bot.isFleeing = true;
-            } else {
-                bot.isFleeing = false;
+
+                if (nearestSusPlayer) {
+                    const angle = Math.atan2(bot.y - nearestSusPlayer.y, bot.x - nearestSusPlayer.x);
+                    let escapeX = bot.x + Math.cos(angle) * 150;
+                    let escapeY = bot.y + Math.sin(angle) * 150;
+                    if (!isWalkable(escapeX, escapeY)) {
+                        for (let offset = 45; offset <= 180; offset += 45) {
+                            const altAngle1 = angle + (offset * Math.PI / 180);
+                            const altAngle2 = angle - (offset * Math.PI / 180);
+                            let ax = bot.x + Math.cos(altAngle1) * 150;
+                            let ay = bot.y + Math.sin(altAngle1) * 150;
+                            if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                            ax = bot.x + Math.cos(altAngle2) * 150;
+                            ay = bot.y + Math.sin(altAngle2) * 150;
+                            if (isWalkable(ax, ay)) { escapeX = ax; escapeY = ay; break; }
+                        }
+                    }
+                    bot.currentPath = [{ x: escapeX, y: escapeY }];
+                    bot.taskTimer = 0;
+                    bot.currentTaskToComplete = null;
+                    bot.isFleeing = true;
+                } else {
+                    bot.isFleeing = false;
+                }
             }
         }
 
@@ -2132,7 +2264,10 @@ class AIController {
                     bot.taskTimer = 4.0;
                     bot.currentTaskToComplete = targetNode.taskObj;
                 }
-                if (targetNode.x === 1800 && targetNode.y === 310 && !bot.hasCalledEmergency) {
+                const selectedMap = window.gameInstance ? window.gameInstance.selectedMap : 'whisker_station';
+                const btnX = selectedMap === 'catnip_observatory' ? 1400 : 1800;
+                const btnY = selectedMap === 'catnip_observatory' ? 325 : 310;
+                if (targetNode.x === btnX && targetNode.y === btnY && !bot.hasCalledEmergency) {
                     const gameTime = window.gameInstance?.gameTimer || 0;
                     if (gameTime > 30 && Math.random() < 0.2 && window.gameInstance && window.gameInstance.state === 'PLAYING') {
                         bot.hasCalledEmergency = true;

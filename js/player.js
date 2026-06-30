@@ -27,6 +27,7 @@ export class Player {
         // Footstep audio timer
         this.stepTimer = 0;
         this.suspicionLevels = {};
+        this.completedTasksCount = 0;
     }
 
     getVisionRadius(sabotageActive) {
@@ -99,6 +100,36 @@ export class Player {
         if (this.role === 'evil Dog' && this.killCooldown > 0) {
             this.killCooldown -= dt;
             if (this.killCooldown < 0) this.killCooldown = 0;
+        }
+
+        // Gradually decay suspicion over time (0.25 points per second)
+        if (this.suspicionLevels) {
+            for (const key in this.suspicionLevels) {
+                if (this.suspicionLevels[key] > 0) {
+                    this.suspicionLevels[key] = Math.max(0, this.suspicionLevels[key] - 0.25 * dt);
+                }
+            }
+        }
+
+        // Lower suspicion upon task completion (25 pts per task, reset to 0 if all done)
+        const currentCompletedCount = (this.tasks || []).filter(t => t.completed).length;
+        if (currentCompletedCount > (this.completedTasksCount || 0)) {
+            const delta = currentCompletedCount - (this.completedTasksCount || 0);
+            this.completedTasksCount = currentCompletedCount;
+            const allTasksCompleted = this.tasks.length > 0 && currentCompletedCount === this.tasks.length;
+            
+            const game = window.gameInstance;
+            if (game && game.players) {
+                game.players.forEach(other => {
+                    if (other.suspicionLevels) {
+                        if (allTasksCompleted) {
+                            other.suspicionLevels[this.id] = 0;
+                        } else {
+                            other.suspicionLevels[this.id] = Math.max(0, (other.suspicionLevels[this.id] || 0) - 25 * delta);
+                        }
+                    }
+                });
+            }
         }
     }
 
