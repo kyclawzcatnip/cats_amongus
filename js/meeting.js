@@ -63,7 +63,31 @@ export class MeetingManager {
         if (witnessedKillerId !== null) {
             this.accusedId = witnessedKillerId; // Witness takes priority
         } else {
-            this.accusedId = null; // No one knows who it is!
+            // Find player with highest suspicion (from the perspective of alive crewmates)
+            let highestSusId = null;
+            let highestSusVal = 0;
+            players.forEach(p => {
+                if (p.isDead) return;
+                let averageSusForP = 0;
+                let crewCount = 0;
+                players.forEach(voter => {
+                    if (!voter.isDead && !voter.isLocalPlayer && voter.role !== 'evil Dog' && voter.suspicionLevels) {
+                        averageSusForP += voter.suspicionLevels[p.id] || 0;
+                        crewCount++;
+                    }
+                });
+                const averageVal = crewCount > 0 ? (averageSusForP / crewCount) : 0;
+                if (averageVal > highestSusVal) {
+                    highestSusVal = averageVal;
+                    highestSusId = p.id;
+                }
+            });
+
+            if (highestSusId !== null && highestSusVal >= 50) {
+                this.accusedId = highestSusId;
+            } else {
+                this.accusedId = null; // No one knows who it is!
+            }
         }
 
         soundManager.playEmergencyAlarm();
@@ -237,9 +261,9 @@ export class MeetingManager {
                     this.votes[bot.id] = bot.witnessedKillerId;
                 } else if (this.accusedId !== null) {
                     const r = Math.random();
-                    if (r < 0.50) {
+                    if (r < 0.85) { // Crewmates are much more unified when someone is accused!
                         this.votes[bot.id] = this.accusedId;
-                    } else if (r < 0.80) {
+                    } else if (r < 0.95) {
                         this.votes[bot.id] = 'skip';
                     } else {
                         const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
@@ -247,13 +271,34 @@ export class MeetingManager {
                         this.votes[bot.id] = choices[Math.floor(Math.random() * choices.length)];
                     }
                 } else {
-                    const r = Math.random();
-                    if (r < 0.60) {
-                        this.votes[bot.id] = 'skip';
+                    // Check if there is any highly suspected player (> 40% sus) for this bot specifically
+                    let localAccusedId = null;
+                    let highestSusVal = 0;
+                    if (bot.suspicionLevels) {
+                        for (const [suspectedId, value] of Object.entries(bot.suspicionLevels)) {
+                            const pl = players.find(p => p.id == suspectedId);
+                            if (pl && !pl.isDead && value > highestSusVal) {
+                                highestSusVal = value;
+                                localAccusedId = suspectedId;
+                            }
+                        }
+                    }
+                    if (localAccusedId !== null && highestSusVal >= 40) {
+                        const r = Math.random();
+                        if (r < 0.80) {
+                            this.votes[bot.id] = localAccusedId;
+                        } else {
+                            this.votes[bot.id] = 'skip';
+                        }
                     } else {
-                        const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
-                        choices.push('skip');
-                        this.votes[bot.id] = choices[Math.floor(Math.random() * choices.length)];
+                        const r = Math.random();
+                        if (r < 0.60) {
+                            this.votes[bot.id] = 'skip';
+                        } else {
+                            const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                            choices.push('skip');
+                            this.votes[bot.id] = choices[Math.floor(Math.random() * choices.length)];
+                        }
                     }
                 }
                 const tag = document.getElementById(`vote-tag-${bot.id}`);
