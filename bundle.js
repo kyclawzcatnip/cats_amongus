@@ -2726,22 +2726,22 @@ class AIController {
             spineX = 2000;
             ROOM_NODES = {
                 bridge: { center: { x: 2000, y: 325 }, door: { x: 2000, y: 500 } },
-                medical: { center: { x: 1275, y: 410 }, door: { x: 1500, y: 410 } },
-                weapons: { center: { x: 2725, y: 410 }, door: { x: 2500, y: 410 } },
+                medical: { center: { x: 1275, y: 410 }, door: { x: 1275, y: 570 } },
+                weapons: { center: { x: 2725, y: 410 }, door: { x: 2725, y: 570 } },
                 security: { center: { x: 650, y: 875 }, door: { x: 850, y: 875 } },
-                ship_quarters: { center: { x: 1300, y: 910 }, door: { x: 1300, y: 1070 } },
+                ship_quarters: { center: { x: 1300, y: 910 }, door: { x: 1300, y: 910 } },
                 cafeteria: { center: { x: 2000, y: 1050 }, door: { x: 2000, y: 1350 } },
-                nap_quarters: { center: { x: 2700, y: 910 }, door: { x: 2700, y: 1070 } },
+                nap_quarters: { center: { x: 2700, y: 910 }, door: { x: 2700, y: 910 } },
                 electrical: { center: { x: 3350, y: 875 }, door: { x: 3150, y: 875 } },
                 o2: { center: { x: 650, y: 1460 }, door: { x: 850, y: 1460 } },
-                fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1620 } },
-                kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1620 } },
+                fish_storage: { center: { x: 1275, y: 1460 }, door: { x: 1275, y: 1460 } },
+                kitchen: { center: { x: 2725, y: 1460 }, door: { x: 2725, y: 1460 } },
                 comms: { center: { x: 3350, y: 1460 }, door: { x: 3150, y: 1460 } },
                 records: { center: { x: 675, y: 2010 }, door: { x: 850, y: 2010 } },
                 cargo_bay: { center: { x: 2000, y: 2100 }, door: { x: 2000, y: 1900 } },
                 workshop: { center: { x: 3325, y: 2010 }, door: { x: 3150, y: 2010 } },
-                yarn_engine: { center: { x: 1250, y: 2550 }, door: { x: 1250, y: 2350 } },
-                shields: { center: { x: 2750, y: 2550 }, door: { x: 2750, y: 2350 } }
+                yarn_engine: { center: { x: 1250, y: 2550 }, door: { x: 1250, y: 2400 } },
+                shields: { center: { x: 2750, y: 2550 }, door: { x: 2750, y: 2400 } }
             };
         } else if (selectedMap === 'catnip_observatory') {
             spineX = 1400;
