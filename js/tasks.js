@@ -9,7 +9,7 @@ export const TASK_DEFINITIONS = {
     scan_asteroids: { name: 'Scan Space Sector', room: 'Bridge', type: 'click_sequence' },
     med_scan: { name: 'Submit Med Scan', room: 'Medical', type: 'rapid_click' },
     treat_scratches: { name: 'Treat Paw Scratches', room: 'Medical', type: 'click_sequence' },
-    clear_asteroids: { name: 'Clear Asteroids', room: 'Weapons', type: 'click_sequence' },
+    clear_asteroids: { name: 'Clear Asteroids', room: 'Weapons', type: 'shoot_asteroids' },
     load_torpedoes: { name: 'Load Catnip Torpedoes', room: 'Weapons', type: 'fill_meter' },
     monitor_cams: { name: 'Monitor Security Feeds', room: 'Security', type: 'cams' },
     rewind_tapes: { name: 'Rewind Security Tapes', room: 'Security', type: 'slider' },
@@ -310,6 +310,211 @@ export class TaskManager {
                 grid.appendChild(btn); buttons.push(btn);
             });
             wrap.appendChild(grid); container.appendChild(wrap);
+        } else if (task.type === 'shoot_asteroids') {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; color:white; font-family:var(--font-heading);';
+            wrap.innerHTML = `<p style="font-size:1.1rem; margin-bottom:4px;">💥 Shoot the asteroids before they drift away! (Destroyed: <span id="ast-count">0</span> / 10)</p>`;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 400; canvas.height = 300;
+            canvas.style.cssText = 'background:#000; border:3px solid #2d3436; border-radius:12px; cursor:crosshair; box-shadow:0 10px 30px rgba(0,0,0,0.5);';
+            wrap.appendChild(canvas);
+            container.appendChild(wrap);
+
+            const ctx = canvas.getContext('2d');
+            let destroyed = 0;
+            let asteroids = [];
+            let laserLine = null;
+            let explosions = [];
+            let mousePos = { x: 200, y: 150 };
+            let active = true;
+
+            const spawnAsteroid = () => {
+                if (!active) return;
+                const side = Math.random() < 0.7 ? 'right' : 'top';
+                let x, y, vx, vy;
+                if (side === 'right') {
+                    x = canvas.width + 20;
+                    y = Math.random() * (canvas.height - 60) + 30;
+                    vx = -(Math.random() * 100 + 80);
+                    vy = (Math.random() - 0.5) * 40;
+                } else {
+                    x = Math.random() * (canvas.width - 60) + 30;
+                    y = -20;
+                    vx = (Math.random() - 0.5) * 80;
+                    vy = Math.random() * 100 + 80;
+                }
+                const radius = Math.random() * 15 + 10;
+                asteroids.push({ x, y, vx, vy, radius, hp: 1 });
+            };
+
+            const getMousePos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (canvas.width / rect.width),
+                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                };
+            };
+
+            canvas.onmousemove = (e) => {
+                mousePos = getMousePos(e);
+            };
+
+            canvas.onmousedown = (e) => {
+                if (!active || task.completed) return;
+                const clickPos = getMousePos(e);
+                
+                laserLine = {
+                    fromX: canvas.width / 2,
+                    fromY: canvas.height,
+                    toX: clickPos.x,
+                    toY: clickPos.y,
+                    alpha: 1.0
+                };
+                
+                soundManager.playVoteClick();
+
+                let hitIndex = -1;
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    const ast = asteroids[i];
+                    const dist = Math.hypot(clickPos.x - ast.x, clickPos.y - ast.y);
+                    if (dist <= ast.radius + 10) {
+                        hitIndex = i;
+                        break;
+                    }
+                }
+
+                if (hitIndex !== -1) {
+                    const hitAst = asteroids[hitIndex];
+                    explosions.push({
+                        x: hitAst.x,
+                        y: hitAst.y,
+                        radius: hitAst.radius,
+                        alpha: 1.0
+                    });
+                    asteroids.splice(hitIndex, 1);
+                    destroyed++;
+                    document.getElementById('ast-count').innerText = destroyed;
+                    
+                    if (destroyed >= 10) {
+                        task.completed = true;
+                        soundManager.playTaskComplete();
+                        setTimeout(() => {
+                            active = false;
+                            onComplete();
+                        }, 500);
+                    }
+                }
+            };
+
+            const spawnInterval = setInterval(spawnAsteroid, 1000);
+
+            const tick = () => {
+                if (!active) return;
+                
+                const dt = 1 / 60;
+                
+                asteroids.forEach(ast => {
+                    ast.x += ast.vx * dt;
+                    ast.y += ast.vy * dt;
+                });
+                asteroids = asteroids.filter(ast => ast.x > -50 && ast.x < canvas.width + 50 && ast.y > -50 && ast.y < canvas.height + 50);
+
+                if (laserLine) {
+                    laserLine.alpha -= dt * 4;
+                    if (laserLine.alpha <= 0) laserLine = null;
+                }
+
+                explosions.forEach(exp => {
+                    exp.radius += dt * 40;
+                    exp.alpha -= dt * 3;
+                });
+                explosions = explosions.filter(exp => exp.alpha > 0);
+
+                ctx.fillStyle = '#0a0d16';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = 'rgba(0, 184, 148, 0.15)';
+                ctx.lineWidth = 1;
+                const gridSize = 30;
+                for (let x = 0; x < canvas.width; x += gridSize) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+                }
+                for (let y = 0; y < canvas.height; y += gridSize) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+                }
+
+                asteroids.forEach(ast => {
+                    ctx.fillStyle = '#b2bec3';
+                    ctx.strokeStyle = '#636e72';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const steps = 8;
+                    for (let i = 0; i <= steps; i++) {
+                        const angle = (i / steps) * Math.PI * 2;
+                        const bumpyRadius = ast.radius + (Math.sin(angle * 3) * 2);
+                        const ax = ast.x + Math.cos(angle) * bumpyRadius;
+                        const ay = ast.y + Math.sin(angle) * bumpyRadius;
+                        if (i === 0) ctx.moveTo(ax, ay);
+                        else ctx.lineTo(ax, ay);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(ast.x - ast.radius/3, ast.y - ast.radius/3, ast.radius/4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(ast.x + ast.radius/4, ast.y + ast.radius/5, ast.radius/6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                if (laserLine) {
+                    ctx.strokeStyle = `rgba(0, 206, 201, ${laserLine.alpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(laserLine.fromX, laserLine.fromY);
+                    ctx.lineTo(laserLine.toX, laserLine.toY);
+                    ctx.stroke();
+                }
+
+                explosions.forEach(exp => {
+                    ctx.fillStyle = `rgba(235, 94, 40, ${exp.alpha * 0.7})`;
+                    ctx.beginPath();
+                    ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(255, 230, 0, ${exp.alpha * 0.9})`;
+                    ctx.beginPath();
+                    ctx.arc(exp.x, exp.y, exp.radius * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ctx.strokeStyle = '#00cec9';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(mousePos.x, mousePos.y, 16, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(mousePos.x - 22, mousePos.y); ctx.lineTo(mousePos.x - 8, mousePos.y);
+                ctx.moveTo(mousePos.x + 8, mousePos.y); ctx.lineTo(mousePos.x + 22, mousePos.y);
+                ctx.moveTo(mousePos.x, mousePos.y - 22); ctx.lineTo(mousePos.x, mousePos.y - 8);
+                ctx.moveTo(mousePos.x, mousePos.y + 8); ctx.lineTo(mousePos.x, mousePos.y + 22);
+                ctx.stroke();
+
+                requestAnimationFrame(tick);
+            };
+
+            requestAnimationFrame(tick);
+
+            return () => {
+                active = false;
+                clearInterval(spawnInterval);
+            };
         } else if (task.type === 'fill_meter') {
             const wrap = document.createElement('div');
             wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:20px; color:white;';
