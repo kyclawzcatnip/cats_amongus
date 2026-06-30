@@ -259,6 +259,10 @@ export class UIManager {
         } else if (sabotageSystem.activeSabotage === 'comms') {
             sabBanner.classList.remove('hidden');
             document.getElementById('sabotage-text').innerText = 'COMMUNICATIONS JAMMED! RECONNECT IN COMMS!';
+        } else if (this.game && this.game.defensiveProtocolActive) {
+            sabBanner.classList.remove('hidden');
+            const hpStr = player.role === 'evil Dog' ? '😈' : '❤️'.repeat(this.game.localPlayer.health || 0);
+            document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ELIMINATE ${this.game.invaders.length} INVADER DOGS! 🚨`;
         } else {
             sabBanner.classList.add('hidden');
         }
@@ -304,6 +308,24 @@ export class UIManager {
             const cm = ROOMS.find(r => r.id === 'comms');
             if (cm && Math.hypot(player.x - cm.commsFixX, player.y - cm.commsFixY) <= 95) {
                 canUse = true; useText = "FIX COMMS"; useIcon = "📡";
+            }
+        }
+
+        if (!canUse && player.hasKnife && this.game && this.game.defensiveProtocolActive && this.game.invaders) {
+            const nearbyInvader = this.game.invaders.find(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 80);
+            if (nearbyInvader) {
+                canUse = true; useText = "SLICE"; useIcon = "🔪";
+            }
+        }
+
+        if (!canUse && player.role === 'evil Dog' && this.game && this.game.defensiveProtocolActive) {
+            let nearbyDefTask = null;
+            ROOMS.forEach(room => {
+                const found = room.tasks.find(t => t.id.startsWith('def_') && Math.hypot(player.x - t.x, player.y - t.y) <= 95);
+                if (found) nearbyDefTask = found;
+            });
+            if (nearbyDefTask) {
+                canUse = true; useText = "SABOTAGE"; useIcon = "⚠️";
             }
         }
 

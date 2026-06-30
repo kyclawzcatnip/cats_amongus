@@ -196,6 +196,60 @@ export class MapRenderer {
             }
         }
 
+        // Draw Space Invaders if Defensive Protocol is active
+        if (window.gameInstance && window.gameInstance.defensiveProtocolActive && window.gameInstance.invaders) {
+            window.gameInstance.invaders.forEach(inv => {
+                const dist = Math.hypot(inv.x - localPlayer.x, inv.y - localPlayer.y);
+                const sameFloor = (localPlayer.y >= 2800) === (inv.y >= 2800);
+                const visionRadius = (localPlayer && typeof localPlayer.getVisionRadius === 'function') ? localPlayer.getVisionRadius(sabotageSystem.activeSabotage) : 750;
+                const isVisible = localPlayer.isDead || (sameFloor && dist <= visionRadius && isLineOfSightClear(localPlayer.x, localPlayer.y, inv.x, inv.y));
+                
+                if (isVisible) {
+                    ctx.save();
+                    ctx.translate(inv.x, inv.y);
+                    
+                    ctx.beginPath();
+                    ctx.ellipse(0, 12, 16, 8, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.fill();
+
+                    const pulse = 1 + 0.1 * Math.sin(Date.now() * 0.01);
+
+                    ctx.fillStyle = '#6c5ce7';
+                    ctx.strokeStyle = '#a29bfe';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 14 * pulse, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#d63031';
+                    ctx.beginPath();
+                    ctx.arc(0, -2, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(-1, -3, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#6c5ce7';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(-6, -10); ctx.lineTo(-10, -18);
+                    ctx.moveTo(6, -10); ctx.lineTo(10, -18);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#a29bfe';
+                    ctx.beginPath();
+                    ctx.arc(-10, -18, 3, 0, Math.PI * 2);
+                    ctx.arc(10, -18, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            });
+        }
+
         // 7. Draw Players & Ghosts
         for (const p of players) {
             if (p.inVent) continue; // Hidden while inside vent

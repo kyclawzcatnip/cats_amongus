@@ -19,6 +19,7 @@ export class Player {
         this.isEjected = false;
         this.bodyCleaned = false;
         this.inVent = false;
+        this.hasKnife = false;
         this.currentVentId = null;
 
         this.killCooldown = 10; // start with 10s cooldown
@@ -44,6 +45,7 @@ export class Player {
     }
 
     update(dt, keysPressed, mapBounds) {
+        if (this.invulnTimer > 0) this.invulnTimer -= dt;
         if (this.inVent) return;
 
         let dx = 0;

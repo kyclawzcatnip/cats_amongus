@@ -6,6 +6,7 @@ import { VENTS } from './vents.js';
 export class AIController {
     static updateBot(bot, dt, players, sabotageSystem, onReportBody) {
         if (bot.isDead) return;
+        if (bot.invulnTimer > 0) bot.invulnTimer -= dt;
 
         const isWalkable = (px, py) => {
             const margin = 12;
@@ -393,6 +394,9 @@ export class AIController {
             if (bot.taskTimer <= 0) {
                 if (bot.currentTaskToComplete) {
                     bot.currentTaskToComplete.completed = true;
+                    if (bot.currentTaskToComplete.id === 'def_get_weapons') {
+                        bot.hasKnife = true;
+                    }
                     bot.currentTaskToComplete = null;
                 }
             }

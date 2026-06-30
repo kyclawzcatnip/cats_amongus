@@ -31,6 +31,9 @@ class Game {
         this.localPlayer = null;
         this.keysPressed = {};
         this.activeTask = null;
+        this.defensiveProtocolTimer = 0;
+        this.defensiveProtocolActive = false;
+        this.invaders = [];
 
         this.setupWindow();
         this.setupKeyListeners();
@@ -171,6 +174,42 @@ class Game {
     handleUseAction() {
         if (this.localPlayer.isDead) return;
 
+        // Check if player has knife and is near an invader
+        if (this.localPlayer.hasKnife && this.invaders) {
+            const nearbyInvader = this.invaders.find(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 80);
+            if (nearbyInvader) {
+                this.killInvader(nearbyInvader.id);
+                return;
+            }
+        }
+
+        // Check if player is evil Dog and wants to sabotage defensive tasks
+        if (this.localPlayer.role === 'evil Dog' && this.defensiveProtocolActive) {
+            let nearbyDefTask = null;
+            ROOMS.forEach(room => {
+                const found = room.tasks.find(t => t.id.startsWith('def_') && Math.hypot(this.localPlayer.x - t.x, this.localPlayer.y - t.y) <= 95);
+                if (found) nearbyDefTask = found;
+            });
+            if (nearbyDefTask) {
+                this.players.forEach(p => {
+                    if (p.tasks) {
+                        const t = p.tasks.find(tk => tk.id === nearbyDefTask.id);
+                        if (t) {
+                            t.completed = false;
+                            t.progress = 0;
+                        }
+                    }
+                });
+                soundManager.playVoteClick();
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#d63031; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #ff7675;';
+                banner.innerText = `⚠️ SABOTAGED: ${nearbyDefTask.name} progress reset!`;
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 2500);
+                return;
+            }
+        }
+
         // Check ladder transition
         if (this.selectedMap === 'catnip_observatory') {
             const ladder = getNearbyLadder(this.localPlayer.x, this.localPlayer.y, 75);
@@ -244,6 +283,14 @@ class Game {
                     TaskManager.renderTaskMinigame(t, this.localPlayer, () => {
                         this.uiManager.hideScreen('task-modal');
                         this.activeTask = null;
+                        
+                        if (t.id === 'def_get_weapons') {
+                            this.localPlayer.hasKnife = true;
+                        }
+                        if (t.id.startsWith('def_')) {
+                            this.checkDefensiveProtocolStatus();
+                        }
+
                         this.checkWinConditions();
                     });
                     return;
@@ -523,6 +570,20 @@ class Game {
 
     update(dt) {
         if (this.state === 'PLAYING') {
+            // Update Defensive Protocol Timer
+            this.defensiveProtocolTimer += dt;
+            if (this.defensiveProtocolTimer >= 20) {
+                this.defensiveProtocolTimer = 0;
+                if (!this.defensiveProtocolActive && Math.random() < 0.025) {
+                    this.triggerDefensiveProtocol();
+                }
+            }
+
+            // Update Space Invaders
+            if (this.defensiveProtocolActive && this.invaders) {
+                this.updateSpaceInvaders(dt);
+            }
+
             // Update local player
             this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
             this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
@@ -601,6 +662,152 @@ class Game {
             if (miniCanvas) {
                 this.mapRenderer.renderMinimap(miniCanvas, this.localPlayer, this.players);
             }
+    triggerDefensiveProtocol() {
+        this.defensiveProtocolActive = true;
+        this.invaders = [];
+        const spawnPoints = [
+            { x: 1000, y: 1100 },
+            { x: 1800, y: 1100 },
+            { x: 2200, y: 1100 },
+            { x: 1800, y: 600 },
+            { x: 1800, y: 1800 }
+        ];
+        const shuffledPoints = [...spawnPoints].sort(() => 0.5 - Math.random());
+        for (let i = 0; i < 3; i++) {
+            const pt = shuffledPoints[i % shuffledPoints.length];
+            this.invaders.push({
+                id: i,
+                x: pt.x,
+                y: pt.y,
+                vx: (Math.random() - 0.5) * 80,
+                vy: (Math.random() - 0.5) * 80,
+                radius: 16
+            });
+        }
+        soundManager.playVictory();
+        const emergencyTasks = [
+            { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
+            { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', room: 'Workshop', type: 'rapid_click', completed: false },
+            { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
+        ];
+        emergencyTasks.forEach(task => {
+            if (!this.localPlayer.tasks.some(t => t.id === task.id)) {
+                this.localPlayer.tasks.push(task);
+            }
+            this.players.forEach(p => {
+                if (!p.isLocalPlayer && !p.isDead && p.role !== 'evil Dog') {
+                    if (!p.tasks.some(t => t.id === task.id)) {
+                        p.tasks.push({ ...task });
+                    }
+                }
+            });
+        });
+        const shieldsRoom = ROOMS.find(r => r.id === 'shields');
+        if (shieldsRoom && !shieldsRoom.tasks.some(t => t.id === 'def_repair_shields')) {
+            shieldsRoom.tasks.push({ id: 'def_repair_shields', name: 'Emergency: Repair Shields', x: shieldsRoom.x + shieldsRoom.width / 2, y: shieldsRoom.y + shieldsRoom.height / 2 });
+        }
+        const bridgeRoom = ROOMS.find(r => r.id === 'bridge');
+        if (bridgeRoom && !bridgeRoom.tasks.some(t => t.id === 'def_attack_ships')) {
+            bridgeRoom.tasks.push({ id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', x: bridgeRoom.x + 100, y: bridgeRoom.y + 100 });
+        }
+        const workshopRoom = ROOMS.find(r => r.id === 'workshop');
+        if (workshopRoom && !workshopRoom.tasks.some(t => t.id === 'def_get_weapons')) {
+            workshopRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', x: workshopRoom.x + 80, y: workshopRoom.y + 120 });
+        }
+        const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
+        if (weaponsRoom && !weaponsRoom.tasks.some(t => t.id === 'def_reload_torpedoes')) {
+            weaponsRoom.tasks.push({ id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', x: weaponsRoom.x + 120, y: weaponsRoom.y + 80 });
+        }
+    }
+
+    updateSpaceInvaders(dt) {
+        const speed = 80;
+        this.invaders.forEach(inv => {
+            inv.x += inv.vx * dt;
+            inv.y += inv.vy * dt;
+            if (Math.random() < 0.02) {
+                const angle = Math.random() * Math.PI * 2;
+                inv.vx = Math.cos(angle) * speed;
+                inv.vy = Math.sin(angle) * speed;
+            }
+            if (inv.x < 100 || inv.x > 3000) inv.vx *= -1;
+            if (inv.y < 100 || inv.y > 2500) inv.vy *= -1;
+            this.players.forEach(p => {
+                if (p.isDead) return;
+                const dist = Math.hypot(p.x - inv.x, p.y - inv.y);
+                if (dist <= p.radius + inv.radius) {
+                    if (p.role === 'evil Dog') {
+                        return; // Invaders do not attack the evil dog
+                    }
+                    if (p.hasKnife) {
+                        if (!p.isLocalPlayer) {
+                            this.killInvader(inv.id);
+                        }
+                    } else {
+                        if (!p.invulnTimer || p.invulnTimer <= 0) {
+                            p.health = (p.health || 3) - 1;
+                            p.invulnTimer = 1.5;
+                            
+                            if (p.isLocalPlayer) {
+                                const angle = Math.atan2(p.y - inv.y, p.x - inv.x);
+                                p.x += Math.cos(angle) * 45;
+                                p.y += Math.sin(angle) * 45;
+                                const overlay = document.createElement('div');
+                                overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(214, 48, 49, 0.45); z-index:9999; pointer-events:none; transition:opacity 0.4s;';
+                                document.body.appendChild(overlay);
+                                setTimeout(() => overlay.remove(), 400);
+                                soundManager.playDefeat();
+                                
+                                if (p.health <= 0) {
+                                    p.isDead = true;
+                                    this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
+                                }
+                            } else {
+                                soundManager.playDefeat();
+                                if (p.health <= 0) {
+                                    p.isDead = true;
+                                } else {
+                                    p.isFleeing = true;
+                                    p.fleeTimer = 3.0;
+                                    p.currentPath = [];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    killInvader(id) {
+        this.invaders = this.invaders.filter(inv => inv.id !== id);
+        soundManager.playTaskComplete();
+        this.checkDefensiveProtocolStatus();
+    }
+
+    checkDefensiveProtocolStatus() {
+        if (!this.defensiveProtocolActive) return;
+        const allTasksDone = this.localPlayer.tasks
+            .filter(t => t.id.startsWith('def_'))
+            .every(t => t.completed);
+        const allInvadersKilled = this.invaders.length === 0;
+        if (allTasksDone && allInvadersKilled) {
+            this.defensiveProtocolActive = false;
+            this.localPlayer.tasks = this.localPlayer.tasks.filter(t => !t.id.startsWith('def_'));
+            this.players.forEach(p => {
+                if (p.tasks) p.tasks = p.tasks.filter(t => !t.id.startsWith('def_'));
+                p.hasKnife = false;
+            });
+            ROOMS.forEach(room => {
+                room.tasks = room.tasks.filter(t => !t.id.startsWith('def_'));
+            });
+            soundManager.playTaskComplete();
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#00b894; color:white; padding:16px 32px; border-radius:12px; font-family:var(--font-heading); font-size:1.5rem; font-weight:bold; z-index:9999; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:3px solid #55efc4; text-shadow:0 2px 4px rgba(0,0,0,0.5);';
+            banner.innerText = '🛡️ SHIP SECURED! DEFENSIVE PROTOCOL DEACTIVATED!';
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 4000);
         }
     }
 }
