@@ -483,8 +483,8 @@ export class MeetingManager {
         }
 
         setTimeout(() => {
-            if (actualEjectedPlayer && !isActualTie) {
                 actualEjectedPlayer.isDead = true;
+                actualEjectedPlayer.isEjected = true;
             }
             this.onComplete(actualEjectedPlayer, isActualTie, isSkipped);
         }, 3500);

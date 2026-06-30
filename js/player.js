@@ -16,6 +16,7 @@ export class Player {
         this.speed = 220; // pixels per sec
 
         this.isDead = false;
+        this.isEjected = false;
         this.bodyCleaned = false;
         this.inVent = false;
         this.currentVentId = null;

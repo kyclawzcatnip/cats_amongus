@@ -1340,7 +1340,7 @@ class Player {
         this.id = id; this.name = name; this.colorIndex = colorIndex; this.hatIndex = hatIndex;
         this.role = role; this.isLocalPlayer = isLocalPlayer;
         this.x = 1800; this.y = 280; this.radius = 32; this.speed = 220;
-        this.isDead = false; this.bodyCleaned = false; this.inVent = false; this.currentVentId = null;
+        this.isDead = false; this.isEjected = false; this.bodyCleaned = false; this.inVent = false; this.currentVentId = null;
         this.killCooldown = 10; this.reviveUses = 2; this.tasks = []; this.stepTimer = 0;
         this.suspicionLevels = {}; this.completedTasksCount = 0;
     }
@@ -2888,7 +2888,10 @@ class MeetingManager {
 
         // Pause 3.5 seconds so players can see who voted for whom!
         setTimeout(() => {
-            if (ejectedPlayer && !isTie) ejectedPlayer.isDead = true;
+            if (ejectedPlayer && !isTie) {
+                ejectedPlayer.isDead = true;
+                ejectedPlayer.isEjected = true;
+            }
             this.onComplete(ejectedPlayer, isTie);
         }, 3500);
     }
@@ -3618,7 +3621,7 @@ class Game {
         const list = document.getElementById('gameover-roles-list'); list.innerHTML = '';
         this.players.forEach(p => {
             const div = document.createElement('div'); div.style.cssText = 'padding:4px 0; color:#d1d5db; font-size:0.9rem;';
-            div.innerText = `${p.name}: ${p.role} ${p.isDead ? '(Ejected)' : '(Surviving)'}`; list.appendChild(div);
+            div.innerText = `${p.name}: ${p.role} ${p.isDead ? (p.isEjected ? '(Ejected)' : '(Eliminated)') : '(Surviving)'}`; list.appendChild(div);
         });
     }
 

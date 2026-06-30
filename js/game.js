@@ -499,7 +499,7 @@ class Game {
         this.players.forEach(p => {
             const div = document.createElement('div');
             div.style.cssText = 'padding:4px 0; color:#d1d5db; font-size:0.9rem;';
-            div.innerText = `${p.name}: ${p.role} ${p.isDead ? '(Ejected)' : '(Surviving)'}`;
+            div.innerText = `${p.name}: ${p.role} ${p.isDead ? (p.isEjected ? '(Ejected)' : '(Eliminated)') : '(Surviving)'}`;
             list.appendChild(div);
         });
     }
