@@ -749,6 +749,9 @@ class Game {
             if (miniCanvas) {
                 this.mapRenderer.renderMinimap(miniCanvas, this.localPlayer, this.players);
             }
+        }
+    }
+
     triggerDefensiveProtocol() {
         this.defensiveProtocolActive = true;
         this.invaders = [];
