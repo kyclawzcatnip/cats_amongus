@@ -3966,12 +3966,7 @@ class UIManager {
 
         const redAlert = document.getElementById('red-alert-overlay');
         if (redAlert) {
-            const shouldAlert = (this.game && this.game.defensiveProtocolActive) || (sabotageSystem && sabotageSystem.activeSabotage === 'engine');
-            if (shouldAlert) {
-                redAlert.classList.remove('hidden');
-            } else {
-                redAlert.classList.add('hidden');
-            }
+            redAlert.classList.add('hidden');
         }
 
         let canUse = false;
