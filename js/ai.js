@@ -302,6 +302,11 @@ export class AIController {
                         bot.health = 3;
                         bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
                     }
+                    if (bot.currentTaskToComplete.id === 'pickup_torpedo') {
+                        bot.tasks.forEach(tk => {
+                            if (tk.id === 'load_torpedoes') tk.locked = false;
+                        });
+                    }
                     bot.currentTaskToComplete = null;
                 }
             }

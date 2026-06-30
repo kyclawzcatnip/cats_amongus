@@ -1261,11 +1261,14 @@ class TaskManager {
             wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; color:white; font-family:var(--font-heading);';
             
             const isProtocol = window.gameInstance && window.gameInstance.defensiveProtocolActive;
-            let ammoHTML = '';
-            if (isProtocol) {
-                ammoHTML = `<div id="ammo-status" style="font-weight:bold; color:#ffeaa7; font-size:1.1rem; margin-top:4px;">🔋 Ammo: <span id="ammo-count">10</span> / 10</div>`;
+            player.loadedTorpedoes = player.loadedTorpedoes || 0;
+            let ammo = 0;
+            if (player.loadedTorpedoes > 0) {
+                player.loadedTorpedoes--;
+                ammo = 10;
             }
-            
+
+            const ammoHTML = `<div id="ammo-status" style="font-weight:bold; color:#ffeaa7; font-size:1.1rem; margin-top:4px;">🔋 Torpedoes Ready: <span id="torp-count">${player.loadedTorpedoes}</span> | 💥 Ammo: <span id="ammo-count">${ammo}</span> / 10</div>`;
             wrap.innerHTML = `<p style="font-size:1.1rem; margin-bottom:4px;">💥 Shoot the targets before they drift away! (Destroyed: <span id="ast-count">0</span> / 10)</p>${ammoHTML}`;
 
             const canvas = document.createElement('canvas');
@@ -1281,7 +1284,6 @@ class TaskManager {
             let explosions = [];
             let mousePos = { x: 200, y: 150 };
             let active = true;
-            let ammo = 10;
             let reloading = false;
 
             const spawnAsteroid = () => {
@@ -1321,25 +1323,68 @@ class TaskManager {
             canvas.onmousedown = (e) => {
                 if (!active || task.completed) return;
 
-                if (isProtocol) {
-                    if (reloading) return;
-                    if (ammo <= 0) {
-                        reloading = true;
-                        const ammoEl = document.getElementById('ammo-status');
-                        if (ammoEl) ammoEl.innerHTML = `<span style="color:#d63031;">⏳ RELOADING...</span>`;
-                        soundManager.playVoteClick();
-                        setTimeout(() => {
-                            ammo = 10;
-                            reloading = false;
-                            const countEl = document.getElementById('ammo-status');
-                            if (countEl) countEl.innerHTML = `🔋 Ammo: <span id="ammo-count">10</span> / 10`;
-                            soundManager.playTaskComplete();
-                        }, 1200);
-                        return;
+                if (ammo <= 0) {
+                    if (player.loadedTorpedoes > 0) {
+                        player.loadedTorpedoes--;
+                        ammo = 10;
+                        const countEl = document.getElementById('ammo-status');
+                        if (countEl) {
+                            countEl.innerHTML = `🔋 Torpedoes Ready: <span id="torp-count">${player.loadedTorpedoes}</span> | 💥 Ammo: <span id="ammo-count">10</span> / 10`;
+                        }
+                        soundManager.playTaskComplete();
+                    } else {
+                        // Request/Assign reload task
+                        if (!player.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
+                            player.tasks.push({
+                                id: 'pickup_torpedo_reload',
+                                name: 'Retrieve Torpedo (Reload)',
+                                room: 'Workshop',
+                                type: 'fill_meter',
+                                completed: false
+                            });
+                            const workshopRoom = ROOMS.find(r => r.id === 'workshop');
+                            if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
+                                const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                                workshopRoom.tasks.push({
+                                    id: 'pickup_torpedo_reload',
+                                    name: 'Retrieve Torpedo (Reload)',
+                                    x: isObs ? 2370 : 2570,
+                                    y: isObs ? 4720 : 1840
+                                });
+                            }
+                        }
+                        soundManager.playDefeat(); // Error buzz sound
                     }
-                    ammo--;
-                    const countEl = document.getElementById('ammo-count');
-                    if (countEl) countEl.innerText = ammo;
+                    return;
+                }
+
+                ammo--;
+                const countEl = document.getElementById('ammo-count');
+                if (countEl) {
+                    countEl.innerText = ammo;
+                }
+
+                // If ammo just reached 0, auto-assign reload task if no torpedoes left
+                if (ammo <= 0 && player.loadedTorpedoes === 0) {
+                    if (!player.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
+                        player.tasks.push({
+                            id: 'pickup_torpedo_reload',
+                            name: 'Retrieve Torpedo (Reload)',
+                            room: 'Workshop',
+                            type: 'fill_meter',
+                            completed: false
+                        });
+                        const workshopRoom = ROOMS.find(r => r.id === 'workshop');
+                        if (workshopRoom && !workshopRoom.tasks.some(tk => tk.id === 'pickup_torpedo_reload')) {
+                            const isObs = window.gameInstance && window.gameInstance.selectedMap === 'catnip_observatory';
+                            workshopRoom.tasks.push({
+                                id: 'pickup_torpedo_reload',
+                                name: 'Retrieve Torpedo (Reload)',
+                                x: isObs ? 2370 : 2570,
+                                y: isObs ? 4720 : 1840
+                            });
+                        }
+                    }
                 }
 
                 const clickPos = getMousePos(e);
@@ -1509,18 +1554,21 @@ class TaskManager {
                 ctx.moveTo(mousePos.x, mousePos.y + 8); ctx.lineTo(mousePos.x, mousePos.y + 22);
                 ctx.stroke();
 
-                if (isProtocol && ammo <= 0) {
+                if (ammo <= 0) {
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                     ctx.fillStyle = '#ff7675';
                     ctx.font = 'bold 16px var(--font-heading)';
                     ctx.textAlign = 'center';
-                    if (reloading) {
-                        ctx.fillText('⏳ RELOADING...', canvas.width / 2, canvas.height / 2);
+                    if (player.loadedTorpedoes > 0) {
+                        ctx.fillText('⚠️ WEAPON UNLOADED! ⚠️', canvas.width / 2, canvas.height / 2 - 12);
+                        ctx.fillStyle = '#55efc4';
+                        ctx.fillText('CLICK ANYWHERE TO LOAD TORPEDO', canvas.width / 2, canvas.height / 2 + 12);
                     } else {
-                        ctx.fillText('⚠️ OUT OF AMMO! ⚠️', canvas.width / 2, canvas.height / 2 - 12);
+                        ctx.fillText('⚠️ OUT OF TORPEDOES! ⚠️', canvas.width / 2, canvas.height / 2 - 15);
                         ctx.fillStyle = '#fff';
-                        ctx.fillText('CLICK ANYWHERE TO RELOAD', canvas.width / 2, canvas.height / 2 + 12);
+                        ctx.font = '14px var(--font-heading)';
+                        ctx.fillText('GO TO WORKSHOP TO RETRIEVE A TORPEDO', canvas.width / 2, canvas.height / 2 + 15);
                     }
                 }
                 ctx.textAlign = 'left';
@@ -2554,6 +2602,11 @@ class AIController {
                     if (bot.currentTaskToComplete.id === 'post_def_heal') {
                         bot.health = 3;
                         bot.tasks = bot.tasks.filter(t => t.id !== 'post_def_heal');
+                    }
+                    if (bot.currentTaskToComplete.id === 'pickup_torpedo') {
+                        bot.tasks.forEach(tk => {
+                            if (tk.id === 'load_torpedoes') tk.locked = false;
+                        });
                     }
                     soundManager.playVoteClick();
                     bot.currentTaskToComplete = null;
@@ -3926,6 +3979,18 @@ class Game {
                         this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'post_def_heal');
                         const medRoom = ROOMS.find(r => r.id === 'medical');
                         if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id !== 'post_def_heal');
+                    }
+                    if (t.id === 'pickup_torpedo') {
+                        this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
+                        this.localPlayer.tasks.forEach(tk => {
+                            if (tk.id === 'load_torpedoes') tk.locked = false;
+                        });
+                    }
+                    if (t.id === 'pickup_torpedo_reload') {
+                        this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
+                        this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
+                        const workshopRoom = ROOMS.find(r => r.id === 'workshop');
+                        if (workshopRoom) workshopRoom.tasks = workshopRoom.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
                     }
                     if (t.id.startsWith('def_')) {
                         this.checkDefensiveProtocolStatus();

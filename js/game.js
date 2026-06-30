@@ -304,6 +304,18 @@ class Game {
                             const medRoom = ROOMS.find(r => r.id === 'medical');
                             if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id !== 'post_def_heal');
                         }
+                        if (t.id === 'pickup_torpedo') {
+                            this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
+                            this.localPlayer.tasks.forEach(tk => {
+                                if (tk.id === 'load_torpedoes') tk.locked = false;
+                            });
+                        }
+                        if (t.id === 'pickup_torpedo_reload') {
+                            this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
+                            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
+                            const workshopRoom = ROOMS.find(r => r.id === 'workshop');
+                            if (workshopRoom) workshopRoom.tasks = workshopRoom.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
+                        }
                         if (t.id.startsWith('def_')) {
                             this.checkDefensiveProtocolStatus();
                         }
