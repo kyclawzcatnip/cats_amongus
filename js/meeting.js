@@ -273,6 +273,25 @@ export class MeetingManager {
 
         soundManager.playVoteClick();
 
+        // Process accusation check
+        const lowerMsg = msgText.toLowerCase();
+        const accuseKeywords = ['sus', 'impostor', 'imposter', 'dog', 'killer', 'accuse', 'vote', 'evil', 'guilty', 'lying', 'vented', 'eliminate'];
+        const isAccusation = accuseKeywords.some(keyword => lowerMsg.includes(keyword));
+        if (isAccusation) {
+            for (const p of players) {
+                if (!p.isLocalPlayer && !p.isDead && lowerMsg.includes(p.name.toLowerCase())) {
+                    players.forEach(other => {
+                        if (!other.isDead) {
+                            if (!other.suspicionLevels) other.suspicionLevels = {};
+                            other.suspicionLevels[p.id] = Math.min(100, (other.suspicionLevels[p.id] || 0) + 50);
+                        }
+                    });
+                    this.accusedId = p.id;
+                    break;
+                }
+            }
+        }
+
         const aliveBots = players.filter(p => !p.isLocalPlayer && !p.isDead);
         const aliveNames = players.filter(p => !p.isDead).map(p => p.name);
         const roomNames = ['Fish Storage', 'Yarn Engine', 'Nap Quarters', 'Kitchen', 'Workshop', 'Cat Garden', 'Bridge', 'Cargo Bay'];
@@ -315,6 +334,17 @@ export class MeetingManager {
         document.querySelectorAll('.player-vote-card').forEach(c => c.classList.remove('selected'));
         
         this.votes[localPlayerId] = this.selectedVote !== null ? this.selectedVote : 'skip';
+        if (this.selectedVote && this.selectedVote !== 'skip') {
+            const targetPlayer = players.find(p => p.id === this.selectedVote);
+            if (targetPlayer) {
+                players.forEach(other => {
+                    if (!other.isDead) {
+                        if (!other.suspicionLevels) other.suspicionLevels = {};
+                        other.suspicionLevels[targetPlayer.id] = Math.min(100, (other.suspicionLevels[targetPlayer.id] || 0) + 50);
+                    }
+                });
+            }
+        }
         soundManager.playVoteClick();
 
         const alivePlayers = players.filter(pl => !pl.isDead);
