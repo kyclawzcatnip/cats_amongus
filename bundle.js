@@ -305,7 +305,10 @@ class SpriteRenderer {
             ctx.textAlign = 'center';
             let displayName = player.name;
             let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : '#ffffff';
-            if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
+            if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
+                fillStyle = '#ff7675';
+                displayName = '😈 ' + player.name + ' (IMPOSTOR)';
+            } else if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
                 if (player.lastKillTimestamp && Date.now() - player.lastKillTimestamp <= 15000) {
                     fillStyle = '#ff7675';
                     displayName = '🔍 ' + player.name + ' (KILLED!)';

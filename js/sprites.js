@@ -108,19 +108,21 @@ export class SpriteRenderer {
         this.drawCat(ctx, radius, colorObj, player);
 
         // Draw scratch marks overlay if health is 2 or 1
-        if (player.health < 3 && player.health > 0) {
+        if (player.health < 5 && player.health > 0) {
             ctx.save();
             ctx.strokeStyle = '#d63031';
             ctx.lineWidth = 2.5;
             ctx.lineCap = 'round';
             
-            // Scratch 1
-            ctx.beginPath();
-            ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
-            ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
-            ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
-            ctx.stroke();
-
+            // Scratch 1 (if health is 3 or less)
+            if (player.health <= 3) {
+                ctx.beginPath();
+                ctx.moveTo(-10, -5); ctx.lineTo(-4, 5);
+                ctx.moveTo(-6, -7); ctx.lineTo(0, 3);
+                ctx.moveTo(-14, -3); ctx.lineTo(-8, 7);
+                ctx.stroke();
+            }
+ 
             // Scratch 2 (if health is 1)
             if (player.health === 1) {
                 ctx.beginPath();
@@ -144,7 +146,10 @@ export class SpriteRenderer {
         
         let displayName = player.name;
         let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
-        if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
+        if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
+            fillStyle = '#ff7675';
+            displayName = '😈 ' + player.name + ' (IMPOSTOR)';
+        } else if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
             if (player.lastKillTimestamp && Date.now() - player.lastKillTimestamp <= 15000) {
                 fillStyle = '#ff7675';
                 displayName = '🔍 ' + player.name + ' (KILLED!)';
