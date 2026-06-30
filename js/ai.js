@@ -295,8 +295,10 @@ export class AIController {
             if (bot.taskTimer <= 0) {
                 if (bot.currentTaskToComplete) {
                     bot.currentTaskToComplete.completed = true;
-                    if (bot.currentTaskToComplete.id === 'def_get_weapons') {
-                        bot.hasKnife = true;
+                    const baseId = bot.currentTaskToComplete.id.split('_reassigned_')[0];
+                    if (baseId === 'def_get_weapons') {
+                        bot.hasGun = true;
+                        bot.gunAmmo = 5;
                     }
                     if (bot.currentTaskToComplete.id === 'post_def_heal') {
                         bot.health = 3;

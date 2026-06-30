@@ -335,27 +335,27 @@ class Game {
                         this.uiManager.hideScreen('task-modal');
                         this.activeTask = null;
                         
-                        if (t.id === 'def_get_weapons') {
+                        if (baseTaskId === 'def_get_weapons') {
                             this.localPlayer.hasGun = true;
                             this.localPlayer.gunAmmo = 5;
                         }
-                        if (t.id === 'post_def_heal') {
+                        if (baseTaskId === 'post_def_heal') {
                             this.localPlayer.health = 3;
-                            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'post_def_heal');
+                            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
                             const medRoom = ROOMS.find(r => r.id === 'medical');
-                            if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id !== 'post_def_heal');
+                            if (medRoom) medRoom.tasks = medRoom.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'post_def_heal');
                         }
-                        if (t.id === 'pickup_torpedo') {
+                        if (baseTaskId === 'pickup_torpedo') {
                             this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
                             this.localPlayer.tasks.forEach(tk => {
-                                if (tk.id === 'load_torpedoes') tk.locked = false;
+                                if (tk.id.split('_reassigned_')[0] === 'load_torpedoes') tk.locked = false;
                             });
                         }
-                        if (t.id === 'pickup_torpedo_reload') {
+                        if (baseTaskId === 'pickup_torpedo_reload') {
                             this.localPlayer.loadedTorpedoes = (this.localPlayer.loadedTorpedoes || 0) + 1;
-                            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
+                            this.localPlayer.tasks = this.localPlayer.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'pickup_torpedo_reload');
                             const workshopRoom = ROOMS.find(r => r.id === 'workshop');
-                            if (workshopRoom) workshopRoom.tasks = workshopRoom.tasks.filter(tk => tk.id !== 'pickup_torpedo_reload');
+                            if (workshopRoom) workshopRoom.tasks = workshopRoom.tasks.filter(tk => tk.id.split('_reassigned_')[0] !== 'pickup_torpedo_reload');
                         }
                         if (t.id.startsWith('def_')) {
                             this.checkDefensiveProtocolStatus();
