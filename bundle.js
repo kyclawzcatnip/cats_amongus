@@ -1411,6 +1411,15 @@ class AIController {
             }
         }
 
+        if (bot.role === 'Medic' && bot.reviveUses > 0 && !bot.isDead) {
+            const deadCat = players.find(p => p.isDead && !p.bodyCleaned && p.id !== bot.id && Math.hypot(bot.x - p.x, bot.y - p.y) <= 80);
+            if (deadCat) {
+                deadCat.isDead = false;
+                bot.reviveUses -= 1;
+                soundManager.playTaskComplete();
+            }
+        }
+
         if (bot.role === 'Dog') {
             if (bot.killCooldown > 0) bot.killCooldown -= dt;
 
@@ -1478,10 +1487,10 @@ class MeetingManager {
         this.hasVoted = false;
         this.accusedId = null;
 
-        // Priority 1: Check if any bot witnessed the kill
+        // Priority 1: Check if anyone witnessed the kill (including local player)
         let witnessedKillerId = null;
         players.forEach(p => {
-            if (!p.isDead && !p.isLocalPlayer && p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
+            if (!p.isDead && p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
                 witnessedKillerId = p.witnessedKillerId;
             }
         });
@@ -1499,6 +1508,17 @@ class MeetingManager {
 
         soundManager.playEmergencyAlarm();
         this.setupMeetingUI(players);
+
+        // If local player saw the kill, automatically post the witness chat line
+        const localPlayer = players.find(p => p.isLocalPlayer);
+        if (localPlayer && !localPlayer.isDead && localPlayer.witnessedKillerName) {
+            setTimeout(() => {
+                if (this.active) {
+                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE SOMEONE IN FRONT OF ME! IT'S THEM!`;
+                    this.sendUserChatMessage(msgText, localPlayer.name, players);
+                }
+            }, 1000);
+        }
     }
 
     setupMeetingUI(players) {
@@ -1857,7 +1877,17 @@ class UIManager {
         document.getElementById('meeting-chat-input').onkeydown = (e) => {
             if (e.key === 'Enter') sendChat();
         };
-        document.getElementById('eject-continue-btn').onclick = () => { this.hideScreen('eject-screen'); this.showScreen('hud-screen'); this.game.state = 'PLAYING'; this.game.checkWinConditions(); };
+        document.getElementById('eject-continue-btn').onclick = () => {
+            this.hideScreen('eject-screen');
+            this.showScreen('hud-screen');
+            this.game.state = 'PLAYING';
+            this.game.players.forEach(p => {
+                p.witnessedKillerId = null;
+                p.witnessedKillerName = null;
+                p.witnessedVictimName = null;
+            });
+            this.game.checkWinConditions();
+        };
         document.getElementById('restart-game-btn').onclick = () => { this.showScreen('menu-screen'); this.game.state = 'MENU'; };
     }
     changeColor(dir) {
@@ -2198,9 +2228,9 @@ class Game {
     recordKillWitnesses(killer, victim) {
         if (!killer || !victim) return;
         this.players.forEach(p => {
-            if (!p.isLocalPlayer && !p.isDead && p.role !== 'Dog') {
+            if (!p.isDead && p.role !== 'Dog') {
                 const distToKill = Math.hypot(p.x - victim.x, p.y - victim.y);
-                if (distToKill <= 280) { // AI cat witnessed the kill!
+                if (distToKill <= 280) { // witnessed the kill!
                     p.witnessedKillerId = killer.id;
                     p.witnessedKillerName = killer.name;
                     p.witnessedVictimName = victim.name;

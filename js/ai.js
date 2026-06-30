@@ -212,6 +212,15 @@ export class AIController {
             }
         }
 
+        if (bot.role === 'Medic' && bot.reviveUses > 0 && !bot.isDead) {
+            const deadCat = players.find(p => p.isDead && !p.bodyCleaned && p.id !== bot.id && Math.hypot(bot.x - p.x, bot.y - p.y) <= 80);
+            if (deadCat) {
+                deadCat.isDead = false;
+                bot.reviveUses -= 1;
+                soundManager.playTaskComplete();
+            }
+        }
+
         if (bot.role === 'Dog') {
             if (bot.killCooldown > 0) {
                 bot.killCooldown -= dt;

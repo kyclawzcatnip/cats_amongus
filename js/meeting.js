@@ -35,10 +35,10 @@ export class MeetingManager {
         this.hasVoted = false;
         this.accusedId = null;
 
-        // Priority 1: Check if any bot witnessed the kill
+        // Priority 1: Check if anyone witnessed the kill (including local player)
         let witnessedKillerId = null;
         players.forEach(p => {
-            if (!p.isDead && !p.isLocalPlayer && p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
+            if (!p.isDead && p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
                 witnessedKillerId = p.witnessedKillerId;
             }
         });
@@ -56,6 +56,17 @@ export class MeetingManager {
 
         soundManager.playEmergencyAlarm();
         this.setupMeetingUI(players);
+
+        // If local player saw the kill, automatically post the witness chat line
+        const localPlayer = players.find(p => p.isLocalPlayer);
+        if (localPlayer && !localPlayer.isDead && localPlayer.witnessedKillerName) {
+            setTimeout(() => {
+                if (this.active) {
+                    const msgText = `🚨 I SAW ${localPlayer.witnessedKillerName.toUpperCase()} ELIMINATE SOMEONE IN FRONT OF ME! IT'S THEM!`;
+                    this.sendUserChatMessage(msgText, localPlayer.name, players);
+                }
+            }, 1000);
+        }
     }
 
     setupMeetingUI(players) {
