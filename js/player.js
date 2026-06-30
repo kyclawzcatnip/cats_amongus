@@ -53,6 +53,8 @@ export class Player {
             if (keysPressed['KeyD'] || keysPressed['ArrowRight'] || keysPressed['d'] || keysPressed['D']) dx += 1;
         }
         if (dx !== 0 || dy !== 0) {
+            if (dx < 0) this.scaleX = -1;
+            else if (dx > 0) this.scaleX = 1;
             const length = Math.hypot(dx, dy);
             const moveDist = this.speed * dt;
             const nextX = this.x + (dx / length) * moveDist;

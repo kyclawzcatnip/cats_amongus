@@ -76,93 +76,79 @@ export class SpriteRenderer {
     }
 
     static drawCat(ctx, radius, colorObj, player) {
-        // Tail
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.6, radius * 0.2);
-        ctx.quadraticCurveTo(-radius * 1.3, radius * 0.5, -radius * 1.1, radius * 0.8);
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = colorObj.main;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        const bodyColor = colorObj.main || '#F5A623';
+        const highlightColor = colorObj.accent || '#F7BF56';
+        const earColor = '#FF8FAB';
+        const noseColor = '#FF6B8A';
+        const pawColor = '#FFFFFF';
+        const legsColor = colorObj.accent;
 
-        // Ears
-        ctx.fillStyle = colorObj.main;
-        // Left Ear
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.7, -radius * 0.3);
-        ctx.lineTo(-radius * 0.9, -radius * 1.1);
-        ctx.lineTo(-radius * 0.2, -radius * 0.8);
-        ctx.closePath();
-        ctx.fill();
-        // Inner Ear
-        ctx.fillStyle = '#ff758c';
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.65, -radius * 0.4);
-        ctx.lineTo(-radius * 0.8, -radius * 0.95);
-        ctx.lineTo(-radius * 0.3, -radius * 0.75);
-        ctx.closePath();
-        ctx.fill();
+        const d = player.scaleX || 1;
+        const cx = -12;
+        const cy = -14;
+        const f = d === -1;
 
-        // Right Ear
-        ctx.fillStyle = colorObj.main;
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.7, -radius * 0.3);
-        ctx.lineTo(radius * 0.9, -radius * 1.1);
-        ctx.lineTo(radius * 0.2, -radius * 0.8);
-        ctx.closePath();
-        ctx.fill();
-        // Inner Right Ear
-        ctx.fillStyle = '#ff758c';
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.65, -radius * 0.4);
-        ctx.lineTo(radius * 0.8, -radius * 0.95);
-        ctx.lineTo(radius * 0.3, -radius * 0.75);
-        ctx.closePath();
-        ctx.fill();
+        function px(rx, ry, w, h, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(f ? cx + 24 - rx - w : cx + rx, cy + ry, w, h);
+        }
 
-        // Main Head/Body (Round Shape)
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fillStyle = colorObj.main;
-        ctx.fill();
+        // 1. Tail
+        const wave = Math.sin((window.gameInstance?.gameTimer || 0) * 8) * 2;
+        px(-4, 8 + wave, 6, 4, bodyColor);
+        px(-6, 5 + wave, 4, 5, legsColor);
 
-        // Fur Stripes / Accent
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, -Math.PI * 0.2, Math.PI * 0.2);
-        ctx.fillStyle = colorObj.accent;
-        ctx.fill();
+        // 2. Body
+        px(2, 10, 20, 16, bodyColor);
+        px(4, 12, 16, 12, highlightColor);
 
-        // Eyes
-        ctx.fillStyle = '#1e272e';
-        ctx.beginPath();
-        ctx.arc(-radius * 0.35, -radius * 0.1, 4, 0, Math.PI * 2);
-        ctx.arc(radius * 0.35, -radius * 0.1, 4, 0, Math.PI * 2);
-        ctx.fill();
+        // 3. Head
+        px(6, 0, 16, 14, bodyColor);
+        px(8, 2, 12, 10, highlightColor);
 
-        // Eye highlights
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(-radius * 0.35 - 1, -radius * 0.1 - 1, 1.5, 0, Math.PI * 2);
-        ctx.arc(radius * 0.35 - 1, -radius * 0.1 - 1, 1.5, 0, Math.PI * 2);
-        ctx.fill();
+        // 4. Ears
+        px(6, -4, 4, 6, bodyColor);
+        px(16, -4, 4, 6, bodyColor);
+        px(7, -3, 2, 4, earColor);
+        px(17, -3, 2, 4, earColor);
 
-        // Nose & Whiskers
-        ctx.fillStyle = '#ff758c';
-        ctx.beginPath();
-        ctx.arc(0, radius * 0.1, 3, 0, Math.PI * 2);
-        ctx.fill();
+        // 5. Eyes
+        px(9, 4, 3, 3, '#FFFFFF');
+        px(14, 4, 3, 3, '#FFFFFF');
+        px(10, 5, 2, 2, '#1a1a2e');
+        px(15, 5, 2, 2, '#1a1a2e');
 
-        // Whiskers
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        // Left whiskers
-        ctx.moveTo(-radius * 0.3, radius * 0.1); ctx.lineTo(-radius * 1.1, 0);
-        ctx.moveTo(-radius * 0.3, radius * 0.15); ctx.lineTo(-radius * 1.1, radius * 0.2);
-        // Right whiskers
-        ctx.moveTo(radius * 0.3, radius * 0.1); ctx.lineTo(radius * 1.1, 0);
-        ctx.moveTo(radius * 0.3, radius * 0.15); ctx.lineTo(radius * 1.1, radius * 0.2);
-        ctx.stroke();
+        // 6. Nose
+        px(12, 8, 2, 2, noseColor);
+
+        // 7. Whiskers
+        px(2, 7, 4, 1, '#DDDDDD');
+        px(20, 7, 4, 1, '#DDDDDD');
+        px(2, 9, 5, 1, '#DDDDDD');
+        px(19, 9, 5, 1, '#DDDDDD');
+
+        // 8. Legs (Walking animation)
+        const isMoving = Math.hypot(player.vx || 0, player.vy || 0) > 0.1 || (player.isLocalPlayer && (window.gameInstance?.keysPressed['KeyW'] || window.gameInstance?.keysPressed['KeyS'] || window.gameInstance?.keysPressed['KeyA'] || window.gameInstance?.keysPressed['KeyD'] || window.gameInstance?.keysPressed['ArrowUp'] || window.gameInstance?.keysPressed['ArrowDown'] || window.gameInstance?.keysPressed['ArrowLeft'] || window.gameInstance?.keysPressed['ArrowRight']));
+        const isBotMoving = !player.isLocalPlayer && player.currentPath && player.currentPath.length > 0;
+
+        if (isMoving || isBotMoving) {
+            const lo = Math.sin((window.gameInstance?.gameTimer || 0) * 15) * 3;
+            px(4, 26, 4, Math.max(2, 5 + lo), legsColor);
+            px(12, 26, 4, Math.max(2, 5 - lo), legsColor);
+            px(18, 26, 4, Math.max(2, 5 + lo), legsColor);
+
+            px(4, 30 + lo, 5, 2, pawColor);
+            px(12, 30 - lo, 5, 2, pawColor);
+            px(18, 30 + lo, 5, 2, pawColor);
+        } else {
+            px(4, 26, 4, 5, legsColor);
+            px(12, 26, 4, 5, legsColor);
+            px(18, 26, 4, 5, legsColor);
+
+            px(4, 30, 5, 2, pawColor);
+            px(12, 30, 5, 2, pawColor);
+            px(18, 30, 5, 2, pawColor);
+        }
     }
 
     static drawDog(ctx, radius, colorObj, player) {
@@ -264,48 +250,78 @@ export class SpriteRenderer {
     }
 
     static drawDeadBody(ctx, radius, colorObj) {
-        // Intact cat body lying down with eyes closed
         ctx.save();
-        ctx.fillStyle = colorObj.main;
-        ctx.beginPath();
-        ctx.arc(0, 0, radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.rotate(Math.PI / 2);
+
+        const bodyColor = colorObj.main || '#F5A623';
+        const highlightColor = colorObj.accent || '#F7BF56';
+        const earColor = '#FF8FAB';
+        const noseColor = '#FF6B8A';
+        const pawColor = '#FFFFFF';
+        const legsColor = colorObj.accent;
+
+        const cx = -12;
+        const cy = -16;
+
+        function px(rx, ry, w, h, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(cx + rx, cy + ry, w, h);
+        }
+
+        // Tail
+        px(-4, 8, 6, 4, bodyColor);
+        px(-6, 5, 4, 5, legsColor);
+
+        // Body
+        px(2, 10, 20, 16, bodyColor);
+        px(4, 12, 16, 12, highlightColor);
+
+        // Head
+        px(6, 0, 16, 14, bodyColor);
+        px(8, 2, 12, 10, highlightColor);
 
         // Ears
-        ctx.beginPath();
-        ctx.moveTo(-radius * 0.7, -radius * 0.3);
-        ctx.lineTo(-radius * 0.9, -radius * 0.9);
-        ctx.lineTo(-radius * 0.2, -radius * 0.7);
-        ctx.closePath();
-        ctx.fill();
+        px(6, -4, 4, 6, bodyColor);
+        px(16, -4, 4, 6, bodyColor);
+        px(7, -3, 2, 4, earColor);
+        px(17, -3, 2, 4, earColor);
 
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.7, -radius * 0.3);
-        ctx.lineTo(radius * 0.9, -radius * 0.9);
-        ctx.lineTo(radius * 0.2, -radius * 0.7);
-        ctx.closePath();
-        ctx.fill();
+        // Nose
+        px(12, 8, 2, 2, noseColor);
 
-        // Closed eyes (x x)
-        ctx.strokeStyle = '#2d3436';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        // Left eye X
-        ctx.moveTo(-radius * 0.4, -radius * 0.2); ctx.lineTo(-radius * 0.2, 0);
-        ctx.moveTo(-radius * 0.2, -radius * 0.2); ctx.lineTo(-radius * 0.4, 0);
-        // Right eye X
-        ctx.moveTo(radius * 0.2, -radius * 0.2); ctx.lineTo(radius * 0.4, 0);
-        ctx.moveTo(radius * 0.4, -radius * 0.2); ctx.lineTo(radius * 0.2, 0);
-        ctx.stroke();
+        // Whiskers
+        px(2, 7, 4, 1, '#DDDDDD');
+        px(20, 7, 4, 1, '#DDDDDD');
+        px(2, 9, 5, 1, '#DDDDDD');
+        px(19, 9, 5, 1, '#DDDDDD');
 
-        // Big Scratch Mark (3 red diagonal claw slashes across chest)
+        // Legs
+        px(4, 26, 4, 5, legsColor);
+        px(12, 26, 4, 5, legsColor);
+        px(18, 26, 4, 5, legsColor);
+        px(4, 30, 5, 2, pawColor);
+        px(12, 30, 5, 2, pawColor);
+        px(18, 30, 5, 2, pawColor);
+
+        // Closed Dead Eyes (X X)
+        px(9, 4, 3, 3, '#FFFFFF');
+        px(14, 4, 3, 3, '#FFFFFF');
+        ctx.strokeStyle = '#1a1a2e'; ctx.lineWidth = 1.5;
+        // Left Eye X
+        ctx.beginPath(); ctx.moveTo(cx + 9, cy + 4); ctx.lineTo(cx + 12, cy + 7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + 12, cy + 4); ctx.lineTo(cx + 9, cy + 7); ctx.stroke();
+        // Right Eye X
+        ctx.beginPath(); ctx.moveTo(cx + 14, cy + 4); ctx.lineTo(cx + 17, cy + 7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx + 17, cy + 4); ctx.lineTo(cx + 14, cy + 7); ctx.stroke();
+
+        // Big Red Scratch Mark
         ctx.strokeStyle = '#d63031';
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(-radius * 0.5, radius * 0.1); ctx.lineTo(radius * 0.2, Math.max(10, radius * 0.6));
-        ctx.moveTo(-radius * 0.3, -radius * 0.1); ctx.lineTo(radius * 0.4, radius * 0.4);
-        ctx.moveTo(-radius * 0.1, -radius * 0.3); ctx.lineTo(radius * 0.6, radius * 0.2);
+        ctx.moveTo(cx + 6, cy + 14); ctx.lineTo(cx + 18, cy + 22);
+        ctx.moveTo(cx + 8, cy + 12); ctx.lineTo(cx + 20, cy + 20);
+        ctx.moveTo(cx + 10, cy + 10); ctx.lineTo(cx + 22, cy + 18);
         ctx.stroke();
 
         ctx.restore();

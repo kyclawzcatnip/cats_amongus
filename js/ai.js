@@ -193,6 +193,8 @@ export class AIController {
                 }
                 bot.currentPath.shift();
             } else {
+                if (dx < 0) bot.scaleX = -1;
+                else if (dx > 0) bot.scaleX = 1;
                 const moveDist = bot.speed * dt * 0.8;
                 const nextX = bot.x + (dx / dist) * moveDist;
                 const nextY = bot.y + (dy / dist) * moveDist;
