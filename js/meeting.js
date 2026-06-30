@@ -149,7 +149,9 @@ export class MeetingManager {
         const aliveNames = players.filter(p => !p.isDead).map(p => p.name);
         const roomNames = ['Fish Storage', 'Yarn Engine', 'Nap Quarters', 'Kitchen', 'Workshop', 'Cat Garden', 'Bridge', 'Cargo Bay'];
 
-        aliveBots.forEach((bot, index) => {
+        // Select a subset of up to 5 bots to speak in chat to prevent message spam
+        const talkers = [...aliveBots].sort(() => 0.5 - Math.random()).slice(0, 5);
+        talkers.forEach((bot, index) => {
             setTimeout(() => {
                 if (!this.active) return;
                 let lineText = "";
@@ -194,8 +196,12 @@ export class MeetingManager {
                 msg.className = 'chat-msg bot-msg';
                 msg.innerHTML = `<strong>${bot.name}:</strong> ${lineText}`;
                 this.appendChatMessage(chatContainer, msg);
-            }, (index + 1) * 800);
+            }, (index + 1) * 600);
+        });
 
+        // Loop all alive bots to cast their votes with a fast, randomized delay (0.8s to 3.5s)
+        aliveBots.forEach((bot) => {
+            const voteDelay = 800 + Math.random() * 2700;
             setTimeout(() => {
                 if (!this.active) return;
                 if (bot.witnessedKillerId !== undefined && bot.witnessedKillerId !== null) {
@@ -231,7 +237,7 @@ export class MeetingManager {
                 if (allVoted) {
                     this.tallyVotes(players);
                 }
-            }, (index + 1) * 1200 + 1000);
+            }, voteDelay);
         });
     }
 
