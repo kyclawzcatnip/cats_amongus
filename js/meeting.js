@@ -22,12 +22,6 @@ export class MeetingManager {
         if (isNearBottom) {
             container.scrollTop = container.scrollHeight;
         }
-        setTimeout(() => {
-            element.classList.add('fade-out');
-            setTimeout(() => {
-                element.remove();
-            }, 1000);
-        }, 4000);
     }
 
     startMeeting(reporter, bodyPlayer, players, onComplete) {
