@@ -4144,7 +4144,7 @@ class Game {
             this.defensiveProtocolTimer += dt;
             if (this.defensiveProtocolTimer >= 20) {
                 this.defensiveProtocolTimer = 0;
-                if (!this.defensiveProtocolActive && Math.random() < 0.025) {
+                if (!this.defensiveProtocolActive && Math.random() < 0.05) {
                     this.triggerDefensiveProtocol();
                 }
             }
