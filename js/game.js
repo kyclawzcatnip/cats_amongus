@@ -524,6 +524,40 @@ class Game {
             this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
             this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
 
+            // Auto-close task modal if player walks too far from the task location (105px)
+            if (this.activeTask) {
+                if (this.activeTask.id !== 'monitor_cams_persistent') {
+                    const roomObj = ROOMS.find(r => r.name.includes(this.activeTask.room));
+                    if (roomObj) {
+                        const baseTaskId = this.activeTask.id.split('_reassigned_')[0];
+                        const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                        if (taskLoc) {
+                            const dist = Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y);
+                            if (dist > 105) {
+                                if (this.activeTaskCleanup) {
+                                    this.activeTaskCleanup();
+                                    this.activeTaskCleanup = null;
+                                }
+                                this.uiManager.hideScreen('task-modal');
+                                this.activeTask = null;
+                            }
+                        }
+                    }
+                } else {
+                    const camX = this.selectedMap === 'catnip_observatory' ? 1380 : 380;
+                    const camY = this.selectedMap === 'catnip_observatory' ? 950 : 750;
+                    const dist = Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY);
+                    if (dist > 105) {
+                        if (this.activeTaskCleanup) {
+                            this.activeTaskCleanup();
+                            this.activeTaskCleanup = null;
+                        }
+                        this.uiManager.hideScreen('task-modal');
+                        this.activeTask = null;
+                    }
+                }
+            }
+
             // Update Sabotage System
             const sabResult = this.sabotageSystem.update(dt);
             if (sabResult === 'ENGINE_MELTDOWN') {

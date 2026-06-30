@@ -1874,6 +1874,55 @@ class AIController {
             }
         }
 
+        // Crewmate Task Protection/Guard Behavior: If we see another cat performing a task, stay near them to protect them!
+        if (bot.role !== 'evil Dog') {
+            const isPerformingTask = (playerObj) => {
+                if (playerObj.isLocalPlayer) {
+                    return window.gameInstance && window.gameInstance.activeTask !== null;
+                }
+                return playerObj.taskTimer > 0 && playerObj.currentTaskToComplete;
+            };
+
+            let protectTarget = null;
+            for (const p of players) {
+                if (p.id !== bot.id && !p.isDead && p.role !== 'evil Dog') {
+                    if (isPerformingTask(p)) {
+                        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+                        const sameFloor = (bot.y >= 2800) === (p.y >= 2800);
+                        const isLOSClear = window.isLineOfSightClear ? window.isLineOfSightClear(bot.x, bot.y, p.x, p.y) : true;
+                        if (sameFloor && d < 250 && isLOSClear) {
+                            protectTarget = p;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (protectTarget) {
+                const angle = Math.atan2(bot.y - protectTarget.y, bot.x - protectTarget.x);
+                const targetX = protectTarget.x + Math.cos(angle) * 60;
+                const targetY = protectTarget.y + Math.sin(angle) * 60;
+                
+                const dx = targetX - bot.x;
+                const dy = targetY - bot.y;
+                const dist = Math.hypot(dx, dy);
+                
+                if (dist > 15) {
+                    if (dx < 0) bot.scaleX = -1;
+                    else if (dx > 0) bot.scaleX = 1;
+                    const moveDist = bot.speed * dt * 0.8;
+                    const nextX = bot.x + (dx / dist) * moveDist;
+                    const nextY = bot.y + (dy / dist) * moveDist;
+                    if (isWalkable(nextX, nextY)) {
+                        bot.x = nextX;
+                        bot.y = nextY;
+                    }
+                }
+                bot.isFleeing = false;
+                return; // Guarding behavior overrides normal task logic!
+            }
+        }
+
         // 2. Fleeing Behavior
         if (bot.role !== 'evil Dog') {
             if (!bot.suspicionLevels) bot.suspicionLevels = {};
@@ -3556,6 +3605,40 @@ class Game {
         if (this.state === 'PLAYING') {
             this.localPlayer.update(dt, this.keysPressed, MAP_BOUNDS);
             this.mapRenderer.updateCamera(this.localPlayer.x, this.localPlayer.y, this.canvas.width, this.canvas.height);
+
+            // Auto-close task modal if player walks too far from the task location (105px)
+            if (this.activeTask) {
+                if (this.activeTask.id !== 'monitor_cams_persistent') {
+                    const roomObj = ROOMS.find(r => r.name.includes(this.activeTask.room));
+                    if (roomObj) {
+                        const baseTaskId = this.activeTask.id.split('_reassigned_')[0];
+                        const taskLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                        if (taskLoc) {
+                            const dist = Math.hypot(this.localPlayer.x - taskLoc.x, this.localPlayer.y - taskLoc.y);
+                            if (dist > 105) {
+                                if (this.activeTaskCleanup) {
+                                    this.activeTaskCleanup();
+                                    this.activeTaskCleanup = null;
+                                }
+                                this.uiManager.hideScreen('task-modal');
+                                this.activeTask = null;
+                            }
+                        }
+                    }
+                } else {
+                    const camX = this.selectedMap === 'catnip_observatory' ? 1380 : 380;
+                    const camY = this.selectedMap === 'catnip_observatory' ? 950 : 750;
+                    const dist = Math.hypot(this.localPlayer.x - camX, this.localPlayer.y - camY);
+                    if (dist > 105) {
+                        if (this.activeTaskCleanup) {
+                            this.activeTaskCleanup();
+                            this.activeTaskCleanup = null;
+                        }
+                        this.uiManager.hideScreen('task-modal');
+                        this.activeTask = null;
+                    }
+                }
+            }
             if (this.sabotageSystem.update(dt) === 'ENGINE_MELTDOWN') {
                 this.endGame('DEFEAT!', 'Yarn Engine exploded!');
             }
