@@ -176,11 +176,48 @@ class Game {
     handleUseAction() {
         if (this.localPlayer.isDead) return;
 
-        // Check if player has knife and is near an invader
-        if (this.localPlayer.hasKnife && this.invaders) {
-            const nearbyInvader = this.invaders.find(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 80);
+        // Check reloading at Workshop first!
+        const isObs = this.selectedMap === 'catnip_observatory';
+        const wsX = isObs ? 2370 : 2570;
+        const wsY = isObs ? 4720 : 1840;
+        const nearWorkshop = Math.hypot(this.localPlayer.x - wsX, this.localPlayer.y - wsY) <= 95;
+        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo < 5 && nearWorkshop) {
+            this.localPlayer.gunAmmo = 5;
+            soundManager.playTaskComplete();
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2ed573; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #55efc4;';
+            banner.innerText = '🔋 GUN FULLY RELOADED! (5/5 Ammo)';
+            document.body.appendChild(banner);
+            setTimeout(() => banner.remove(), 2500);
+            return;
+        }
+
+        // Check if player has gun and ammo to shoot at a nearby invader
+        if (this.localPlayer.hasGun && this.localPlayer.gunAmmo > 0 && this.invaders) {
+            const nearbyInvader = this.invaders.find(inv => Math.hypot(this.localPlayer.x - inv.x, this.localPlayer.y - inv.y) <= 300);
             if (nearbyInvader) {
+                this.localPlayer.gunAmmo--;
+                soundManager.playVoteClick(); // Shoot sound effect!
+                
+                // Add laser beam effect
+                this.activeLaserLines = this.activeLaserLines || [];
+                this.activeLaserLines.push({
+                    fromX: this.localPlayer.x,
+                    fromY: this.localPlayer.y,
+                    toX: nearbyInvader.x,
+                    toY: nearbyInvader.y,
+                    timer: 0.15
+                });
+
                 this.killInvader(nearbyInvader.id, this.localPlayer);
+                
+                if (this.localPlayer.gunAmmo === 0) {
+                    const banner = document.createElement('div');
+                    banner.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ff7675; color:white; padding:12px 24px; border-radius:10px; font-family:var(--font-heading); font-size:1.2rem; font-weight:bold; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,0.5); border:2px solid #d63031;';
+                    banner.innerText = '⚠️ OUT OF AMMO! Go to the Workshop to reload.';
+                    document.body.appendChild(banner);
+                    setTimeout(() => banner.remove(), 3000);
+                }
                 return;
             }
         }
@@ -278,7 +315,7 @@ class Game {
 
         // 3. Check Tasks
         for (const t of this.localPlayer.tasks) {
-            if (t.completed) continue;
+            if (t.completed && !(this.defensiveProtocolActive && (t.id === 'def_attack_ships' || t.id === 'clear_asteroids'))) continue;
             const roomObj = ROOMS.find(r => r.name.includes(t.room));
             if (!roomObj) continue;
             const baseTaskId = t.id.split('_reassigned_')[0];
@@ -296,7 +333,8 @@ class Game {
                         this.activeTask = null;
                         
                         if (t.id === 'def_get_weapons') {
-                            this.localPlayer.hasKnife = true;
+                            this.localPlayer.hasGun = true;
+                            this.localPlayer.gunAmmo = 5;
                         }
                         if (t.id === 'post_def_heal') {
                             this.localPlayer.health = 3;
@@ -681,6 +719,12 @@ class Game {
 
     update(dt) {
         if (this.state === 'PLAYING') {
+            // Update active laser lines timers
+            if (this.activeLaserLines) {
+                this.activeLaserLines.forEach(line => line.timer -= dt);
+                this.activeLaserLines = this.activeLaserLines.filter(line => line.timer > 0);
+            }
+
             // Update Defensive Protocol Timer
             this.defensiveProtocolTimer += dt;
             if (this.defensiveProtocolTimer >= 20) {
@@ -768,6 +812,26 @@ class Game {
                 this.sabotageSystem
             );
 
+            // Draw active gun laser lines
+            if (this.activeLaserLines && this.activeLaserLines.length > 0) {
+                const camX = this.mapRenderer.cameraX;
+                const camY = this.mapRenderer.cameraY;
+                const halfW = this.canvas.width / 2;
+                const halfH = this.canvas.height / 2;
+                this.ctx.lineWidth = 4;
+                this.ctx.strokeStyle = '#00cec9'; // Bright cyan laser beam!
+                this.activeLaserLines.forEach(line => {
+                    const fromX = line.fromX - camX + halfW;
+                    const fromY = line.fromY - camY + halfH;
+                    const toX = line.toX - camX + halfW;
+                    const toY = line.toY - camY + halfH;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(fromX, fromY);
+                    this.ctx.lineTo(toX, toY);
+                    this.ctx.stroke();
+                });
+            }
+
             // Minimap
             const miniCanvas = document.getElementById('minimap-canvas');
             if (miniCanvas) {
@@ -797,7 +861,7 @@ class Game {
         const emergencyTasks = [
             { id: 'def_repair_shields', name: 'Emergency: Repair Shields', room: 'Shields', type: 'fill_meter', completed: false },
             { id: 'def_attack_ships', name: 'Emergency: Attack Enemy Ships', room: 'Bridge', type: 'shoot_asteroids', completed: false },
-            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', room: 'Kitchen', type: 'rapid_click', completed: false },
+            { id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', room: 'Kitchen', type: 'rapid_click', completed: false },
             { id: 'def_reload_torpedoes', name: 'Emergency: Reload Torpedoes', room: 'Weapons', type: 'fill_meter', completed: false }
         ];
         emergencyTasks.forEach(task => {
@@ -822,7 +886,7 @@ class Game {
         }
         const kitchenRoom = ROOMS.find(r => r.id === 'kitchen');
         if (kitchenRoom && !kitchenRoom.tasks.some(t => t.id === 'def_get_weapons')) {
-            kitchenRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Knives', x: kitchenRoom.x + kitchenRoom.width / 2, y: kitchenRoom.y + kitchenRoom.height / 2 });
+            kitchenRoom.tasks.push({ id: 'def_get_weapons', name: 'Emergency: Obtain Defensive Gun', x: kitchenRoom.x + kitchenRoom.width / 2, y: kitchenRoom.y + kitchenRoom.height / 2 });
         }
         const weaponsRoom = ROOMS.find(r => r.id === 'weapons');
         if (weaponsRoom && !weaponsRoom.tasks.some(t => t.id === 'def_reload_torpedoes')) {
@@ -832,6 +896,66 @@ class Game {
 
     updateSpaceInvaders(dt) {
         const speed = 80;
+        
+        // Continuous Spawning: every 5.0 seconds, keep spawning invaders (max 5 active)
+        this.invaderSpawnTimer = (this.invaderSpawnTimer || 0) + dt;
+        if (this.invaderSpawnTimer >= 5.0) {
+            this.invaderSpawnTimer = 0;
+            if (this.invaders.length < 5) {
+                const shuffledRooms = [...ROOMS].sort(() => 0.5 - Math.random());
+                const room = shuffledRooms[0];
+                const rx = room.x + room.width / 2;
+                const ry = room.y + room.height / 2;
+                const nextId = Math.max(...this.invaders.map(inv => inv.id), -1) + 1;
+                this.invaders.push({
+                    id: nextId,
+                    x: rx,
+                    y: ry,
+                    vx: (Math.random() - 0.5) * 80,
+                    vy: (Math.random() - 0.5) * 80,
+                    radius: 16
+                });
+            }
+        }
+
+        // Let bots shoot invaders if they have a gun and ammo
+        this.players.forEach(p => {
+            if (p.isLocalPlayer || p.isDead || p.role === 'evil Dog' || !p.hasGun || p.gunAmmo <= 0) return;
+            p.shootCooldown = p.shootCooldown || 0;
+            if (p.shootCooldown > 0) {
+                p.shootCooldown -= dt;
+            } else {
+                const targetInv = this.invaders.find(inv => Math.hypot(p.x - inv.x, p.y - inv.y) <= 250);
+                if (targetInv) {
+                    p.gunAmmo--;
+                    p.shootCooldown = 1.0; // 1s shoot cooldown
+                    soundManager.playVoteClick();
+                    this.activeLaserLines = this.activeLaserLines || [];
+                    this.activeLaserLines.push({
+                        fromX: p.x,
+                        fromY: p.y,
+                        toX: targetInv.x,
+                        toY: targetInv.y,
+                        timer: 0.15
+                    });
+                    this.killInvader(targetInv.id, p);
+                }
+            }
+        });
+
+        // Let bots reload their guns at the Workshop if out of ammo
+        this.players.forEach(p => {
+            if (p.isLocalPlayer || p.isDead || p.role === 'evil Dog' || !p.hasGun || p.gunAmmo > 0) return;
+            const isObs = this.selectedMap === 'catnip_observatory';
+            const wsX = isObs ? 2370 : 2570;
+            const wsY = isObs ? 4720 : 1840;
+            const nearWorkshop = Math.hypot(p.x - wsX, p.y - wsY) <= 95;
+            if (nearWorkshop) {
+                p.gunAmmo = 5;
+                soundManager.playTaskComplete();
+            }
+        });
+
         const isWalkable = (px, py) => {
             const margin = 12;
             for (const r of ROOMS) {
@@ -877,40 +1001,34 @@ class Game {
                     if (p.role === 'evil Dog') {
                         return; // Invaders do not attack the evil dog
                     }
-                    if (p.hasKnife) {
-                        if (!p.isLocalPlayer) {
-                            this.killInvader(inv.id, p);
-                        }
-                    } else {
-                        if (!p.invulnTimer || p.invulnTimer <= 0) {
-                            p.health = (p.health || 3) - 1;
-                            p.invulnTimer = 1.5;
+                    if (!p.invulnTimer || p.invulnTimer <= 0) {
+                        p.health = (p.health || 3) - 1;
+                        p.invulnTimer = 1.5;
+                        
+                        if (p.isLocalPlayer) {
+                            const angle = Math.atan2(p.y - inv.y, p.x - inv.x);
+                            p.x += Math.cos(angle) * 45;
+                            p.y += Math.sin(angle) * 45;
+                            const overlay = document.createElement('div');
+                            overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(214, 48, 49, 0.45); z-index:9999; pointer-events:none; transition:opacity 0.4s;';
+                            document.body.appendChild(overlay);
+                            setTimeout(() => overlay.remove(), 400);
+                            soundManager.playDefeat();
                             
-                            if (p.isLocalPlayer) {
-                                const angle = Math.atan2(p.y - inv.y, p.x - inv.x);
-                                p.x += Math.cos(angle) * 45;
-                                p.y += Math.sin(angle) * 45;
-                                const overlay = document.createElement('div');
-                                overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(214, 48, 49, 0.45); z-index:9999; pointer-events:none; transition:opacity 0.4s;';
-                                document.body.appendChild(overlay);
-                                setTimeout(() => overlay.remove(), 400);
-                                soundManager.playDefeat();
-                                
-                                if (p.health <= 0) {
-                                    p.isDead = true;
-                                    p.killedByInvader = true;
-                                    this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
-                                }
+                            if (p.health <= 0) {
+                                p.isDead = true;
+                                p.killedByInvader = true;
+                                this.endGame('DEFEAT!', 'You were eliminated by Invader Dogs!');
+                            }
+                        } else {
+                            soundManager.playDefeat();
+                            if (p.health <= 0) {
+                                p.isDead = true;
+                                p.killedByInvader = true;
                             } else {
-                                soundManager.playDefeat();
-                                if (p.health <= 0) {
-                                    p.isDead = true;
-                                    p.killedByInvader = true;
-                                } else {
-                                    p.isFleeing = true;
-                                    p.fleeTimer = 3.0;
-                                    p.currentPath = [];
-                                }
+                                p.isFleeing = true;
+                                p.fleeTimer = 3.0;
+                                p.currentPath = [];
                             }
                         }
                     }
@@ -934,16 +1052,15 @@ class Game {
 
     checkDefensiveProtocolStatus() {
         if (!this.defensiveProtocolActive) return;
-        const allTasksDone = this.localPlayer.tasks
-            .filter(t => t.id.startsWith('def_'))
-            .every(t => t.completed);
-        const allInvadersKilled = this.invaders.length === 0;
-        if (allTasksDone || allInvadersKilled) {
+        const shipsWin = (this.enemyShipsDestroyed || 0) >= 20;
+        if (shipsWin) {
             this.defensiveProtocolActive = false;
+            this.enemyShipsDestroyed = 0;
             this.localPlayer.tasks = this.localPlayer.tasks.filter(t => !t.id.startsWith('def_'));
             this.players.forEach(p => {
                 if (p.tasks) p.tasks = p.tasks.filter(t => !t.id.startsWith('def_'));
-                p.hasKnife = false;
+                p.hasGun = false;
+                p.gunAmmo = 0;
             });
             ROOMS.forEach(room => {
                 room.tasks = room.tasks.filter(t => !t.id.startsWith('def_'));

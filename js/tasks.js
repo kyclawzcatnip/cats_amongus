@@ -483,6 +483,13 @@ export class TaskManager {
                     destroyed++;
                     document.getElementById('ast-count').innerText = destroyed;
                     
+                    if (hitAst.isEnemyShip) {
+                        if (window.gameInstance) {
+                            window.gameInstance.enemyShipsDestroyed = (window.gameInstance.enemyShipsDestroyed || 0) + 1;
+                            window.gameInstance.checkDefensiveProtocolStatus();
+                        }
+                    }
+
                     if (destroyed >= 10) {
                         task.completed = true;
                         soundManager.playTaskComplete();

@@ -117,8 +117,8 @@ export class AIController {
             }
         }
 
-        // 2. Fleeing Behavior (Flee from Invader Dogs during Defensive Protocol if unarmed)
-        if (bot.role !== 'evil Dog' && window.gameInstance && window.gameInstance.defensiveProtocolActive && !bot.hasKnife && window.gameInstance.invaders) {
+        // 2. Fleeing Behavior (Flee from Invader Dogs during Defensive Protocol if unarmed or out of ammo)
+        if (bot.role !== 'evil Dog' && window.gameInstance && window.gameInstance.defensiveProtocolActive && (!bot.hasGun || bot.gunAmmo === 0) && window.gameInstance.invaders) {
             let nearestInvader = null;
             let minDist = 280;
             window.gameInstance.invaders.forEach(inv => {
@@ -371,24 +371,69 @@ export class AIController {
             let targetKey = 'bridge';
             let taskTarget = null;
 
-            let tasksToSelect = uncompletedTasks;
-            const hasKnifeTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
-            if (hasKnifeTask) {
-                tasksToSelect = [hasKnifeTask];
-            }
-
-            if (tasksToSelect.length > 0) {
-                const nextTask = tasksToSelect[Math.floor(Math.random() * tasksToSelect.length)];
-                const roomObj = ROOMS.find(r => r.name.includes(nextTask.room));
-                if (roomObj) {
-                    targetKey = roomObj.id;
-                    const baseTaskId = nextTask.id.split('_reassigned_')[0];
-                    const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
-                    if (tkLoc) taskTarget = { ...tkLoc, taskObj: nextTask };
+            if (window.gameInstance && window.gameInstance.defensiveProtocolActive && bot.role !== 'evil Dog') {
+                if (!bot.hasGun) {
+                    // Go to Kitchen to get the gun
+                    const hasWeaponTask = uncompletedTasks.find(t => t.id === 'def_get_weapons');
+                    if (hasWeaponTask) {
+                        const roomObj = ROOMS.find(r => r.id === 'kitchen');
+                        if (roomObj) {
+                            targetKey = 'kitchen';
+                            const baseTaskId = hasWeaponTask.id.split('_reassigned_')[0];
+                            const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                            if (tkLoc) taskTarget = { ...tkLoc, taskObj: hasWeaponTask };
+                        }
+                    } else {
+                        targetKey = 'kitchen';
+                    }
+                } else if (bot.gunAmmo === 0) {
+                    // Go to Workshop to reload
+                    targetKey = 'workshop';
+                } else if (window.gameInstance.invaders && window.gameInstance.invaders.length > 0) {
+                    // Active hunting! Seek out the nearest invader dog
+                    const nearestInv = window.gameInstance.invaders.slice().sort((a, b) => Math.hypot(a.x - bot.x, a.y - bot.y) - Math.hypot(b.x - bot.x, b.y - bot.y))[0];
+                    if (nearestInv) {
+                        let closestRoom = 'bridge';
+                        let minDist = Infinity;
+                        for (const key of Object.keys(ROOM_NODES)) {
+                            const d = Math.hypot(nearestInv.x - ROOM_NODES[key].center.x, nearestInv.y - ROOM_NODES[key].center.y);
+                            if (d < minDist) { minDist = d; closestRoom = key; }
+                        }
+                        targetKey = closestRoom;
+                        taskTarget = { x: nearestInv.x, y: nearestInv.y };
+                    }
+                } else {
+                    // Normal tasks if no invaders currently
+                    let tasksToSelect = uncompletedTasks;
+                    if (tasksToSelect.length > 0) {
+                        const nextTask = tasksToSelect[Math.floor(Math.random() * tasksToSelect.length)];
+                        const roomObj = ROOMS.find(r => r.name.includes(nextTask.room));
+                        if (roomObj) {
+                            targetKey = roomObj.id;
+                            const baseTaskId = nextTask.id.split('_reassigned_')[0];
+                            const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                            if (tkLoc) taskTarget = { ...tkLoc, taskObj: nextTask };
+                        }
+                    } else {
+                        const roomKeys = Object.keys(ROOM_NODES);
+                        targetKey = roomKeys[Math.floor(Math.random() * roomKeys.length)];
+                    }
                 }
             } else {
-                const roomKeys = Object.keys(ROOM_NODES);
-                targetKey = roomKeys[Math.floor(Math.random() * roomKeys.length)];
+                let tasksToSelect = uncompletedTasks;
+                if (tasksToSelect.length > 0) {
+                    const nextTask = tasksToSelect[Math.floor(Math.random() * tasksToSelect.length)];
+                    const roomObj = ROOMS.find(r => r.name.includes(nextTask.room));
+                    if (roomObj) {
+                        targetKey = roomObj.id;
+                        const baseTaskId = nextTask.id.split('_reassigned_')[0];
+                        const tkLoc = roomObj.tasks.find(tk => tk.id === baseTaskId);
+                        if (tkLoc) taskTarget = { ...tkLoc, taskObj: nextTask };
+                    }
+                } else {
+                    const roomKeys = Object.keys(ROOM_NODES);
+                    targetKey = roomKeys[Math.floor(Math.random() * roomKeys.length)];
+                }
             }
 
             let closestRoomKey = 'bridge';

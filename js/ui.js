@@ -262,9 +262,26 @@ export class UIManager {
         } else if (this.game && this.game.defensiveProtocolActive) {
             sabBanner.classList.remove('hidden');
             const hpStr = player.role === 'evil Dog' ? '😈' : '❤️'.repeat(this.game.localPlayer.health || 0);
-            document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ELIMINATE ${this.game.invaders.length} INVADER DOGS! 🚨`;
+            const shipsDestroyed = this.game.enemyShipsDestroyed || 0;
+            let ammoStr = '';
+            if (this.game.localPlayer.hasGun) {
+                ammoStr = `🔫 AMMO: ${this.game.localPlayer.gunAmmo}/5`;
+            } else {
+                ammoStr = `⚠️ GET GUN IN KITCHEN!`;
+            }
+            document.getElementById('sabotage-text').innerText = `🚨 DEFENSIVE PROTOCOL ACTIVE! HP: ${hpStr} | ${ammoStr} | SHIPS DESTROYED: ${shipsDestroyed}/20 🚨`;
         } else {
             sabBanner.classList.add('hidden');
+        }
+
+        const redAlert = document.getElementById('red-alert-overlay');
+        if (redAlert) {
+            const shouldAlert = (this.game && this.game.defensiveProtocolActive) || (sabotageSystem && sabotageSystem.activeSabotage === 'engine');
+            if (shouldAlert) {
+                redAlert.classList.remove('hidden');
+            } else {
+                redAlert.classList.add('hidden');
+            }
         }
 
         let canUse = false;
@@ -315,10 +332,21 @@ export class UIManager {
             }
         }
 
-        if (!canUse && player.hasKnife && this.game && this.game.defensiveProtocolActive && this.game.invaders) {
-            const nearbyInvader = this.game.invaders.find(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 80);
-            if (nearbyInvader) {
-                canUse = true; useText = "SLICE"; useIcon = "🔪";
+        if (!canUse && player.hasGun && this.game && this.game.defensiveProtocolActive) {
+            const isObs = this.game.selectedMap === 'catnip_observatory';
+            const wsX = isObs ? 2370 : 2570;
+            const wsY = isObs ? 4720 : 1840;
+            const nearWorkshop = Math.hypot(player.x - wsX, player.y - wsY) <= 95;
+            
+            if (player.gunAmmo < 5 && nearWorkshop) {
+                canUse = true; useText = "RELOAD"; useIcon = "🔋";
+            } else if (player.gunAmmo > 0 && this.game.invaders) {
+                const nearbyInvader = this.game.invaders.find(inv => Math.hypot(player.x - inv.x, player.y - inv.y) <= 300);
+                if (nearbyInvader) {
+                    canUse = true; useText = `SHOOT (${player.gunAmmo})`; useIcon = "🔫";
+                }
+            } else if (player.gunAmmo === 0) {
+                canUse = true; useText = "NO AMMO"; useIcon = "⚠️";
             }
         }
 
