@@ -305,7 +305,10 @@ class SpriteRenderer {
             ctx.textAlign = 'center';
             let displayName = player.name;
             let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : '#ffffff';
-            if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
+            if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.isDead && player.id === window.gameInstance.localPlayer.killerId) {
+                fillStyle = '#ff7675';
+                displayName = '🔪 ' + player.name + ' (KILLED YOU)';
+            } else if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
                 fillStyle = '#ff7675';
                 displayName = '😈 ' + player.name + ' (IMPOSTOR)';
             } else if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {
@@ -3207,6 +3210,7 @@ class AIController {
                     if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
                         if (checkIsolation(target)) {
                             target.isDead = true;
+                            target.killerId = bot.id;
                             bot.lastKillTimestamp = Date.now();
                             bot.killCooldown = 30;
                             bot.justKilled = true;
@@ -4664,6 +4668,7 @@ class Game {
         for (const target of this.players) {
             if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
                 target.isDead = true;
+                target.killerId = this.localPlayer.id;
                 this.localPlayer.lastKillTimestamp = Date.now();
                 this.globalKillTimer = 15;
                 this.recordKillWitnesses(this.localPlayer, target);
@@ -5379,6 +5384,7 @@ class Game {
                             
                             if (p.health <= 0) {
                                 p.isDead = true;
+                                p.killerId = 'invader';
                                 p.killedByInvader = true;
                                 this.reassignDeadCatTasks(p);
                                 this.checkWinConditions();
@@ -5387,6 +5393,7 @@ class Game {
                             soundManager.playDefeat();
                             if (p.health <= 0) {
                                 p.isDead = true;
+                                p.killerId = 'invader';
                                 p.killedByInvader = true;
                                 this.reassignDeadCatTasks(p);
                                 this.checkWinConditions();

@@ -146,7 +146,10 @@ export class SpriteRenderer {
         
         let displayName = player.name;
         let fillStyle = (player.role === 'evil Dog' && player.isLocalPlayer) ? '#ff7675' : 'white';
-        if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
+        if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.isDead && player.id === window.gameInstance.localPlayer.killerId) {
+            fillStyle = '#ff7675';
+            displayName = '🔪 ' + player.name + ' (KILLED YOU)';
+        } else if (window.gameInstance && window.gameInstance.defensiveProtocolActive && player.role === 'evil Dog') {
             fillStyle = '#ff7675';
             displayName = '😈 ' + player.name + ' (IMPOSTOR)';
         } else if (window.gameInstance && window.gameInstance.localPlayer && window.gameInstance.localPlayer.role === 'Detective' && !player.isLocalPlayer) {

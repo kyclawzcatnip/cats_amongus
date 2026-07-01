@@ -483,6 +483,7 @@ class Game {
         for (const target of this.players) {
             if (!target.isDead && target.id !== this.localPlayer.id && Math.hypot(this.localPlayer.x - target.x, this.localPlayer.y - target.y) <= 80) {
                 target.isDead = true;
+                target.killerId = this.localPlayer.id;
                 this.localPlayer.lastKillTimestamp = Date.now();
                 this.globalKillTimer = 15;
                 this.recordKillWitnesses(this.localPlayer, target);
@@ -1231,6 +1232,7 @@ class Game {
                             
                             if (p.health <= 0) {
                                 p.isDead = true;
+                                p.killerId = 'invader';
                                 p.killedByInvader = true;
                                 this.reassignDeadCatTasks(p);
                                 this.checkWinConditions();
@@ -1239,6 +1241,7 @@ class Game {
                             soundManager.playDefeat();
                             if (p.health <= 0) {
                                 p.isDead = true;
+                                p.killerId = 'invader';
                                 p.killedByInvader = true;
                                 this.reassignDeadCatTasks(p);
                                 this.checkWinConditions();

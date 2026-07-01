@@ -648,6 +648,7 @@ export class AIController {
                     if (!target.isDead && target.id !== bot.id && target.role !== 'evil Dog' && Math.hypot(bot.x - target.x, bot.y - target.y) <= 80) {
                         if (checkIsolation(target)) {
                             target.isDead = true;
+                            target.killerId = bot.id;
                             bot.lastKillTimestamp = Date.now();
                             bot.killCooldown = 30;
                             bot.justKilled = true;
