@@ -489,33 +489,63 @@ export class MeetingManager {
 
     tallyVotes(players) {
         this.active = false;
+        
+        // 1. Fill in any missing votes first
+        players.forEach(p => {
+            if (!p.isDead && !this.votes[p.id]) {
+                let v = 'skip';
+                if (p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
+                    v = p.witnessedKillerId;
+                } else if (this.accusedId !== null) {
+                    const r = Math.random();
+                    if (r < 0.65) v = this.accusedId;
+                    else if (r < 0.85) v = 'skip';
+                    else {
+                        const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                        choices.push('skip');
+                        v = choices[Math.floor(Math.random() * choices.length)];
+                    }
+                } else {
+                    const r = Math.random();
+                    if (r < 0.60) v = 'skip';
+                    else {
+                        const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
+                        choices.push('skip');
+                        v = choices[Math.floor(Math.random() * choices.length)];
+                    }
+                }
+                this.votes[p.id] = v;
+            }
+        });
+
+        // 2. Apply Detective 85% voted out override logic
+        const detective = players.find(p => p.role === 'Detective' && !p.isDead);
+        const isDetectiveAccusing = detective && this.accusedId !== null && this.accusedId !== detective.id;
+        
+        if (isDetectiveAccusing) {
+            const shouldVoteOut = Math.random() < 0.85;
+            if (shouldVoteOut) {
+                // Ensure the accused player is voted out by crewmates
+                players.forEach(p => {
+                    if (!p.isDead && p.role !== 'evil Dog' && p.id !== this.accusedId) {
+                        this.votes[p.id] = this.accusedId;
+                    }
+                });
+            } else {
+                // Force a skip so they are NOT voted out
+                players.forEach(p => {
+                    if (!p.isDead && p.id !== detective.id) {
+                        this.votes[p.id] = 'skip';
+                    }
+                });
+            }
+        }
+
+        // 3. Tally counts
         const counts = { skip: 0 };
         players.forEach(p => {
             if (!p.isDead) {
-                let v = this.votes[p.id];
-                if (!v) {
-                    if (p.witnessedKillerId !== undefined && p.witnessedKillerId !== null) {
-                        v = p.witnessedKillerId;
-                    } else if (this.accusedId !== null) {
-                        const r = Math.random();
-                        if (r < 0.65) v = this.accusedId;
-                        else if (r < 0.85) v = 'skip';
-                        else {
-                            const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
-                            choices.push('skip');
-                            v = choices[Math.floor(Math.random() * choices.length)];
-                        }
-                    } else {
-                        const r = Math.random();
-                        if (r < 0.60) v = 'skip';
-                        else {
-                            const choices = players.filter(pl => !pl.isDead).map(pl => pl.id);
-                            choices.push('skip');
-                            v = choices[Math.floor(Math.random() * choices.length)];
-                        }
-                    }
-                    this.votes[p.id] = v;
-                }
+                const v = this.votes[p.id];
                 counts[v] = (counts[v] || 0) + 1;
             }
         });
